@@ -1,0 +1,52 @@
+plugins {
+    id 'application'
+    id 'checkstyle'
+    id 'jacoco'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'com.gradleup.shadow' version '9.6.1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+group = 'gymmie'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+application {
+    mainClass = 'gymmie.Launcher'
+}
+
+javafx {
+    version = '25.0.2'
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.14.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+checkstyle {
+    toolVersion = '14.1.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+jacoco {
+    toolVersion = '0.8.15'
+}

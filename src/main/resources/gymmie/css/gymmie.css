@@ -1,0 +1,10 @@
+.root {
+    -fx-background-color: #f7f4ee;
+    -fx-padding: 48px;
+}
+
+.title {
+    -fx-text-fill: #243b2f;
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+}
