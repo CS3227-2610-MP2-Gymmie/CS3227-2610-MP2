@@ -1,0 +1,271 @@
+# Gymmie Developer Guide
+
+Gymmie is a Java 25 JavaFX desktop application for managing a gym's membership plans, user accounts, training sessions, and session bookings. It supports three roles: Manager, Trainer, and Member.
+
+This is the initial, requirements-first version of the Developer Guide. The repository currently contains the JavaFX application scaffold only, so this guide intentionally does not include Design or Implementation sections. Those sections will be added when the corresponding domain code and shipped behavior exist.
+
+For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
+
+## Contents
+
+- [Acknowledgements](#acknowledgements)
+- [Setting up, getting started](#setting-up-getting-started)
+- [Appendix: Requirements](#appendix-requirements)
+
+---
+
+## Acknowledgements
+
+- [OpenJFX](https://openjfx.io/) provides the JavaFX 25 GUI modules used by the application.
+- [JUnit 5](https://junit.org/junit5/) provides the test framework.
+- [Gradle](https://gradle.org/) and the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) provide the build and dependency-management workflow. The project also uses the [Shadow](https://gradleup.com/shadow/) plugin to create a runnable fat JAR.
+- [Checkstyle](https://checkstyle.org/) and [JaCoCo](https://www.jacoco.org/jacoco/) are used for source checks and code-coverage reporting.
+- The overall structure of this guide, including its requirements appendix and use-case format, follows the supplied sample Developer Guide, which in turn acknowledges the [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) Developer Guide by the [SE-EDU initiative](https://se-education.org/). No AddressBook source code is reused.
+- Gymmie was built with AI assistance. The project-specific conventions and constraints given to the assistant are recorded in [`AGENTS.md`](../AGENTS.md).
+
+## Setting up, getting started
+
+**Prerequisites:** JDK 25, Git, and a desktop environment capable of running JavaFX.
+
+Verify that both `java -version` and `javac -version` report version 25. Clone the repository, then run commands from the repository root, which is the folder containing `build.gradle`. On Windows PowerShell, replace `./gradlew` with `.\gradlew.bat`.
+
+| Command | Purpose |
+| --- | --- |
+| `./gradlew run` | Launch the JavaFX application during development. |
+| `./gradlew test` | Run the JUnit tests. |
+| `./gradlew check` | Run tests and Checkstyle. |
+| `./gradlew shadowJar` | Create a runnable fat JAR in `build/libs/`. |
+| `java -jar build/libs/Gymmie-1.0.0-all.jar` | Launch the packaged application when that file has been built. |
+
+**Build configuration:** Java 25 toolchain, JavaFX 25.0.2 (`javafx.controls` and `javafx.fxml`), Gradle Wrapper 9.7.1, JUnit Jupiter 5.14.4, Checkstyle 14.1.0, JaCoCo 0.8.15, and the application entry point `gymmie.Launcher`.
+
+Test, Checkstyle, and JaCoCo reports are written under `build/reports/` by Gradle. Build output is generated under `build/`.
+
+---
+
+## Appendix: Requirements
+
+### Product scope
+
+**Target user profile:** a small or medium-sized gym that needs one desktop application for day-to-day administration and session participation. Managers maintain accounts and membership plans, Trainers manage their own sessions, and Members manage their own membership and bookings.
+
+**Value proposition:** Gymmie gives each gym role a focused dashboard while keeping shared account, membership, session, and booking rules consistent. It reduces manual coordination by connecting membership eligibility to session booking, preserves historical records when accounts or plans are no longer active, and keeps role permissions enforced in the service layer.
+
+**Account fields:** An account has a username, a password, a display name, a role, and an active flag. A Member's plan and status are derived from the Member's membership record rather than stored on the account.
+
+### Field constraints
+
+| Field | Constraint                                                        |
+| --- |-------------------------------------------------------------------|
+| Plan duration | 1–365 days.                                                       |
+| Plan price | 0–1,000,000 cents (SGD 0.00–10,000.00); zero permits a free plan. |
+| Session duration | 15–240 minutes.                                                   |
+| Session capacity | 1–50 Members.                                                     |
+| Display name | 1–100 characters.                                                 |
+| Username | 3–30 characters; ASCII letters, digits, underscore, and hyphen.   |
+| Password | 8–128 characters.                                                 |
+
+The UI accepts and displays a decimal SGD amount, such as 49.90, while the system stores the price as integer cents.
+
+Usernames are restricted to ASCII so that case-insensitive uniqueness is well defined; display names have no such character-set restriction.
+
+### User stories
+
+Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely to have) `*`.
+
+#### Shared stories
+
+| Priority | As a... | I want to... | So that... |
+|----------| --- | --- | --- |
+| `* * *`  | user | log in with my globally unique username and password and receive a distinct message if my account is deactivated | I can access Gymmie and understand why I cannot log in |
+| `* * *`  | user | be routed to the dashboard for my role after login | I see the features relevant to me |
+| `* * *`  | user | log out | I can end my session on a shared computer |
+| `* * *`  | user | have successful changes persist across application restarts | I do not lose gym records or my own activity |
+| `* * *`  | user | change my own password | I can keep my account secure without asking a Manager |
+| `* * *` | user | change my own display name | I can correct the name other users see without asking a Manager |
+
+#### Manager stories
+
+| Priority | As a... | I want to... | So that...                                                              |
+| --- | --- | --- |-------------------------------------------------------------------------|
+| `* * *` | Manager | use the seeded Manager account on first run with username `manager` and password `manager123`, while keeping that account protected from deactivation | I can set up the gym without another account existing                   |
+| `* * *` | Manager | create a membership plan with a name, duration in days, and price in SGD | Members can choose a defined plan                                       |
+| `* * *` | Manager | edit an unarchived membership plan's name, duration, or price in SGD | I can correct or update its offering                                    |
+| `* * *` | Manager | delete a membership plan that nobody has purchased | I can remove unused setup data without destroying history               |
+| `* * *` | Manager | archive a membership plan that has been purchased | I can stop new purchases while preserving existing membership history   |
+| `* * *` | Manager | unarchive an archived membership plan | it returns to the buy list when appropriate                             |
+| `* * *` | Manager | view membership plans and whether each is archived | I can administer the plan catalogue accurately                          |
+| `* * *` | Manager | create a Trainer account with an initial password | a Trainer can access Gymmie                                             |
+| `* * *` | Manager | create a Member account with an initial password | a Member can access Gymmie                                              |
+| `* * *` | Manager | view and edit Trainer profile details | Trainer records remain accurate                                         |
+| `* * *` | Manager | view and edit Member profile details without changing the Member's plan or status | I can maintain account information while the Member controls membership |
+| `* * *` | Manager | deactivate a Trainer or Member account and cancel a Member's future bookings | a departing user cannot log in while their history is retained          |
+| `* * *` | Manager | reactivate a previously deactivated Trainer or Member account | an eligible user can access Gymmie again                                |
+| `*` | Manager | record Member payments and view revenue | I can track the gym's income                                            |
+
+#### Trainer stories
+
+| Priority | As a... | I want to... | So that... |
+| --- | --- | --- | --- |
+| `* * *` | Trainer | create a session with a future start time, duration in minutes, capacity, and optional description | Members can book a session I offer |
+| `* * *` | Trainer | view my own upcoming sessions | I can prepare for the sessions I conduct |
+| `* * *` | Trainer | view the Members booked into each of my sessions | I can prepare the session roster |
+| `* * *` | Trainer | edit my own session details, without setting its start time in the past or reducing capacity below its current booking count | I can correct scheduling or capacity information while preserving valid bookings |
+| `* * *` | Trainer | change the start time of my own session to another future time without losing existing bookings | I can reschedule while preserving the roster |
+| `* * *` | Trainer | delete a session that has never had a booking | I can remove unused sessions without destroying history |
+| `* * *` | Trainer | cancel my own session before it starts, including one with bookings | affected Members know the session will not take place |
+
+#### Member stories
+
+| Priority | As a... | I want to... | So that... |
+| --- | --- | --- | --- |
+| `* * *` | Member | view my current membership status and expiry date | I know whether I can book a session |
+| `* * *` | Member | buy an available membership plan | I can become an active Member |
+| `* * *` | Member | renew my current membership plan | I can extend membership without losing remaining days when I renew early |
+| `* * *` | Member | cancel my current membership plan | I can end the membership immediately |
+| `* * *` | Member | browse sessions by Trainer and view their details | I can choose a suitable session |
+| `* * *` | Member | book an eligible session | I can attend a training session |
+| `* * *` | Member | view my upcoming and past bookings | I can track both planned and completed activity |
+| `* * *` | Member | cancel my booking before the session starts | another Member can use the released capacity |
+| `* * *` | Member | see when a booked session was cancelled and why | I know whether the Trainer, I, my membership cancellation, or account deactivation caused it |
+| `* *` | Member | switch from one membership plan to another without forfeiting remaining days | I can change plans conveniently |
+
+### Use cases
+
+#### UC1 — Member books a session
+
+**Primary actor:** Member.
+
+**MSS**
+
+1. Member logs in and opens the session catalogue.
+2. Gymmie shows sessions with their Trainer, start time, duration, description, capacity, and current booking count.
+3. Member selects a session and chooses to book it.
+4. Gymmie verifies that the Member has an active membership, the session has available capacity, the session has not started, the Member has no existing booking for it, and the session starts on or before the membership expiry date.
+5. Gymmie creates the booking and persists the change.
+6. Gymmie shows the booking in the Member's booked sessions.
+
+   Use case ends.
+
+**Extensions**
+
+- 4a. The Member has no active membership. Gymmie rejects the booking and explains that an active membership is required. Use case ends.
+- 4b. The session is full. Gymmie rejects the booking. Use case ends.
+- 4c. The session has already started. Gymmie rejects the booking. Use case ends.
+- 4d. The Member already has a booking for the session. Gymmie rejects the duplicate booking. Use case ends.
+- 4e. The session starts after the Member's membership expires. Gymmie rejects the booking. Use case ends.
+- 5a. Persistence fails. Gymmie does not publish a partial booking and reports the failure. Use case resumes at step 3.
+
+#### UC2 — Member cancels a plan
+
+**Primary actor:** Member.
+
+**MSS**
+
+1. Member opens their membership details.
+2. Gymmie shows the current active membership and its expiry date.
+3. Member chooses to cancel the plan and confirms the action.
+4. Gymmie marks the membership as cancelled immediately, with no refund.
+5. Gymmie cancels all of the Member's future bookings as part of the same transaction.
+6. Gymmie persists the membership and booking changes.
+7. Gymmie shows the Member that the plan is no longer active and that affected future bookings remain visible with a cancelled status and a reason identifying the membership cancellation.
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. The Member has no active membership. Gymmie reports that there is no plan to cancel. Use case ends.
+- 3a. The Member does not confirm. Gymmie makes no changes. Use case ends.
+- 6a. Persistence fails. Gymmie rolls back both the membership cancellation and booking cancellations, then reports the failure. Use case resumes at step 3.
+
+#### UC3 — Manager archives a plan
+
+**Primary actor:** Manager.
+
+**MSS**
+
+1. Manager opens the membership-plan administration screen.
+2. Gymmie shows the plans and their purchase-history state.
+3. Manager selects a plan and chooses to archive it.
+4. Gymmie marks the plan as archived and removes it from the list of plans available for a new purchase.
+5. Gymmie persists the change.
+6. Gymmie continues to allow existing holders of the archived plan to renew it.
+
+   Use case ends.
+
+**Extensions**
+
+- 1a. The actor is not a Manager. The service layer rejects the operation. Use case ends.
+- 3a. Nobody has ever purchased the selected plan. Gymmie archives it successfully. The Manager may alternatively choose to delete it because it has no purchase history. Use case ends.
+- 3b. The plan is already archived. Gymmie leaves it archived and does not create a duplicate record. Use case ends.
+- 5a. Persistence fails. Gymmie leaves the plan's previous state unchanged and reports the failure. Use case resumes at step 3.
+
+#### UC4 — Trainer cancels a session
+
+**Primary actor:** Trainer.
+
+**MSS**
+
+1. Trainer opens their own upcoming sessions.
+2. Gymmie shows the session and its current bookings.
+3. Trainer chooses to cancel the session and confirms the action.
+4. Gymmie marks the session as cancelled and cancels all bookings for it.
+5. Gymmie persists the session and booking changes as one transaction.
+6. Gymmie shows the affected Members that their bookings remain visible with a cancelled status and a reason identifying the Trainer's session cancellation.
+
+   Use case ends.
+
+**Extensions**
+
+- 3a. The selected session belongs to another Trainer. The service layer rejects the operation. Use case ends.
+- 3b. The Trainer does not confirm. Gymmie makes no changes. Use case ends.
+- 3c. The session has already started. Gymmie rejects the cancellation because a past session is history. Use case ends.
+- 4a. The session has no bookings. The Trainer may delete it outright under the session-history rule instead of performing a cancellation. Use case ends after the deletion is confirmed and persisted.
+- 5a. Persistence fails. Gymmie keeps the session and its bookings in their previous state and reports the failure. Use case resumes at step 3.
+
+### Non-functional requirements
+
+1. **Platform compatibility:** The application must run as a Java 25 JavaFX desktop application on Windows, macOS, and Linux.
+2. **Persistence:** Successful account, plan, membership, session, and booking changes must remain available after the application is closed and restarted. Application data is stored locally in a `data/` folder relative to the working directory.
+3. **Password protection:** Passwords must be at least eight characters long and must never be stored in plaintext.
+4. **Authentication clarity:** Usernames must be globally unique across all roles and matched case-insensitively, while being stored as entered by the user. Login must distinguish a deactivated account from invalid credentials.
+5. **Authorization:** Role permissions must be enforced in the service layer, not only by hiding controls in the JavaFX UI.
+6. **Transactional consistency:** Cancelling a membership or session must update all related bookings atomically. A failed persistence operation must not expose only part of the change.
+7. **History preservation:** An account is deactivated rather than deleted. Deactivating a Member also cancels that Member's future bookings. A plan with purchase history is archived rather than deleted, and a session that has ever had a booking is cancelled rather than deleted. These rules preserve the history needed for the payment and revenue Manager stories.
+8. **Time handling:** All times use the local system time.
+9. **Maintainability:** The project must remain buildable with the Gradle Wrapper and should pass the repository's `check` task before a change is considered ready for integration.
+10. **Single instance:** Only one Gymmie process should run against a given data folder. There is no cross-instance coordination.
+11. **Interaction model:** Every feature must be reachable by mouse and keyboard through the GUI.
+12. **Scale:** The application must remain responsive with up to 1,000 accounts, 200 plans, 5,000 sessions, and 20,000 bookings.
+
+### Glossary
+
+- **Account:** A record with a username, password, display name, role, and active flag. The username identifies the account for login, while the display name is what other users see; for example, username `jtan` with display name `Jia Tan`. A Member's plan and status are derived from the Member's membership record rather than stored on the account.
+- **Active membership:** A Member's current membership that has not been cancelled and has not expired. A Member holds at most one active membership at a time.
+- **Archived plan:** A membership plan that is hidden from the new purchase list but remains available for existing holders to renew. A Manager may unarchive it to return it to the buy list.
+- **Booking:** A Member's reservation for one session.
+- **Cancelled booking:** A booking that remains visible in the Member's booking list with a cancelled status and a reason identifying whether the Trainer cancelled the session, the Member cancelled the booking, the Member cancelled their membership, or a Manager deactivated the account.
+- **Deactivated account:** An account retained for history but refused at login until a Manager reactivates it.
+- **Display name:** The human-readable name shown in rosters, account lists, and session details. Not unique: two Members may both be "John Tan". A user may change their own display name, and a Manager may change any user's.
+- **Duration:** A number of days for a membership plan, or a number of minutes for a session, depending on context.
+- **Extension:** An alternate or exceptional path in a use case.
+- **Integer cents:** The smallest stored price unit; for example, 1250 means SGD 12.50.
+- **Local system time:** The operating system's local clock used for session start comparisons, membership expiry, and booking cut-offs.
+- **Manager:** The role that administers membership plans and Trainer and Member accounts. The seeded Manager cannot be deactivated, and Managers cannot create other Manager accounts.
+- **Member:** A gym user who manages their own membership and session bookings.
+- **Membership snapshot:** The SGD price and duration copied into a Member's membership at purchase time. Later edits to the plan do not change that membership.
+- **MSS:** Main Success Scenario, the normal sequence of steps in a use case.
+- **Plan:** A membership offering with a name, duration in days, and price in SGD stored as integer cents.
+- **Purchase history:** Evidence that a plan has ever been bought. It changes the plan's permitted lifecycle from deletion to archival.
+- **RBAC:** Role-Based Access Control, in which permissions are granted based on whether the authenticated user is a Manager, Trainer, or Member.
+- **Renewal:** Extending a Member's current plan. A renewal extends from the later of today and the current expiry date, so renewing early does not forfeit remaining days. A renewal cannot switch to a different plan.
+- **Seeded Manager:** The one Manager account created on the first run with the fixed username `manager` and password `manager123`, as documented in the User Guide. It cannot be deactivated.
+- **Session:** A Trainer-led event with a start time, duration in minutes, capacity, and optional description.
+- **Trainer:** The role that creates and manages its own sessions and sees the Members booked into them.
+- **Username:** The unique login identifier, fixed when the account is created and never changed afterwards. Matched case-insensitively but stored as the user entered it. Not shown to other users.
+
+### Known limitations
+
+- Plan switching is not supported. A Member who wants a different plan must cancel the current one first, forfeiting its remaining days, then buy the new plan.
+- The seeded Manager account ships with the fixed password `manager123`, and changing it is not enforced on first login.
+- A Manager sets the initial password when creating a Trainer or Member account, so that password is known to the Manager until the user changes it.
