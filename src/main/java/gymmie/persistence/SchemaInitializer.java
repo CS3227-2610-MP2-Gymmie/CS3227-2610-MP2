@@ -48,9 +48,11 @@ public final class SchemaInitializer {
      */
     public void initialize(Connection connection) throws SQLException {
         Objects.requireNonNull(connection);
-        boolean originalAutoCommit = connection.getAutoCommit();
+        boolean ownsTransaction = connection.getAutoCommit();
         try {
-            connection.setAutoCommit(false);
+            if (ownsTransaction) {
+                connection.setAutoCommit(false);
+            }
             int version = readUserVersion(connection);
             if (version == 0) {
                 applySchema(connection);
@@ -63,12 +65,18 @@ public final class SchemaInitializer {
                 throw new SQLException("No migration path from schema version " + version
                         + " to " + CURRENT_SCHEMA_VERSION);
             }
-            connection.commit();
+            if (ownsTransaction) {
+                connection.commit();
+            }
         } catch (SQLException | RuntimeException exception) {
-            rollback(connection, exception);
+            if (ownsTransaction) {
+                rollback(connection, exception);
+            }
             throw exception;
         } finally {
-            restoreAutoCommit(connection, originalAutoCommit);
+            if (ownsTransaction) {
+                restoreAutoCommit(connection, true);
+            }
         }
     }
 

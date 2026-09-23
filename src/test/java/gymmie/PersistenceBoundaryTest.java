@@ -18,12 +18,13 @@ import gymmie.persistence.SchemaInitializer;
 import gymmie.persistence.UnitOfWork;
 
 class PersistenceBoundaryTest {
+    private Database database;
     private Connection connection;
     private UnitOfWork unitOfWork;
 
     @BeforeEach
     void setUp() throws SQLException {
-        Database database = new Database("jdbc:sqlite::memory:");
+        database = new Database("jdbc:sqlite::memory:");
         connection = database.openConnection();
         new SchemaInitializer(database).initialize(connection);
         unitOfWork = new UnitOfWork(database);
@@ -49,6 +50,18 @@ class PersistenceBoundaryTest {
             assertTrue(resultSet.next());
             assertTrue(resultSet.getInt(1) > 0);
         }
+    }
+
+    @Test
+    void schemaInitializerDoesNotCommitCallerTransaction() throws SQLException {
+        connection.setAutoCommit(false);
+        insertAccount(connection, 1, "caller-work");
+
+        new SchemaInitializer(database).initialize(connection);
+
+        connection.rollback();
+        connection.setAutoCommit(true);
+        assertEquals(0, countAccounts());
     }
 
     @Test
@@ -114,6 +127,25 @@ class PersistenceBoundaryTest {
         assertEquals(0, countAccounts());
     }
 
+    @Test
+    void nestedUnitOfWorkRollsBackFailedScopeToSavepoint() throws Exception {
+        unitOfWork.inTransaction(connection, outer -> {
+            insertAccount(outer, 1, "outer-user");
+            try {
+                unitOfWork.inTransaction(connection, inner -> {
+                    insertAccount(inner, 2, "inner-user");
+                    throw new IllegalStateException("force nested rollback");
+                });
+            } catch (IllegalStateException exception) {
+                assertEquals("force nested rollback", exception.getMessage());
+            }
+            return null;
+        });
+
+        assertEquals(1, countAccountsForUsername("outer-user"));
+        assertEquals(0, countAccountsForUsername("inner-user"));
+    }
+
     private void insertAccount(int id, String username) throws SQLException {
         insertAccount(connection, id, username);
     }
@@ -139,6 +171,17 @@ class PersistenceBoundaryTest {
                 ResultSet resultSet = statement.executeQuery()) {
             assertTrue(resultSet.next());
             return resultSet.getInt(1);
+        }
+    }
+
+    private int countAccountsForUsername(String username) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT COUNT(*) FROM account WHERE username = ?")) {
+            statement.setString(1, username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                assertTrue(resultSet.next());
+                return resultSet.getInt(1);
+            }
         }
     }
 }

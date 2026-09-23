@@ -2,6 +2,7 @@ package gymmie.persistence;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.Objects;
 
 /**
@@ -21,6 +22,10 @@ public final class UnitOfWork {
 
     /**
      * Executes work in a transaction and closes its connection afterward.
+     *
+     * <p>This overload is for top-level use only. Code already running inside a
+     * transaction must use the supplied-connection overload; this method opens a
+     * second connection and cannot join the existing transaction.
      *
      * @param callback work to execute.
      * @param <T> result type returned by the work.
@@ -47,7 +52,15 @@ public final class UnitOfWork {
         Objects.requireNonNull(connection);
         Objects.requireNonNull(callback);
         if (!connection.getAutoCommit()) {
-            return callback.execute(connection);
+            Savepoint savepoint = connection.setSavepoint();
+            try {
+                T result = callback.execute(connection);
+                connection.releaseSavepoint(savepoint);
+                return result;
+            } catch (Exception | Error exception) {
+                rollback(connection, savepoint, exception);
+                throw exception;
+            }
         }
 
         boolean originalAutoCommit = connection.getAutoCommit();
@@ -67,6 +80,15 @@ public final class UnitOfWork {
     private static void rollback(Connection connection, Throwable originalException) {
         try {
             connection.rollback();
+        } catch (SQLException rollbackException) {
+            originalException.addSuppressed(rollbackException);
+        }
+    }
+
+    private static void rollback(Connection connection, Savepoint savepoint,
+            Throwable originalException) {
+        try {
+            connection.rollback(savepoint);
         } catch (SQLException rollbackException) {
             originalException.addSuppressed(rollbackException);
         }
