@@ -21,6 +21,7 @@ java {
 
 application {
     mainClass = 'gymmie.Launcher'
+    applicationDefaultJvmArgs = [ '--enable-native-access=ALL-UNNAMED,javafx.graphics' ]
 }
 
 javafx {
@@ -29,9 +30,22 @@ javafx {
 }
 
 dependencies {
+    implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
     testImplementation platform('org.junit:junit-bom:5.14.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+shadowJar {
+    manifest {
+        attributes 'Enable-Native-Access': 'ALL-UNNAMED'
+    }
+}
+
+tasks.register('verify') {
+    group = 'verification'
+    description = 'Runs checks and builds the shadow JAR.'
+    dependsOn check, shadowJar
 }
 
 tasks.withType(Test).configureEach {
