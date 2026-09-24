@@ -2,7 +2,7 @@
 
 Gymmie is a Java 25 JavaFX desktop application for managing a gym's membership plans, user accounts, training sessions, and session bookings. It supports three roles: Manager, Trainer, and Member.
 
-The repository contains the JavaFX scaffold, SQLite persistence boundary, and immutable domain model. Application services and role-specific screens are still to be implemented.
+The repository contains the JavaFX scaffold, SQLite persistence boundary and repositories, and immutable domain model. Application services and role-specific screens are still to be implemented.
 
 For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 
@@ -63,11 +63,11 @@ These records do not implement application workflows. Services and repositories 
 
 ## Repository contracts
 
-`gymmie.persistence.repository` defines five interfaces: `AccountRepository`, `MembershipPlanRepository`, `MembershipRepository`, `TrainingSessionRepository`, and `BookingRepository`. They provide insert, update, and lookup operations for the existing domain records. These are contracts for future JDBC implementations; defining the interfaces alone does not implement persistence across restarts.
+`gymmie.persistence.repository` defines five interfaces: `AccountRepository`, `MembershipPlanRepository`, `MembershipRepository`, `TrainingSessionRepository`, and `BookingRepository`. They provide insert, update, and lookup operations for the existing domain records. Their SQLite implementations live in `gymmie.persistence.sqlite` and persist records through the shared database boundary.
 
 Every method takes an open `Connection` as its first argument and declares `SQLException`. The top-level application service starts a `UnitOfWork` transaction and passes the callback's connection through every repository and nested collaborator. Repository implementations must not accept a `Database`, connection factory, or `UnitOfWork` dependency, open connections, invoke the connection-opening transaction overload, close the supplied connection, or manage commit, rollback, or auto-commit. They close only statements and result sets they create. This keeps the repository API free of connection-opening paths; implementations must uphold that contract. The existing top-level `UnitOfWork` overload remains available to transaction owners.
 
-Writes must target the supplied database and become durable when its caller commits to the file-backed database. Reads on that connection must see its uncommitted writes. Inserts use caller-assigned record identifiers and reject duplicates; updates reject missing targets and must not delete and reinsert rows. All stored fields must survive round trips, including password hash/salt, integer cents, membership snapshots, local dates/times, and cancellation reasons. Future JDBC tests must verify reopen durability and rollback of changes across repositories.
+Writes must target the supplied database and become durable when its caller commits to the file-backed database. Reads on that connection must see its uncommitted writes. Inserts use caller-assigned record identifiers and reject duplicates; updates reject missing targets and must not delete and reinsert rows. All stored fields must survive round trips, including password hash/salt, integer cents, membership snapshots, local dates/times, and cancellation reasons. File-backed integration tests verify reopen durability and rollback of changes across repositories.
 
 | Repository | History and lifecycle contract |
 | --- | --- |
@@ -80,6 +80,18 @@ Writes must target the supplied database and become durable when its caller comm
 Identifier lookups return `Optional.empty()` for missing records. List queries return immutable snapshots in identifier order and empty lists when there are no matches. Guarded deletion returns `false` without changes when the target is absent or has history. SQL errors propagate to the transaction owner for rollback.
 
 Services remain responsible for RBAC, seeded-Manager protection, membership eligibility, scheduling and valid lifecycle transitions. Account deactivation, membership cancellation, and session cancellation must update affected bookings through `BookingRepository` on the same connection and transaction. The interfaces intentionally offer no unrestricted delete method or connectionless convenience overload.
+
+### SQLite implementation and startup
+
+`App.init()` initializes a shared `Persistence` composition before displaying the welcome window. Its default `Database` uses `data/gymmie.db` relative to the working directory and creates the directory when needed. `Persistence` exposes the five repository interfaces and the top-level `UnitOfWork`; a custom `Database(Path)` can be supplied for isolated storage. Repository instances are stateless and hold neither connections nor transaction managers. There is no long-lived connection to close when the application stops.
+
+`SqliteQueries` binds values to prepared statements and closes statements/results without committing or closing the caller's connection. SQL inserts reject duplicates; updates affect existing rows in place and reject missing records or changes to immutable fields. Deletes for unused plans and sessions use `DELETE ... WHERE ... NOT EXISTS (...)` so the history check is part of the same statement. The schema and foreign-key restrictions are unchanged.
+
+Dates and local timestamps use ISO text, and timestamps retain nanosecond precision. `findUpcoming` loads uncancelled sessions in identifier order and compares parsed `LocalDateTime` values in Java, avoiding precision loss or incorrect comparisons between ISO strings with optional seconds. Malformed stored domain values are reported as `SQLException` rather than silently skipped.
+
+Membership/session cancellation is composed by a service inside one `unitOfWork().inTransaction(connection -> ...)` callback: update the membership/session, query its affected bookings, and update each booking's status and reason using that same connection. A thrown persistence error rolls back the source change and all preceding booking updates. These repositories supply atomic persistence primitives; authorization and cancellation orchestration remain service responsibilities.
+
+`SqliteRepositoriesTest` uses temporary file-backed databases, closes connections, reconstructs the persistence boundary, and checks all five domains after reopening. It verifies history guards, immutable fields, uniqueness, foreign keys, local-time cut-offs, caller-owned transactions, and successful cancellation commits. SQLite triggers inject a failure on a later booking update to verify rollback of both the source record and a booking already changed earlier in the transaction. These are correctness tests; the application-level target-scale performance benchmark remains separate.
 
 ## Appendix: Requirements
 
