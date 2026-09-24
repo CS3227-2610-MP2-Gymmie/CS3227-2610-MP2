@@ -2,7 +2,7 @@
 
 Gymmie is a Java 25 JavaFX desktop application for managing a gym's membership plans, user accounts, training sessions, and session bookings. It supports three roles: Manager, Trainer, and Member.
 
-This is the initial, requirements-first version of the Developer Guide. The repository currently contains the JavaFX application scaffold only, so this guide intentionally does not include Design or Implementation sections. Those sections will be added when the corresponding domain code and shipped behavior exist.
+The repository contains the JavaFX scaffold, SQLite persistence boundary, and immutable domain model. Application services and role-specific screens are still to be implemented.
 
 For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 
@@ -10,6 +10,7 @@ For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 
 - [Acknowledgements](#acknowledgements)
 - [Setting up, getting started](#setting-up-getting-started)
+- [Domain model](#domain-model)
 - [Appendix: Requirements](#appendix-requirements)
 
 ---
@@ -42,6 +43,22 @@ Verify that both `java -version` and `javac -version` report version 25. Clone t
 Test, Checkstyle, and JaCoCo reports are written under `build/reports/` by Gradle. Build output is generated under `build/`.
 
 ---
+
+## Domain model
+
+The `gymmie.model` package uses Java records and composition. `Account` represents all three roles; `Member` combines a Member-role account with its complete membership history. The model has no JavaFX or database dependencies.
+
+- Record constructors enforce field constraints, non-null required fields, and positive identifiers. Callers allocate identifiers before construction. Username matching uses an ASCII-only, locale-independent key while preserving the original spelling. Display-name and password lengths count Unicode code points, without trimming or normalizing the supplied values.
+- `PasswordHash.fromPassword` validates the 8–128-character password and creates a PBKDF2-HMAC-SHA256 hash with 600,000 iterations, a random 16-byte salt, and a 32-byte output. `Account` holds this value rather than plaintext. Persist `hash()` and `salt()` in the existing account columns; their Base64 contents are validated on rehydration and redacted from `toString()`. The current format has fixed algorithm parameters; changing them will require a versioned credential format or migration.
+- `MembershipPlan` holds integer cents and duration days. `Membership.purchase` copies those values into the membership snapshot; subsequent catalogue changes do not affect it. New purchases reject archived plans. The expiry date is the purchase date plus the purchased duration, matching the renewal rule of adding days to the later of today and the existing expiry date. Coverage includes the expiry date.
+- `Membership.isActiveOn` derives eligibility from lifecycle state and the start/expiry dates. An `ACTIVE` database record can therefore be inactive after expiry without rewriting history. `Member.activeMembership`, `planId`, and `status` derive current membership information from those records. Account activation remains a separate login concern.
+- `Member` defensively copies its history and rejects foreign ownership, duplicate membership IDs, and overlapping date ranges among `ACTIVE` records, including future overlaps and a shared expiry day. Non-overlapping periods and cancelled history are allowed. Repositories must load the complete history and services must rebuild the aggregate when replacing or adding memberships; a partial history cannot establish this invariant across the database.
+- `TrainingSession` permits historical start times for loading history. `hasStartedAt` includes the exact start time. The no-argument time methods use `LocalDate.now()` or `LocalDateTime.now()`, hence the system's local time zone. Explicit date/time variants allow deterministic boundary tests.
+- `Booking` requires a cancellation reason exactly when its status is `CANCELLED`. The reason enum distinguishes Trainer cancellation, Member cancellation, membership cancellation, and account deactivation.
+
+`DomainException` is the unchecked base type for model failures. `ValidationException` identifies invalid fields or inconsistent records; `ConflictException` identifies conflicting domain state. Messages do not include passwords or hash material.
+
+These records do not implement application workflows. Services and repositories remain responsible for global username uniqueness, resolving referenced accounts and checking their roles, RBAC, booking capacity and duplicates, future-time checks on creation/rescheduling, renewal, and transactional cancellation cascades. The existing SQLite schema is unchanged.
 
 ## Appendix: Requirements
 
