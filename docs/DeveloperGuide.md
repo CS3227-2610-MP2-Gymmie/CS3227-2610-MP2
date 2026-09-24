@@ -11,6 +11,7 @@ For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 - [Acknowledgements](#acknowledgements)
 - [Setting up, getting started](#setting-up-getting-started)
 - [Domain model](#domain-model)
+- [Repository contracts](#repository-contracts)
 - [Appendix: Requirements](#appendix-requirements)
 
 ---
@@ -59,6 +60,26 @@ The `gymmie.model` package uses Java records and composition. `Account` represen
 `DomainException` is the unchecked base type for model failures. `ValidationException` identifies invalid fields or inconsistent records; `ConflictException` identifies conflicting domain state. Messages do not include passwords or hash material.
 
 These records do not implement application workflows. Services and repositories remain responsible for global username uniqueness, resolving referenced accounts and checking their roles, RBAC, booking capacity and duplicates, future-time checks on creation/rescheduling, renewal, and transactional cancellation cascades. The existing SQLite schema is unchanged.
+
+## Repository contracts
+
+`gymmie.persistence.repository` defines five interfaces: `AccountRepository`, `MembershipPlanRepository`, `MembershipRepository`, `TrainingSessionRepository`, and `BookingRepository`. They provide insert, update, and lookup operations for the existing domain records. These are contracts for future JDBC implementations; defining the interfaces alone does not implement persistence across restarts.
+
+Every method takes an open `Connection` as its first argument and declares `SQLException`. The top-level application service starts a `UnitOfWork` transaction and passes the callback's connection through every repository and nested collaborator. Repository implementations must not accept a `Database`, connection factory, or `UnitOfWork` dependency, open connections, invoke the connection-opening transaction overload, close the supplied connection, or manage commit, rollback, or auto-commit. They close only statements and result sets they create. This keeps the repository API free of connection-opening paths; implementations must uphold that contract. The existing top-level `UnitOfWork` overload remains available to transaction owners.
+
+Writes must target the supplied database and become durable when its caller commits to the file-backed database. Reads on that connection must see its uncommitted writes. Inserts use caller-assigned record identifiers and reject duplicates; updates reject missing targets and must not delete and reinsert rows. All stored fields must survive round trips, including password hash/salt, integer cents, membership snapshots, local dates/times, and cancellation reasons. Future JDBC tests must verify reopen durability and rollback of changes across repositories.
+
+| Repository | History and lifecycle contract |
+| --- | --- |
+| Accounts | No deletion API. Update the active flag to deactivate/reactivate. Username lookup includes deactivated accounts and matches case-insensitively across all roles. Updates preserve username and role. |
+| Membership plans | Update the archived flag to archive/restore. `findAllAvailable` excludes archived plans; identifier and administrative lookups include them for history and renewal. `deleteIfUnpurchased` atomically refuses deletion when any membership references the plan, regardless of status. |
+| Memberships | No deletion API. Load complete Member history, including cancelled, expired and future records, before validating the Member aggregate. Updates preserve ownership, plan, start date, and purchase snapshots while allowing expiry/status changes. |
+| Training sessions | Update cancellation state while retaining bookings. `findUpcoming` excludes cancelled sessions and uses a local-time cut-off supplied by the caller. `deleteIfNeverBooked` atomically refuses deletion when any booking exists, including cancelled bookings. |
+| Bookings | No deletion API. Cancellation updates status and reason while preserving Member, session and booking time. History queries include cancelled bookings; the capacity count includes only `BOOKED` reservations and cannot establish whether a session has booking history. |
+
+Identifier lookups return `Optional.empty()` for missing records. List queries return immutable snapshots in identifier order and empty lists when there are no matches. Guarded deletion returns `false` without changes when the target is absent or has history. SQL errors propagate to the transaction owner for rollback.
+
+Services remain responsible for RBAC, seeded-Manager protection, membership eligibility, scheduling and valid lifecycle transitions. Account deactivation, membership cancellation, and session cancellation must update affected bookings through `BookingRepository` on the same connection and transaction. The interfaces intentionally offer no unrestricted delete method or connectionless convenience overload.
 
 ## Appendix: Requirements
 
