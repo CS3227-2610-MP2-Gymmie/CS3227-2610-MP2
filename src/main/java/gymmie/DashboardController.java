@@ -2,8 +2,8 @@ package gymmie;
 
 import java.io.IOException;
 
-import gymmie.model.exception.ValidationException;
-import gymmie.service.exception.AuthenticationException;
+import gymmie.ui.StatusLabel;
+import gymmie.ui.UiFeedback;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -36,7 +36,7 @@ public final class DashboardController {
     @FXML
     private Button confirmPasswordReveal;
     @FXML
-    private Label status;
+    private StatusLabel status;
     @FXML
     private Button logoutButton;
 
@@ -65,7 +65,7 @@ public final class DashboardController {
         } catch (IOException exception) {
             context.getAuthService().logout();
             actions.setDisable(true);
-            status.setText("You are logged out. Please restart Gymmie to log in again.");
+            status.error("You are logged out. Please restart Gymmie to log in again.");
         }
     }
 
@@ -75,11 +75,11 @@ public final class DashboardController {
             return;
         }
         if (currentPassword.getText().isEmpty() || newPassword.getText().isEmpty()) {
-            status.setText("Enter your current and new passwords.");
+            status.error("Enter your current and new passwords.");
             return;
         }
         if (!newPassword.getText().equals(confirmPassword.getText())) {
-            status.setText("The new passwords do not match.");
+            status.error("The new passwords do not match.");
             confirmPassword.requestFocus();
             return;
         }
@@ -89,7 +89,7 @@ public final class DashboardController {
         newPassword.clear();
         confirmPassword.clear();
         actions.setDisable(true);
-        status.setText("Updating password…");
+        status.info("Updating password…");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -99,23 +99,18 @@ public final class DashboardController {
         };
         task.setOnSucceeded(_ -> {
             actions.setDisable(false);
-            status.setText("Password changed.");
+            status.success("Password changed.");
             currentPassword.requestFocus();
         });
         task.setOnFailed(_ -> {
             actions.setDisable(false);
             if (!context.getUserSession().isAuthenticated()) {
+                UiFeedback.errorAlert(status.getScene().getWindow(), "Session ended", task.getException(),
+                        "Please log in again.").showAndWait();
                 logout();
                 return;
             }
-            Throwable failure = task.getException();
-            if (failure instanceof ValidationException) {
-                status.setText("Use a new password of 8–128 characters.");
-            } else if (failure instanceof AuthenticationException) {
-                status.setText("Your current password is incorrect.");
-            } else {
-                status.setText("Unable to change your password. Please try again.");
-            }
+            status.error(task.getException(), "Unable to change your password. Please try again.");
             currentPassword.requestFocus();
         });
         Thread.ofPlatform().daemon().name("gymmie-password-change").start(task);

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        stylesheets="@../css/gymmie.css"
         fitToWidth="true" fitToHeight="true" fx:controller="gymmie.DashboardController">
     <VBox spacing="18" styleClass="page">
         <Label text="GYMMIE" styleClass="brand" />
@@ -30,6 +32,6 @@
                 <Button text="_Save password" onAction="#changePassword" />
             </VBox>
         </VBox>
-        <Label fx:id="status" wrapText="true" minHeight="40" styleClass="status" />
+        <StatusLabel fx:id="status" />
     </VBox>
 </ScrollPane>
