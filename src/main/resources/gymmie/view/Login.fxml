@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" fitToHeight="true" fx:controller="gymmie.LoginController">
+    <VBox alignment="CENTER" spacing="24" styleClass="page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <VBox maxWidth="400" spacing="16" styleClass="card">
+            <Label text="Welcome back" styleClass="title" />
+            <Label text="Log in to your gym workspace." wrapText="true" />
+            <VBox fx:id="form" spacing="10">
+                <Label text="_Username" mnemonicParsing="true" labelFor="${username}" />
+                <TextField fx:id="username" onAction="#login" />
+                <Label text="_Password" mnemonicParsing="true" labelFor="${password}" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="password" onAction="#login" />
+                    <Button fx:id="passwordReveal" text="Show" styleClass="button, reveal-button" />
+                </HBox>
+                <Button text="_Log in" defaultButton="true"
+                        maxWidth="Infinity" onAction="#login" />
+            </VBox>
+            <Label fx:id="status" wrapText="true" minHeight="48" styleClass="status" />
+        </VBox>
+    </VBox>
+</ScrollPane>

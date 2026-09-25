@@ -2,7 +2,9 @@
 
 Gymmie is a Java 25 JavaFX desktop application for managing a gym's membership plans, user accounts, training sessions, and session bookings. It supports three roles: Manager, Trainer, and Member.
 
-The repository contains the JavaFX scaffold, SQLite persistence boundary and repositories, and immutable domain model. Authentication services are implemented; other application workflows and role-specific screens remain to be implemented.
+The repository contains JavaFX login and role-specific dashboard shells, the SQLite persistence boundary and repositories, and the immutable domain model. Login, logout, and password change are available through the GUI; other gym workflows remain to be implemented.
+
+`AppContext` is the composition root: it constructs `Database`, calls `SchemaInitializer.initialize()`, and then constructs persistence and shared services and seeds the Manager. `App.init()` creates this context before `App.start()` creates the router. `Router` owns one scene and selects the dashboard from the authenticated role; `ViewLoader` loads bundled FXML with explicitly injected controllers. Controllers run authentication and password changes on background tasks and update JavaFX controls on the application thread. Service-level authorization remains authoritative.
 
 For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 

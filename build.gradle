@@ -50,6 +50,7 @@ tasks.register('verify') {
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    systemProperty 'gymmie.uiTests', providers.gradleProperty('uiTests').getOrElse('false')
 }
 
 tasks.withType(JavaCompile).configureEach {

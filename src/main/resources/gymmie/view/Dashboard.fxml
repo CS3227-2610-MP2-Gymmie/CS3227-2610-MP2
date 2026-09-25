@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" fitToHeight="true" fx:controller="gymmie.DashboardController">
+    <VBox spacing="18" styleClass="page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label fx:id="title" styleClass="title" wrapText="true" />
+        <Label fx:id="welcome" wrapText="true" />
+        <VBox fx:id="actions" spacing="18">
+            <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
+            <VBox maxWidth="440" spacing="10" styleClass="card">
+                <Label text="Change password" styleClass="heading" />
+                <Label text="Choose a password of 8–128 characters." wrapText="true" />
+                <Label text="_Current password" mnemonicParsing="true" labelFor="${currentPassword}" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="currentPassword" />
+                    <Button fx:id="currentPasswordReveal" text="Show" styleClass="button, reveal-button" />
+                </HBox>
+                <Label text="_New password" mnemonicParsing="true" labelFor="${newPassword}" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="newPassword" />
+                    <Button fx:id="newPasswordReveal" text="Show" styleClass="button, reveal-button" />
+                </HBox>
+                <Label text="Con_firm new password" mnemonicParsing="true" labelFor="${confirmPassword}" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="confirmPassword" onAction="#changePassword" />
+                    <Button fx:id="confirmPasswordReveal" text="Show" styleClass="button, reveal-button" />
+                </HBox>
+                <Button text="_Save password" onAction="#changePassword" />
+            </VBox>
+        </VBox>
+        <Label fx:id="status" wrapText="true" minHeight="40" styleClass="status" />
+    </VBox>
+</ScrollPane>
