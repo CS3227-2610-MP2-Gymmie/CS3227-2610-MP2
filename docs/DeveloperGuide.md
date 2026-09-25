@@ -135,6 +135,59 @@ Membership/session cancellation is composed by a service inside one `unitOfWork(
 
 `SqliteRepositoriesTest` uses temporary file-backed databases, closes connections, reconstructs the persistence boundary, and checks all five domains after reopening. It verifies history guards, immutable fields, uniqueness, foreign keys, local-time cut-offs, caller-owned transactions, and successful cancellation commits. SQLite triggers inject a failure on a later booking update to verify rollback of both the source record and a booking already changed earlier in the transaction. These are correctness tests; the application-level target-scale performance benchmark remains separate.
 
+### Shared JUnit test utilities
+
+Test-only helpers live in `src/test/java/gymmie/testutil`:
+
+- `InMemoryDatabase` applies the production schema to a unique named SQLite memory
+  database. Its keeper connection lets real repositories, `UnitOfWork`, and services
+  open separate connections to the same data. Use a fresh fixture per test with
+  try-with-resources, or create it in `@BeforeEach` and close it in `@AfterEach`.
+  Close borrowed connections before the fixture. Fixtures start empty and do not
+  share data; foreign keys remain enabled. Keep file-backed tests for reopen
+  durability and file-specific behavior such as WAL concurrency.
+- `TestClocks.fixed()` freezes 25 September 2026 at noon in the system's local
+  zone. `TestClocks.at(localTime, zone)` supports explicit zones and boundaries.
+  Pass `LocalDate.now(clock)` to `isActiveOn` / `activeMembershipOn`, and
+  `LocalDateTime.now(clock)` to `hasStartedAt` / repository cut-offs. A fixed clock
+  does not override no-argument production time methods or change the JVM zone.
+- `AccountBuilder`, `MemberBuilder`, `MembershipPlanBuilder`, `MembershipBuilder`,
+  `TrainingSessionBuilder`, and `BookingBuilder` supply valid defaults, fluent
+  `with...` overrides, and copy constructors for lifecycle changes. IDs are fixed,
+  not auto-generated: default Member account ID is 1, session Trainer ID is 2,
+  and plan, membership, session, and booking IDs are 1. Insert referenced accounts
+  and records explicitly; give additional records distinct IDs and usernames.
+  The default account hash matches `AccountBuilder.DEFAULT_PASSWORD`. Builders
+  use production constructors, so invalid states still fail validation.
+
+```java
+import gymmie.persistence.Persistence;
+import gymmie.testutil.AccountBuilder;
+import gymmie.testutil.InMemoryDatabase;
+
+class DatabaseFixtureExample {
+    void insertAccount() throws Exception {
+        try (InMemoryDatabase fixture = new InMemoryDatabase()) {
+            Persistence persistence = fixture.persistence();
+            persistence.unitOfWork().inTransaction(connection -> {
+                persistence.accounts().insert(connection, new AccountBuilder().build());
+                return null;
+            });
+        }
+    }
+}
+```
+
+`AuthServiceTest` demonstrates authentication and RBAC with the memory fixture.
+`InMemoryDatabaseTest` demonstrates source-record and booking changes in one
+transaction, including rollback when a later booking update fails. These test
+compositions exercise persistence primitives; they do not implement the planned
+cancellation services. `TestClocksTest` checks inclusive expiry and exact session
+start boundaries in multiple zones. Run focused checks with
+`./gradlew test --tests 'gymmie.testutil.*' --tests 'gymmie.service.AuthServiceTest'`,
+then run `./gradlew check` before integration.
+
+
 ## Authentication and authorization
 
 `gymmie.service` provides `PasswordHasher`, `AuthService`, `UserSession`, and `Permissions`. `App` wires one shared session to its authentication service and permission checks alongside the existing `Persistence` boundary. Authentication is independent of JavaFX; the welcome screen remains a scaffold.

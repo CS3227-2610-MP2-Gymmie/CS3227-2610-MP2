@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Locale;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,13 +30,14 @@ import gymmie.persistence.Persistence;
 import gymmie.service.exception.AccountDeactivatedException;
 import gymmie.service.exception.AuthenticationException;
 import gymmie.service.exception.AuthorizationException;
+import gymmie.testutil.AccountBuilder;
+import gymmie.testutil.InMemoryDatabase;
 
 class AuthServiceTest {
     private static final String PASSWORD = "original-password";
     private static PasswordHash passwordHash;
 
-    @TempDir
-    Path directory;
+    private InMemoryDatabase fixture;
 
     private Persistence persistence;
     private Database database;
@@ -50,9 +52,13 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        database = new Database(directory.resolve("data/gymmie.db"));
-        persistence = new Persistence(database);
-        persistence.initialize();
+        fixture = new InMemoryDatabase();
+        database = fixture.database();
+        persistence = fixture.persistence();
+        initializeServicesAndAccounts();
+    }
+
+    private void initializeServicesAndAccounts() throws Exception {
         session = new UserSession();
         auth = new AuthService(persistence.accounts(), persistence.unitOfWork(), session, new PasswordHasher());
         permissions = new Permissions(persistence.accounts(), session);
@@ -62,6 +68,13 @@ class AuthServiceTest {
             }
             return null;
         });
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (fixture != null) {
+            fixture.close();
+        }
     }
 
     @ParameterizedTest
@@ -122,7 +135,12 @@ class AuthServiceTest {
 
     @ParameterizedTest
     @EnumSource(Role.class)
-    void everyRoleCanChangeOnlyItsOwnPasswordAndNewPasswordSurvivesRestart(Role role) throws Exception {
+    void everyRoleCanChangeOnlyItsOwnPasswordAndNewPasswordSurvivesRestart(Role role, @TempDir Path directory)
+            throws Exception {
+        database = new Database(directory.resolve("data/gymmie.db"));
+        persistence = new Persistence(database);
+        persistence.initialize();
+        initializeServicesAndAccounts();
         Account original = account(role, true);
         auth.login(original.username(), PASSWORD);
         auth.changeOwnPassword(PASSWORD, "replacement-password");
@@ -298,6 +316,7 @@ class AuthServiceTest {
         if (role == Role.MANAGER) {
             username = "OtherManager";
         }
-        return new Account(role.ordinal() + 1, username, passwordHash, username + " Display", role, active);
+        return new AccountBuilder().withId(role.ordinal() + 1).withUsername(username).withPassword(passwordHash)
+                .withDisplayName(username + " Display").withRole(role).withActive(active).build();
     }
 }
