@@ -2,7 +2,7 @@
 
 Gymmie is a Java 25 JavaFX desktop application for managing a gym's membership plans, user accounts, training sessions, and session bookings. It supports three roles: Manager, Trainer, and Member.
 
-The repository contains the JavaFX scaffold, SQLite persistence boundary and repositories, and immutable domain model. Application services and role-specific screens are still to be implemented.
+The repository contains the JavaFX scaffold, SQLite persistence boundary and repositories, and immutable domain model. Authentication services are implemented; other application workflows and role-specific screens remain to be implemented.
 
 For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 
@@ -12,6 +12,7 @@ For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
 - [Setting up, getting started](#setting-up-getting-started)
 - [Domain model](#domain-model)
 - [Repository contracts](#repository-contracts)
+- [Authentication and authorization](#authentication-and-authorization)
 - [Appendix: Requirements](#appendix-requirements)
 
 ---
@@ -92,6 +93,24 @@ Dates and local timestamps use ISO text, and timestamps retain nanosecond precis
 Membership/session cancellation is composed by a service inside one `unitOfWork().inTransaction(connection -> ...)` callback: update the membership/session, query its affected bookings, and update each booking's status and reason using that same connection. A thrown persistence error rolls back the source change and all preceding booking updates. These repositories supply atomic persistence primitives; authorization and cancellation orchestration remain service responsibilities.
 
 `SqliteRepositoriesTest` uses temporary file-backed databases, closes connections, reconstructs the persistence boundary, and checks all five domains after reopening. It verifies history guards, immutable fields, uniqueness, foreign keys, local-time cut-offs, caller-owned transactions, and successful cancellation commits. SQLite triggers inject a failure on a later booking update to verify rollback of both the source record and a booking already changed earlier in the transaction. These are correctness tests; the application-level target-scale performance benchmark remains separate.
+
+## Authentication and authorization
+
+`gymmie.service` provides `PasswordHasher`, `AuthService`, `UserSession`, and `Permissions`. `App` wires one shared session to its authentication service and permission checks alongside the existing `Persistence` boundary. Authentication is independent of JavaFX; the welcome screen remains a scaffold.
+
+- `PasswordHasher` validates the documented 8–128-character policy and delegates to the existing salted `PasswordHash` format. Hashing parameters are implementation choices, not guide requirements. Existing hashes remain compatible, and no schema migration is needed. Plaintext passwords are call inputs only; they are not retained in services, session state, or database records.
+- `AuthService.login(username, password)` uses the repository's case-insensitive lookup while preserving the stored username spelling. Unknown usernames and incorrect passwords raise `AuthenticationException` with the same message. Correct credentials for a deactivated account raise `AccountDeactivatedException`. Every login attempt clears an earlier identity, and a new identity is published only after successful transaction completion.
+- `UserSession` exposes an optional, immutable principal containing account ID, username, display name, and dashboard role, without hashes or passwords. Session establishment is internal to services. `AuthService.logout()` clears it and is safe to call repeatedly. Sessions are not persisted across application restarts.
+- `AuthService.changeOwnPassword(currentPassword, newPassword)` requires authentication, reloads the active account, verifies its current password, and updates only that account. It accepts no target account ID. Verification and persistence share a `UnitOfWork` connection; failed validation or a database write leaves the old hash unchanged. Session refresh happens after commit.
+- `Permissions.requireAuthenticated(connection)` reloads the account before protected work. Missing or deactivated accounts invalidate the session. `requireRole(connection, role)` enforces an exact role; Manager does not implicitly inherit Trainer or Member privileges. `requireOwner(connection, role, ownerAccountId)` additionally checks ownership using the owner ID read from the stored resource.
+
+Every protected service operation must invoke the appropriate permission check before reading protected data or writing changes, on the same connection used by that operation. Manager plan/account administration requires `Role.MANAGER`; Trainer session editing requires `Role.TRAINER` and session ownership; Member membership/booking operations require `Role.MEMBER` and ownership. UI visibility and the principal's cached dashboard role are not authorization checks. Future workflow services must apply these guards as they are added.
+
+`AuthService` owns top-level transactions and serializes its login/logout/password-change operations. It must not be invoked from inside another transaction; nested workflow code receives `Permissions`, repositories, and its caller's connection instead. Its checked `Exception` contract follows the existing `UnitOfWork` API, while authentication and authorization failures are distinct unchecked domain exceptions. Persistence failures are propagated rather than reported as invalid credentials.
+
+Account inserts continue to enforce global, case-insensitive username uniqueness across all roles and activation states through SQLite's existing unique constraint. Authentication does not rename accounts or introduce a separate username namespace. Account provisioning and seeded-Manager setup remain separate workflows.
+
+`AuthServiceTest` exercises real SQLite storage for all roles, case-insensitive login, logout, distinct deactivation failures, exact-role and ownership checks, revocation after deactivation, password-change failure rollback, and authentication after reopening the database with the changed password. `PasswordHasherTest` checks compatibility, fresh salts, verification, and password boundaries without asserting algorithm parameters as product requirements.
 
 ## Appendix: Requirements
 
