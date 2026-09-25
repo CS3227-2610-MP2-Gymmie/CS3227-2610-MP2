@@ -268,15 +268,18 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 
 #### Trainer stories
 
-| Priority | As a... | I want to... | So that... |
-| --- | --- | --- | --- |
-| `* * *` | Trainer | create a session with a future start time, duration in minutes, capacity, and optional description | Members can book a session I offer |
-| `* * *` | Trainer | view my own upcoming sessions | I can prepare for the sessions I conduct |
-| `* * *` | Trainer | view the Members booked into each of my sessions | I can prepare the session roster |
+| Priority | As a... | I want to...                                                                                                                 | So that...                                                                       |
+|---------| --- |------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `* * *` | Trainer | create a session with a future start time, duration in minutes, capacity, and optional description                           | Members can book a session I offer                                               |
+| `* * *` | Trainer | view my own upcoming sessions                                                                                                | I can prepare for the sessions I conduct                                         |
+| `* * *` | Trainer | view the Members booked into each of my sessions                                                                             | I can prepare the session roster                                                 |
 | `* * *` | Trainer | edit my own session details, without setting its start time in the past or reducing capacity below its current booking count | I can correct scheduling or capacity information while preserving valid bookings |
-| `* * *` | Trainer | change the start time of my own session to another future time without losing existing bookings | I can reschedule while preserving the roster |
-| `* * *` | Trainer | delete a session that has never had a booking | I can remove unused sessions without destroying history |
-| `* * *` | Trainer | cancel my own session before it starts, including one with bookings | affected Members know the session will not take place |
+| `* * *` | Trainer | change the start time of my own session to another future time without losing existing bookings                              | I can reschedule while preserving the roster                                     |
+| `* * *` | Trainer | delete a session that has never had a booking                                                                                | I can remove unused sessions without destroying history                          |
+| `* * *` | Trainer | cancel my own session before it starts, including one with bookings                                                          | affected Members know the session will not take place                            |
+| `* * *` | Trainer | view and edit my profile details                                                                                             | I can ensure details are updated                                                 |
+| `* * *` | Trainer | change my password                                                                                                           | I can keep my account safe                                                       |
+| `* * ` | Trainer | mark attendance for my classes                                                                                               | I know who is present                                                            |
 
 #### Member stories
 
