@@ -48,6 +48,45 @@ Test, Checkstyle, and JaCoCo reports are written under `build/reports/` by Gradl
 
 ---
 
+## Shared UI conventions
+
+Every role uses `gymmie/css/gymmie.css`, declared on each FXML root using
+`stylesheets="@../css/gymmie.css"`. This makes the stylesheet visible to IntelliJ
+and Scene Builder as well as the application. Router does not also attach it to
+the scene. Programmatic scenes and alerts use the same stylesheet through
+`SharedStyles` and `UiFeedback`. Extend this stylesheet rather than adding
+role-specific themes. Shared classes include `page`, `card`, `brand`, `title`,
+`heading`, and `status`; palette values are JavaFX looked-up colors.
+
+Use `StatusLabel` for inline progress, validation, service failures, and success.
+Its `info`, `error`, and `success` methods reset the visual state and include text
+cues for errors and success. Use `UiFeedback.errorAlert`, `informationAlert`, and
+`confirm` for owned dialogs. Create and show controls on the JavaFX thread;
+confirmation returns false for Cancel, Escape, or closing the window.
+`UiFeedback.errorMessage` preserves domain/service messages, including wrapped
+asynchronous failures, and gives deactivated accounts distinct guidance.
+Unexpected persistence and I/O errors use a caller-provided safe fallback.
+
+Use `DisplayFormatters` for all displayed prices, dates, and times:
+
+| Value | Display | Convention |
+| --- | --- | --- |
+| 4990 cents | `SGD 49.90` | Exactly two decimal places, computed from integer cents. |
+| Local date | `25 Sep 2026` | `dd MMM uuuu`, English month abbreviations. |
+| Local time | `15:04` | `HH:mm`, 24-hour clock, without seconds. |
+| Local timestamp | `25 Sep 2026, 15:04` | Combined date and time. |
+
+Dates and times retain their stored local values, consistent with the local
+system-time requirement. Display output is independent of the OS locale. These
+helpers format required values; callers decide how to label missing values.
+Storage continues to use ISO text and integer cents.
+
+In IntelliJ, use **Settings → Languages & Frameworks → Style Sheets → Dialects**
+to assign the **JavaFX** dialect to `src/main/resources/gymmie/css` if browser-CSS
+inspections flag `-fx-*` properties or JavaFX pseudo-classes. JavaFX support must
+be enabled in the IDE. Keep JavaFX properties and looked-up palette colors;
+replacing them with browser CSS would break the application theme.
+
 ## Domain model
 
 The `gymmie.model` package uses Java records and composition. `Account` represents all three roles; `Member` combines a Member-role account with its complete membership history. The model has no JavaFX or database dependencies.
@@ -86,7 +125,7 @@ Services remain responsible for RBAC, seeded-Manager protection, membership elig
 
 ### SQLite implementation and startup
 
-`App.init()` initializes a shared `Persistence` composition before displaying the welcome window. Its default `Database` uses `data/gymmie.db` relative to the working directory and creates the directory when needed. `Persistence` exposes the five repository interfaces and the top-level `UnitOfWork`; a custom `Database(Path)` can be supplied for isolated storage. Repository instances are stateless and hold neither connections nor transaction managers. There is no long-lived connection to close when the application stops.
+`App.init()` creates `AppContext`, which initializes the schema before constructing shared persistence and services and displaying login. Its default `Database` uses `data/gymmie.db` relative to the working directory and creates the directory when needed. `Persistence` exposes the five repository interfaces and the top-level `UnitOfWork`; a custom `Database(Path)` can be supplied for isolated storage. Repository instances are stateless and hold neither connections nor transaction managers. There is no long-lived connection to close when the application stops.
 
 `SqliteQueries` binds values to prepared statements and closes statements/results without committing or closing the caller's connection. SQL inserts reject duplicates; updates affect existing rows in place and reject missing records or changes to immutable fields. Deletes for unused plans and sessions use `DELETE ... WHERE ... NOT EXISTS (...)` so the history check is part of the same statement. The schema and foreign-key restrictions are unchanged.
 

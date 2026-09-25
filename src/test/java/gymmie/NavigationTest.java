@@ -1,6 +1,8 @@
 package gymmie;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,10 +20,16 @@ import org.junit.jupiter.api.io.TempDir;
 
 import gymmie.model.Account;
 import gymmie.model.Role;
+import gymmie.model.exception.ValidationException;
 import gymmie.service.PasswordHasher;
+import gymmie.ui.SharedStyles;
+import gymmie.ui.StatusLabel;
+import gymmie.ui.UiFeedback;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -69,6 +77,10 @@ class NavigationTest {
                     Label title = (Label) stage.getScene().lookup("#title");
                     assertEquals(Router.dashboardTitle(context.getUserSession().requireUser().role()), title.getText());
                     assertNotNull(stage.getScene().lookup("#currentPassword"));
+                    assertEquals(1, stage.getScene().getRoot().getStylesheets().size());
+                    assertTrue(stage.getScene().getRoot().getStylesheets().getFirst()
+                            .endsWith("/gymmie/css/gymmie.css"));
+                    assertInstanceOf(StatusLabel.class, stage.getScene().lookup("#status"));
                     Button logout = (Button) stage.getScene().lookup("#logoutButton");
                     logout.fire();
                     stage.getScene().getRoot().applyCss();
@@ -93,6 +105,30 @@ class NavigationTest {
                 return null;
             });
         }
+    }
+
+    @Test
+    void alertsAndInlineFeedbackShareServiceMessagesAndTheme() throws Exception {
+        onFxThread(() -> {
+            StatusLabel status = new StatusLabel();
+            Scene scene = new Scene(status);
+            SharedStyles.apply(scene);
+            SharedStyles.apply(scene);
+            Stage owner = new Stage();
+            owner.setScene(scene);
+            ValidationException failure = new ValidationException("Choose a future date");
+            status.error(failure, "Unable to save.");
+            Alert alert = UiFeedback.errorAlert(owner, "Unable to save", failure, "Unable to save.");
+            assertEquals("Error: " + alert.getContentText(), status.getText());
+            assertEquals(owner, alert.getOwner());
+            assertEquals(scene.getStylesheets(), alert.getDialogPane().getStylesheets());
+            assertEquals(1, scene.getStylesheets().size());
+            status.success("Saved.");
+            assertTrue(status.getPseudoClassStates().contains(javafx.css.PseudoClass.getPseudoClass("success")));
+            assertFalse(status.getPseudoClassStates().contains(javafx.css.PseudoClass.getPseudoClass("error")));
+            owner.close();
+            return null;
+        });
     }
 
     private static void enterCredentials(Stage stage, String username, String password) {

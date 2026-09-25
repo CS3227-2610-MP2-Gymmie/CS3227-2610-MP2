@@ -2,13 +2,12 @@ package gymmie;
 
 import java.io.IOException;
 
-import gymmie.service.exception.AccountDeactivatedException;
-import gymmie.service.exception.AuthenticationException;
+import gymmie.ui.StatusLabel;
+import gymmie.ui.UiFeedback;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
@@ -26,7 +25,7 @@ public final class LoginController {
     @FXML
     private Button passwordReveal;
     @FXML
-    private Label status;
+    private StatusLabel status;
 
     /** Creates the login controller with shared authentication and navigation. */
     public LoginController(AppContext context, Router router) {
@@ -49,12 +48,12 @@ public final class LoginController {
         String loginName = username.getText();
         String candidate = password.getText();
         if (loginName.isEmpty() || candidate.isEmpty()) {
-            status.setText("Enter your username and password.");
+            status.error("Enter your username and password.");
             return;
         }
         password.clear();
         form.setDisable(true);
-        status.setText("Logging in…");
+        status.info("Logging in…");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -68,24 +67,19 @@ public final class LoginController {
                 router.showDashboard();
             } catch (IOException exception) {
                 context.getAuthService().logout();
-                status.setText("Unable to open your dashboard. Please try again.");
+                status.error("Unable to open your dashboard. Please try again.");
             }
         });
         task.setOnFailed(_ -> {
             form.setDisable(false);
-            status.setText(failureMessage(task.getException()));
+            status.error(failureMessage(task.getException()));
             password.requestFocus();
         });
         Thread.ofPlatform().daemon().name("gymmie-login").start(task);
     }
 
     static String failureMessage(Throwable failure) {
-        if (failure instanceof AccountDeactivatedException) {
-            return "This account is deactivated. Please contact a Manager.";
-        }
-        if (failure instanceof AuthenticationException) {
-            return "Invalid username or password.";
-        }
-        return "Unable to log in. Please try again. If this continues, contact a Manager.";
+        return UiFeedback.errorMessage(failure,
+                "Unable to log in. Please try again. If this continues, contact a Manager.");
     }
 }

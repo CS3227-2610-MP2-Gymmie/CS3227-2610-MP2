@@ -58,10 +58,9 @@ public final class Router {
         };
     }
 
-    private void show(Parent root, String title) throws IOException {
+    private void show(Parent root, String title) {
         if (stage.getScene() == null) {
             Scene scene = new Scene(root, 840, 680);
-            scene.getStylesheets().add(views.resource("/gymmie/css/gymmie.css").toExternalForm());
             stage.setScene(scene);
         } else {
             stage.getScene().setRoot(root);
