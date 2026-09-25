@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import gymmie.model.Role;
 import gymmie.service.UserSession;
+import gymmie.trainer.TrainerProfileController;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -47,6 +48,16 @@ public final class Router {
         UserSession.Principal user = context.getUserSession().requireUser();
         String title = dashboardTitle(user.role());
         show(views.load("Dashboard", new DashboardController(context, this, title)), title);
+    }
+
+    /**
+     * Opens the Trainer profile editor; profile reads and writes are authorized by its service.
+     *
+     * @throws IOException if the view cannot be loaded.
+     */
+    public void showTrainerProfile() throws IOException {
+        show(views.loadResource("/gymmie/trainer/view/TrainerProfile.fxml",
+                new TrainerProfileController(context, this)), "My Trainer profile");
     }
 
     /** Returns the user-facing dashboard title for each supported account role. */

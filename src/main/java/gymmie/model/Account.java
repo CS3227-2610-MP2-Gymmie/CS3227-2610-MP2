@@ -42,6 +42,17 @@ public record Account(long id, String username, PasswordHash password, String di
     }
 
     /**
+     * Changes the shared display name while preserving identity and credentials.
+     *
+     * @param replacement display name using the existing account validation rules.
+     * @return replacement account.
+     * @throws ValidationException if the display name is invalid.
+     */
+    public Account withDisplayName(String replacement) {
+        return new Account(id, username, password, replacement, role, active);
+    }
+
+    /**
      * Returns a locale-independent key for case-insensitive username matching.
      *
      * @return normalized username key.

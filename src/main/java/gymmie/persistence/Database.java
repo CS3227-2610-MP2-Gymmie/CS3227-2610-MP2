@@ -22,17 +22,8 @@ import java.util.Objects;
  * in-memory database; use the supplied-connection overloads instead.
  */
 public final class Database {
-    private static final String DEFAULT_DATABASE_PATH = "data/gymmie.db";
-
     private final String jdbcUrl;
     private final Path databasePath;
-
-    /**
-     * Creates a database configuration for Gymmie's default local database.
-     */
-    public Database() {
-        this(Path.of(DEFAULT_DATABASE_PATH));
-    }
 
     /**
      * Creates a database configuration for a file-backed SQLite database.

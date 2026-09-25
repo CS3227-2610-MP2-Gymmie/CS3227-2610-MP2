@@ -1,0 +1,12 @@
+.text-area {
+    -fx-border-color: #727e76;
+    -fx-border-radius: 4px;
+}
+.text-area:focused {
+    -fx-border-color: -gymmie-accent;
+    -fx-border-width: 2px;
+}
+.tag-button {
+    -fx-font-size: 13px;
+    -fx-padding: 6px 10px;
+}

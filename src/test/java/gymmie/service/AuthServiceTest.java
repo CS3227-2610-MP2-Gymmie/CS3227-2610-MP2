@@ -176,25 +176,27 @@ class AuthServiceTest {
         assertEquals(before, session.requireUser());
     }
 
-    @Test
-    void passwordChangeRequiresLoginAndCorrectCurrentPassword() throws Exception {
+    @ParameterizedTest
+    @EnumSource(Role.class)
+    void passwordChangeRequiresLoginAndCorrectCurrentPassword(Role role) throws Exception {
         assertThrows(AuthenticationException.class, () -> auth.changeOwnPassword(PASSWORD, "replacement-password"));
-        auth.login("Member", PASSWORD);
+        auth.login(account(role, true).username(), PASSWORD);
         assertThrows(AuthenticationException.class, () ->
                 auth.changeOwnPassword("wrong-password", "replacement-password"));
-        assertEquals(account(Role.MEMBER, true), load(Role.MEMBER));
+        assertEquals(account(role, true), load(role));
         assertThrows(ValidationException.class, () -> auth.changeOwnPassword(PASSWORD, null));
         auth.logout();
         assertThrows(AuthenticationException.class, () -> auth.changeOwnPassword(PASSWORD, "replacement-password"));
     }
 
-    @Test
-    void deactivationAfterLoginRevokesProtectedAccessAndPasswordChange() throws Exception {
-        auth.login("Member", PASSWORD);
-        deactivate(Role.MEMBER);
+    @ParameterizedTest
+    @EnumSource(Role.class)
+    void deactivationAfterLoginRevokesProtectedAccessAndPasswordChange(Role role) throws Exception {
+        auth.login(account(role, true).username(), PASSWORD);
+        deactivate(role);
         assertThrows(AccountDeactivatedException.class, () -> auth.changeOwnPassword(PASSWORD, "replacement-password"));
         assertFalse(session.isAuthenticated());
-        assertEquals(passwordHash, load(Role.MEMBER).password());
+        assertEquals(passwordHash, load(role).password());
     }
 
     @ParameterizedTest
@@ -264,16 +266,17 @@ class AuthServiceTest {
         assertFalse(session.isAuthenticated());
     }
 
-    @Test
-    void failedPasswordWritePreservesOldCredentialsAndSession() throws Exception {
-        auth.login("Member", PASSWORD);
+    @ParameterizedTest
+    @EnumSource(Role.class)
+    void failedPasswordWritePreservesOldCredentialsAndSession(Role role) throws Exception {
+        auth.login(account(role, true).username(), PASSWORD);
         UserSession.Principal before = session.requireUser();
         try (Connection connection = database.openConnection(); Statement statement = connection.createStatement()) {
             statement.execute("CREATE TRIGGER reject_password BEFORE UPDATE ON account "
                     + "BEGIN SELECT RAISE(ABORT, 'simulated write failure'); END");
         }
         assertThrows(SQLException.class, () -> auth.changeOwnPassword(PASSWORD, "replacement-password"));
-        assertEquals(account(Role.MEMBER, true), load(Role.MEMBER));
+        assertEquals(account(role, true), load(role));
         assertEquals(before, session.requireUser());
     }
 

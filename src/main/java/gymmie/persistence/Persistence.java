@@ -13,6 +13,8 @@ import gymmie.persistence.sqlite.SqliteBookingRepository;
 import gymmie.persistence.sqlite.SqliteMembershipPlanRepository;
 import gymmie.persistence.sqlite.SqliteMembershipRepository;
 import gymmie.persistence.sqlite.SqliteTrainingSessionRepository;
+import gymmie.trainer.persistence.SqliteTrainerProfileRepository;
+import gymmie.trainer.persistence.TrainerProfileRepository;
 
 /**
  * Wires the application's database boundary and stateless SQLite repositories.
@@ -27,12 +29,8 @@ public final class Persistence {
     private final MembershipPlanRepository plans = new SqliteMembershipPlanRepository();
     private final MembershipRepository memberships = new SqliteMembershipRepository();
     private final TrainingSessionRepository sessions = new SqliteTrainingSessionRepository();
+    private final TrainerProfileRepository trainerProfiles = new SqliteTrainerProfileRepository();
     private final BookingRepository bookings = new SqliteBookingRepository();
-
-    /** Creates the application's storage boundary for data/gymmie.db. */
-    public Persistence() {
-        this(new Database());
-    }
 
     /**
      * Creates a boundary for a supplied database, allowing isolated file-backed tests.
@@ -77,6 +75,11 @@ public final class Persistence {
     /** Returns training-session storage. */
     public TrainingSessionRepository sessions() {
         return sessions;
+    }
+
+    /** Returns Trainer-specific profile storage. */
+    public TrainerProfileRepository trainerProfiles() {
+        return trainerProfiles;
     }
 
     /** Returns booking history storage. */

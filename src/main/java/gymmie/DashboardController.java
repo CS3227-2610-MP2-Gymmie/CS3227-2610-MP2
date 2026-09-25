@@ -2,6 +2,7 @@ package gymmie;
 
 import java.io.IOException;
 
+import gymmie.model.Role;
 import gymmie.ui.StatusLabel;
 import gymmie.ui.UiFeedback;
 import javafx.application.Platform;
@@ -39,6 +40,8 @@ public final class DashboardController {
     private StatusLabel status;
     @FXML
     private Button logoutButton;
+    @FXML
+    private Button profileButton;
 
     /** Creates a dashboard using the current session and shared account services. */
     public DashboardController(AppContext context, Router router, String dashboardTitle) {
@@ -53,9 +56,21 @@ public final class DashboardController {
         PasswordReveal.install(newPassword, newPasswordReveal);
         PasswordReveal.install(confirmPassword, confirmPasswordReveal);
 
+        boolean trainer = context.getUserSession().requireUser().role() == Role.TRAINER;
+        profileButton.setVisible(trainer);
+        profileButton.setManaged(trainer);
         title.setText(dashboardTitle);
         welcome.setText("Welcome, " + context.getUserSession().requireUser().displayName());
         Platform.runLater(logoutButton::requestFocus);
+    }
+
+    @FXML
+    private void editProfile() {
+        try {
+            router.showTrainerProfile();
+        } catch (IOException exception) {
+            status.error("Unable to open your profile. Please try again.");
+        }
     }
 
     @FXML

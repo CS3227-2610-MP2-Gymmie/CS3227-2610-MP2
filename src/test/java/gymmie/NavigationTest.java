@@ -1,5 +1,7 @@
 package gymmie;
 
+import static gymmie.testutil.JavaFxTestSupport.awaitUi;
+import static gymmie.testutil.JavaFxTestSupport.onFxThread;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -7,11 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,11 +19,10 @@ import gymmie.model.Account;
 import gymmie.model.Role;
 import gymmie.model.exception.ValidationException;
 import gymmie.service.PasswordHasher;
+import gymmie.testutil.JavaFxTestSupport;
 import gymmie.ui.SharedStyles;
 import gymmie.ui.StatusLabel;
 import gymmie.ui.UiFeedback;
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -44,8 +40,7 @@ class NavigationTest {
 
     @BeforeAll
     static void startToolkit() throws Exception {
-        Platform.startup(() -> Platform.setImplicitExit(false));
-        onFxThread(() -> null);
+        JavaFxTestSupport.startToolkit();
     }
 
     @Test
@@ -140,33 +135,4 @@ class NavigationTest {
         field.fireEvent(new javafx.event.ActionEvent());
     }
 
-    private static <T> void awaitUi(ObservableValue<T> observable, Predicate<T> condition) throws Exception {
-        CompletableFuture<Void> completed = new CompletableFuture<>();
-        ChangeListener<T> listener = (_, _, value) -> {
-            if (condition.test(value)) {
-                completed.complete(null);
-            }
-        };
-        try {
-            onFxThread(() -> {
-                observable.addListener(listener);
-                if (condition.test(observable.getValue())) {
-                    completed.complete(null);
-                }
-                return null;
-            });
-            completed.get(15, TimeUnit.SECONDS);
-        } finally {
-            onFxThread(() -> {
-                observable.removeListener(listener);
-                return null;
-            });
-        }
-    }
-
-    private static <T> T onFxThread(Callable<T> action) throws Exception {
-        FutureTask<T> task = new FutureTask<>(action);
-        Platform.runLater(task);
-        return task.get(15, TimeUnit.SECONDS);
-    }
 }

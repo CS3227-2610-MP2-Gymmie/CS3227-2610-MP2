@@ -206,6 +206,38 @@ Account inserts continue to enforce global, case-insensitive username uniqueness
 
 `AuthServiceTest` exercises real SQLite storage for all roles, case-insensitive login, logout, distinct deactivation failures, exact-role and ownership checks, revocation after deactivation, password-change failure rollback, and authentication after reopening the database with the changed password. `PasswordHasherTest` checks compatibility, fresh salts, verification, and password boundaries without asserting algorithm parameters as product requirements.
 
+### Trainer profile persistence and authorization
+
+Role-specific code is grouped under `src/main/java/gymmie/trainer/`, with
+`model`, `service`, and `persistence` subpackages alongside the controller.
+Trainer FXML, CSS, and migration SQL live under
+`src/main/resources/gymmie/trainer/`; Trainer tests mirror the role folder under
+`src/test/java/gymmie/trainer/`. Shared account models, authentication,
+display-name services, SQL helpers, validation, and JavaFX test support remain
+in common packages. Future role-specific features should follow this layout.
+
+`gymmie.service.ProfileService` provides the shared own-display-name operation.
+`gymmie.trainer.service.TrainerProfileService` owns Trainer profile reads and
+updates. Both reuse `Account.withDisplayName` and the
+existing 1–100 Unicode code-point rule without introducing another identity.
+The Trainer operations require a fresh active `TRAINER` account through
+`Permissions`; the target account ID always comes from the current session.
+Credential-free views expose only the fixed username and editable profile data.
+
+Schema version 2 adds `trainer_profile` and `trainer_specialization`. Startup
+migrates version 1 databases transactionally. Existing accounts have an empty
+synopsis and tag list until they save details. Tags retain insertion order,
+remove surrounding whitespace, and collapse case-insensitive duplicates.
+Account names, synopsis, and replacement tags are saved in one transaction.
+Profile operations share the authentication service monitor to serialize with
+login, logout, and password changes; the session name updates only after commit.
+
+`TrainerProfileController` runs service calls in background tasks, disables the
+editor during requests, and retains edits on save failures. The dashboard offers
+**My profile** to Trainers; the service enforces authorization independently of
+navigation visibility. `TrainerNavigationTest` writes a preview to
+`build/reports/trainer-profile.png` for visual review.
+
 ## Appendix: Requirements
 
 ### Product scope
