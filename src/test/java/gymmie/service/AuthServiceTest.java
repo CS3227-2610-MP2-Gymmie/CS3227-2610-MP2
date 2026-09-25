@@ -96,7 +96,7 @@ class AuthServiceTest {
 
     @Test
     void invalidCredentialsClearOldIdentityAndUseOneFailureMessage() throws Exception {
-        auth.login("Manager", PASSWORD);
+        auth.login("OtherManager", PASSWORD);
         AuthenticationException unknown = assertThrows(AuthenticationException.class, () ->
                 auth.login("unknown", PASSWORD));
         assertFalse(session.isAuthenticated());
@@ -210,7 +210,7 @@ class AuthServiceTest {
             assertThrows(AuthenticationException.class, () -> permissions.requireOwner(connection, Role.MEMBER, 3));
             return null;
         });
-        auth.login("Manager", PASSWORD);
+        auth.login("OtherManager", PASSWORD);
         deactivate(Role.MANAGER);
         persistence.unitOfWork().inTransaction(connection -> {
             assertThrows(AccountDeactivatedException.class, () -> permissions.requireRole(connection, Role.MANAGER));
@@ -221,7 +221,7 @@ class AuthServiceTest {
 
     @Test
     void permissionsUseCurrentRoleRatherThanCachedDashboardRole() throws Exception {
-        auth.login("Manager", PASSWORD);
+        auth.login("OtherManager", PASSWORD);
         // Simulates external account maintenance; ordinary profile updates cannot change roles.
         try (Connection connection = database.openConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate("UPDATE account SET role = 'MEMBER' WHERE id = 1");
@@ -295,6 +295,9 @@ class AuthServiceTest {
 
     private static Account account(Role role, boolean active) {
         String username = role.name().substring(0, 1) + role.name().substring(1).toLowerCase(Locale.ROOT);
+        if (role == Role.MANAGER) {
+            username = "OtherManager";
+        }
         return new Account(role.ordinal() + 1, username, passwordHash, username + " Display", role, active);
     }
 }

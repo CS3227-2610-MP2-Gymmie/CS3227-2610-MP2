@@ -2,12 +2,12 @@ package gymmie;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 
 import gymmie.persistence.Persistence;
 import gymmie.service.AuthService;
 import gymmie.service.PasswordHasher;
 import gymmie.service.Permissions;
+import gymmie.service.Seeder;
 import gymmie.service.UserSession;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -27,13 +27,14 @@ public class App extends Application {
             userSession, new PasswordHasher());
 
     /**
-     * Initializes the local database before the welcome window is created.
+     * Initializes local storage and seeds the first-run Manager before creating the welcome window.
      *
-     * @throws SQLException if local storage cannot be initialized.
+     * @throws Exception if local storage or the first-run Manager cannot be initialized.
      */
     @Override
-    public void init() throws SQLException {
+    public void init() throws Exception {
         persistence.initialize();
+        new Seeder(persistence.accounts(), persistence.unitOfWork(), new PasswordHasher()).seed();
     }
 
     /** Returns the shared persistence boundary for top-level application services. */

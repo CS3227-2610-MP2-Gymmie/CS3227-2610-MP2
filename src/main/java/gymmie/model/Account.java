@@ -7,6 +7,9 @@ import gymmie.model.exception.ValidationException;
 /**
  * An account profile; membership state belongs to {@link Member}, not the account.
  *
+ * <p>The Manager with the immutable, case-insensitive username {@code manager} is the
+ * first-run account and must remain active, including after profile or password changes.
+ *
  * @param id positive account identifier.
  * @param username original ASCII login name, preserved as entered.
  * @param password salted password hash, never a plaintext password.
@@ -16,10 +19,13 @@ import gymmie.model.exception.ValidationException;
  */
 public record Account(long id, String username, PasswordHash password, String displayName,
         Role role, boolean active) {
+    /** Immutable login name identifying the first-run Manager. */
+    public static final String SEEDED_MANAGER_USERNAME = "manager";
+
     /**
      * Validates the account's fields.
      *
-     * @throws ValidationException if a required field or identifier is invalid.
+     * @throws ValidationException if a required field or identifier is invalid, or the seeded Manager is inactive.
      */
     public Account {
         Constraints.positiveId(id, "Account ID");
@@ -30,6 +36,9 @@ public record Account(long id, String username, PasswordHash password, String di
         Constraints.required(password, "Password hash");
         Constraints.length(displayName, 1, 100, "Display name");
         Constraints.required(role, "Role");
+        if (role == Role.MANAGER && SEEDED_MANAGER_USERNAME.equalsIgnoreCase(username) && !active) {
+            throw new ValidationException("The seeded Manager cannot be deactivated");
+        }
     }
 
     /**

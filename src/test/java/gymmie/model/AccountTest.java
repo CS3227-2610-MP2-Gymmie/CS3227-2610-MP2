@@ -67,4 +67,11 @@ class AccountTest {
     private static Account account(String username, String displayName) {
         return new Account(1, username, PASSWORD, displayName, Role.MEMBER, true);
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"manager", "Manager", "MANAGER"})
+    void seededManagerCannotBeInactiveRegardlessOfUsernameCase(String username) {
+        assertThrows(ValidationException.class, () ->
+                new Account(1, username, PASSWORD, "Renamed", Role.MANAGER, false));
+    }
 }

@@ -11,8 +11,8 @@ import gymmie.model.Account;
  * Persists accounts using the caller-owned connection under this package's transaction contract.
  *
  * <p>Accounts are never deleted. Deactivation and reactivation update the active flag while retaining
- * memberships, sessions and bookings. Services protect the seeded Manager and cancel a deactivated
- * Member's future bookings in the same transaction.
+ * memberships, sessions and bookings. The account model prevents deactivating the seeded Manager;
+ * services cancel a deactivated Member's future bookings in the same transaction.
  */
 public interface AccountRepository {
     /**
