@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public final class SchemaInitializer {
     /** The schema version created by the current schema resource. */
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
 
     private static final String SCHEMA_RESOURCE = "/gymmie/db/schema.sql";
 
@@ -54,16 +54,15 @@ public final class SchemaInitializer {
                 connection.setAutoCommit(false);
             }
             int version = readUserVersion(connection);
-            if (version == 0) {
-                applySchema(connection);
-                setUserVersion(connection, CURRENT_SCHEMA_VERSION);
-            } else if (version > CURRENT_SCHEMA_VERSION) {
+            if (version > CURRENT_SCHEMA_VERSION) {
                 throw new SQLException("Database schema version is newer than this application");
-            } else if (version == CURRENT_SCHEMA_VERSION) {
-                // The database already has the current schema.
-            } else {
-                throw new SQLException("No migration path from schema version " + version
-                        + " to " + CURRENT_SCHEMA_VERSION);
+            }
+            if (version == 0) {
+                applySchema(connection, SCHEMA_RESOURCE);
+            }
+            if (version < 2) {
+                applySchema(connection, "/gymmie/trainer/db/trainer-profile.sql");
+                setCurrentUserVersion(connection);
             }
             if (ownsTransaction) {
                 connection.commit();
@@ -75,11 +74,13 @@ public final class SchemaInitializer {
             throw exception;
         } finally {
             if (ownsTransaction) {
-                restoreAutoCommit(connection, true);
+                restoreAutoCommit(connection);
             }
         }
     }
 
+    // SQLite PRAGMA uses the runtime connection, not an IDE-configured data source.
+    @SuppressWarnings("SqlNoDataSourceInspection")
     private static int readUserVersion(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery("PRAGMA user_version")) {
@@ -90,8 +91,8 @@ public final class SchemaInitializer {
         }
     }
 
-    private static void applySchema(Connection connection) throws SQLException {
-        String schema = readSchema();
+    private static void applySchema(Connection connection, String resource) throws SQLException {
+        String schema = readSchema(resource);
         try (Statement statement = connection.createStatement()) {
             // This splitter requires statements without semicolons in trigger bodies or string
             // literals. Replace it with a real SQL script parser before adding such statements.
@@ -104,10 +105,10 @@ public final class SchemaInitializer {
         }
     }
 
-    private static String readSchema() throws SQLException {
-        try (InputStream input = SchemaInitializer.class.getResourceAsStream(SCHEMA_RESOURCE)) {
+    private static String readSchema(String resource) throws SQLException {
+        try (InputStream input = SchemaInitializer.class.getResourceAsStream(resource)) {
             if (input == null) {
-                throw new SQLException("Missing database schema resource: " + SCHEMA_RESOURCE);
+                throw new SQLException("Missing database schema resource: " + resource);
             }
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException exception) {
@@ -115,9 +116,11 @@ public final class SchemaInitializer {
         }
     }
 
-    private static void setUserVersion(Connection connection, int version) throws SQLException {
+    // SQLite PRAGMA uses the runtime connection, not an IDE-configured data source.
+    @SuppressWarnings("SqlNoDataSourceInspection")
+    private static void setCurrentUserVersion(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            statement.execute("PRAGMA user_version = " + version);
+            statement.execute("PRAGMA user_version = " + CURRENT_SCHEMA_VERSION);
         }
     }
 
@@ -129,10 +132,9 @@ public final class SchemaInitializer {
         }
     }
 
-    private static void restoreAutoCommit(Connection connection, boolean originalAutoCommit)
-            throws SQLException {
-        if (connection.getAutoCommit() != originalAutoCommit) {
-            connection.setAutoCommit(originalAutoCommit);
+    private static void restoreAutoCommit(Connection connection) throws SQLException {
+        if (!connection.getAutoCommit()) {
+            connection.setAutoCommit(true);
         }
     }
 }

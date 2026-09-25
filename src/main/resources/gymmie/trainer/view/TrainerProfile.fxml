@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/profile.css"
+        fx:controller="gymmie.trainer.TrainerProfileController">
+    <VBox spacing="18" styleClass="page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label text="My Trainer profile" styleClass="title" wrapText="true" />
+        <HBox spacing="12">
+            <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
+            <Button fx:id="reloadButton" text="_Reload profile" onAction="#load" />
+        </HBox>
+        <StatusLabel fx:id="profileStatus" />
+        <VBox fx:id="form" spacing="12" maxWidth="600" styleClass="card" disable="true">
+            <Label text="Username (fixed)" labelFor="${username}" />
+            <TextField fx:id="username" editable="false" accessibleText="Username, cannot be changed" />
+            <Label text="_Display name" mnemonicParsing="true" labelFor="${displayName}" />
+            <TextField fx:id="displayName" onAction="#save" />
+            <Label text="1–100 characters; this is the name others see." wrapText="true" />
+            <Label text="S_ynopsis" mnemonicParsing="true" labelFor="${synopsis}" />
+            <TextArea fx:id="synopsis" wrapText="true" prefRowCount="4" />
+            <Label text="Training specializations" styleClass="heading" />
+            <Label text="Add one tag at a time. Select a tag to remove it. Synopsis and tags are optional."
+                    wrapText="true" />
+            <FlowPane fx:id="tags" hgap="8" vgap="8" />
+            <Label text="Specialization _tag" mnemonicParsing="true" labelFor="${tagInput}" />
+            <HBox spacing="10">
+                <TextField fx:id="tagInput" promptText="e.g. Strength training" onAction="#addTag"
+                        HBox.hgrow="ALWAYS" />
+                <Button id="addTagButton" text="_Add tag" onAction="#addTag" />
+            </HBox>
+            <Button id="saveProfileButton" text="_Save profile" onAction="#save" />
+        </VBox>
+    </VBox>
+</ScrollPane>

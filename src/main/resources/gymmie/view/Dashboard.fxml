@@ -10,6 +10,7 @@
         <Label fx:id="title" styleClass="title" wrapText="true" />
         <Label fx:id="welcome" wrapText="true" />
         <VBox fx:id="actions" spacing="18">
+            <Button fx:id="profileButton" text="My _profile" onAction="#editProfile" />
             <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
             <VBox maxWidth="440" spacing="10" styleClass="card">
                 <Label text="Change password" styleClass="heading" />
@@ -29,7 +30,7 @@
                     <PasswordField fx:id="confirmPassword" onAction="#changePassword" />
                     <Button fx:id="confirmPasswordReveal" text="Show" styleClass="button, reveal-button" />
                 </HBox>
-                <Button text="_Save password" onAction="#changePassword" />
+                <Button id="savePasswordButton" text="_Save password" onAction="#changePassword" />
             </VBox>
         </VBox>
         <StatusLabel fx:id="status" />

@@ -9,13 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Executes prepared statements without taking ownership of the connection or transaction. */
-final class SqliteQueries {
+public final class SqliteQueries {
     private SqliteQueries() {
     }
 
-    // Repository callers supply fixed SQL templates; all runtime values are bound separately.
+    /**
+     * Reads rows with a fixed SQL template and separately bound values.
+     *
+     * @throws SQLException if reading or mapping a row fails.
+     */
     @SuppressWarnings("SqlSourceToSinkFlow")
-    static <T> List<T> read(Connection connection, String sql, RowMapper<T> mapper, Object... parameters)
+    public static <T> List<T> read(Connection connection, String sql, RowMapper<T> mapper, Object... parameters)
             throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             bind(statement, parameters);
@@ -25,16 +29,25 @@ final class SqliteQueries {
         }
     }
 
-    // Repository callers supply fixed SQL templates; all runtime values are bound separately.
+    /**
+     * Writes rows with a fixed SQL template and separately bound values.
+     *
+     * @throws SQLException if writing fails.
+     */
     @SuppressWarnings("SqlSourceToSinkFlow")
-    static int write(Connection connection, String sql, Object... parameters) throws SQLException {
+    public static int write(Connection connection, String sql, Object... parameters) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             bind(statement, parameters);
             return statement.executeUpdate();
         }
     }
 
-    static void writeOne(Connection connection, String sql, Object... parameters) throws SQLException {
+    /**
+     * Writes exactly one row using the caller's connection.
+     *
+     * @throws SQLException if writing fails or the affected row count is not one.
+     */
+    public static void writeOne(Connection connection, String sql, Object... parameters) throws SQLException {
         if (write(connection, sql, parameters) != 1) {
             throw new SQLException("Record is missing or immutable fields do not match");
         }
@@ -68,7 +81,7 @@ final class SqliteQueries {
 
     /** Maps one current result row to an immutable domain value. */
     @FunctionalInterface
-    interface RowMapper<T> {
+    public interface RowMapper<T> {
         T map(ResultSet row) throws SQLException;
     }
 }

@@ -17,7 +17,19 @@ public final class ViewLoader {
      * @throws IOException if the resource is missing or malformed.
      */
     public Parent load(String name, Object controller) throws IOException {
-        FXMLLoader loader = new FXMLLoader(resource("/gymmie/view/" + name + ".fxml"));
+        return loadResource("/gymmie/view/" + name + ".fxml", controller);
+    }
+
+    /**
+     * Loads a bundled view at an absolute resource path, including role-specific folders.
+     *
+     * @param path absolute FXML resource path.
+     * @param controller controller wired by the router.
+     * @return loaded view root.
+     * @throws IOException if the resource is missing or malformed.
+     */
+    public Parent loadResource(String path, Object controller) throws IOException {
+        FXMLLoader loader = new FXMLLoader(resource(path));
         loader.setControllerFactory(type -> {
             if (!type.isInstance(controller)) {
                 throw new IllegalArgumentException("Controller does not match the FXML declaration: " + type.getName());

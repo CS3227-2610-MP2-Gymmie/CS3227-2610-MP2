@@ -37,7 +37,25 @@ public final class UserSession {
         return currentUser().orElseThrow(() -> new AuthenticationException("Please log in first"));
     }
 
-    void establish(Account account) {
+    /**
+     * Refreshes an existing identity after a role service commits its own-profile update.
+     *
+     * <p>This cannot sign in a user or switch the session to another account.
+     *
+     * @param account committed state of the already authenticated account.
+     * @throws AuthenticationException if the session is absent or belongs to another account.
+     * @throws AccountDeactivatedException if the account is inactive.
+     */
+    public synchronized void refresh(Account account) {
+        Objects.requireNonNull(account);
+        Principal current = requireUser();
+        if (current.accountId() != account.id() || !current.username().equals(account.username())) {
+            throw new AuthenticationException("The authenticated account has changed");
+        }
+        establish(account);
+    }
+
+    synchronized void establish(Account account) {
         Objects.requireNonNull(account);
         if (!account.active()) {
             throw new AccountDeactivatedException();
@@ -45,7 +63,7 @@ public final class UserSession {
         principal = new Principal(account.id(), account.username(), account.displayName(), account.role());
     }
 
-    void clear() {
+    synchronized void clear() {
         principal = null;
     }
 
