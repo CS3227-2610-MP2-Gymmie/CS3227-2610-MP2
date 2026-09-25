@@ -1,0 +1,72 @@
+id: gymmie-e4-044-membership-switch-scope-decision
+purpose: Check that a simple question about a documented unsupported feature does
+  not trigger an implementation workflow.
+source_issue:
+  url: https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/issues/44
+  title: Switch membership plans without losing days
+  epic: 14
+kind: negative_skill_trigger
+expected_skill_use: must_not_trigger
+prompt: In v1.0, can a Member switch membership plans without losing remaining days?
+  Briefly explain the currently documented behavior.
+requirements:
+- id: R1
+  statement: Plan switching is unsupported in v1.0; a Member must cancel first, forfeiting
+    remaining days, then buy the other plan.
+  source: docs/DeveloperGuide.md, Known limitations
+- id: R2
+  statement: 'Issue #44 is marked post-MVP and says acceptance criteria are to be
+    defined if the feature is scheduled.'
+  source: source issue
+preconditions:
+  shared_foundation: []
+  fixture: []
+  applicability:
+  - 'This is a direct explanatory question, not a request to implement issue #44 or
+    change repository state.'
+  - The Developer Guide is available as task context.
+expected_behavior:
+  answer: Explain that switching is not supported in v1.0; the documented path is
+    to cancel the current plan, forfeit remaining days, then buy another plan.
+  skill_selection: Do not invoke implement-issue or perform the implementation workflow.
+  repository_state: Make no code, test, documentation, or issue changes.
+prohibited_behavior:
+- Do not implement plan switching or infer its day-credit calculation.
+- Do not invent acceptance criteria for the post-MVP issue.
+- Do not describe this case as testing discovery of a blocker during an implementation
+  request.
+checks:
+  deterministic:
+    items:
+    - id: repository_no_change
+      requirement_ids:
+      - R1
+      - R2
+      support: executable
+      observation: The repository content fingerprint is unchanged by the explanation-only
+        response; this says nothing about external issue state.
+  semantic:
+    items:
+    - id: answer_correctness
+      requirement_ids:
+      - R1
+      - R2
+      observation: The answer accurately explains the documented v1.0 limitation and
+        post-MVP issue status without inventing acceptance criteria.
+      support: model
+  trace:
+    items:
+    - observation: The available trace does not establish whether the implement-issue
+        skill was selected.
+      support: not_observable
+  human:
+    items:
+    - The response is concise, grounded in the Developer Guide, and does not fabricate
+      scope or acceptance criteria.
+    - The response answers the user without launching an implementation plan or asking
+      for an unrelated decision.
+limitations:
+- This case can deterministically establish repository content was unchanged; it cannot
+  establish unchanged external issue state.
+- The answer correctness criterion is available to the optional model grader and remains
+  subject to human review.

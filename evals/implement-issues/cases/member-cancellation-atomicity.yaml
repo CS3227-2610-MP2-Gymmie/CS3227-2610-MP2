@@ -1,0 +1,152 @@
+id: gymmie-e4-038-member-cancellation-atomicity
+purpose: Verify atomic cancellation of a Member's membership and future bookings.
+source_issue:
+  url: https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/issues/38
+  title: Cancel current membership plan
+  epic: 14
+kind: implementation
+expected_skill_use: required
+prompt: 'Add the Member''s current-membership cancellation behavior requested in issue
+  #38. Cancellation is immediate and has no refund. Cancel all affected future bookings
+  with membership-cancellation reason in the same transaction as the membership change.
+  A persistence failure must roll back both. Do not cancel past bookings or bookings
+  belonging to other Members.'
+requirements:
+- id: R1
+  statement: Cancellation marks the membership cancelled immediately and provides
+    no refund.
+  source: issue acceptance criteria
+- id: R2
+  statement: All of the Member's future bookings are cancelled in the same transaction.
+  source: issue acceptance criteria; docs/DeveloperGuide.md, UC2
+- id: R3
+  statement: Affected bookings remain visible with cancelled status and a reason identifying
+    membership cancellation.
+  source: issue acceptance criteria; docs/DeveloperGuide.md, Domain model and Repository
+    contracts
+- id: R4
+  statement: Persistence failure rolls back both membership and booking cancellations.
+  source: issue acceptance criteria; docs/DeveloperGuide.md, UC2 and transactional
+    consistency
+preconditions:
+  shared_foundation:
+  - check: The app can authenticate a Member and route that authenticated session
+      to a Member area.
+    source: docs/DeveloperGuide.md, Authentication and authorization; app interaction
+      requirements
+  - check: Membership and booking repositories support writes within the caller's
+      transaction boundary.
+    source: docs/DeveloperGuide.md, Repository contracts and SQLite implementation
+  - check: Protected Member operations can use service-layer role and ownership checks.
+    source: docs/DeveloperGuide.md, Authentication and authorization
+  - check: These shared capabilities are provided by separate foundation work and
+      are not part of this issue task.
+  fixture:
+  - Use an isolated file-backed database with one Member, active membership, multiple
+    future bookings, a past booking, and another Member's booking.
+  - Provide the plans and sessions required by the schema; configure a persistence
+    failure after at least one booking update to exercise rollback.
+  applicability:
+  - 'Before dispatch, check whether issue #38''s requested cancellation behavior is
+    already implemented in the target checkout. If complete, mark not_applicable rather
+    than treating issue #38 as a fresh implementation case.'
+  - If a shared_foundation check fails, defer execution and report the missing prerequisite;
+    do not implement foundation work in this case.
+expected_behavior:
+  completed: The owning Member's membership and qualifying future bookings change
+    atomically; bookings remain in history with the required reason, unrelated and
+    past bookings are unchanged, and an injected write failure rolls back all changes.
+  unmet_precondition: Do not dispatch the implementation prompt. Record the case as
+    deferred for a missing shared prerequisite.
+  feature_already_present: Mark not_applicable to that checkout.
+prohibited_behavior:
+- Do not hard-delete memberships or bookings.
+- Do not cancel past bookings or another Member's bookings.
+- Do not claim service-level atomicity based only on repository helper tests.
+- Do not treat UI confirmation as authorization.
+- Do not prescribe a particular service API or confirmation-screen design.
+checks:
+  deterministic:
+    items:
+    - requirement_ids:
+      - R1
+      - R2
+      - R3
+      observation: Successful cancellation retains the membership and bookings, marks
+        the membership cancelled, and sets qualifying future bookings to cancelled
+        with the membership-cancellation reason.
+      support: not_implemented
+    - requirement_ids:
+      - R2
+      - R3
+      observation: Past bookings and another Member's bookings remain unchanged.
+      support: not_implemented
+    - requirement_ids:
+      - R4
+      observation: A failure on a later booking update leaves the membership and all
+        bookings unchanged after rollback and reopening the database.
+      support: not_implemented
+    - requirement_ids:
+      - R2
+      observation: Service-level authorization rejects a non-owner or wrong-role operation
+        before protected writes.
+      support: not_implemented
+  trace:
+    items:
+    - contract_id: IW-01
+      observation: The agent reads the issue, UC2, model, repositories, transaction
+        boundary, relevant tests, and repository conventions.
+      support: not_observable
+    - contract_id: IW-02
+      observation: Harness-captured starting metadata is not evidence that the agent
+        inspected the baseline or preserved unrelated changes.
+      support: not_observable
+    - contract_id: IW-03
+      observation: The plan maps R1-R4 to writes, affected booking selection, authorization,
+        and rollback checks.
+      support: not_observable
+    - contract_id: IW-04
+      observation: The change stays scoped and includes tests that exercise the production
+        service path plus affected user documentation.
+      support: not_observable
+    - contract_id: IW-05
+      observation: The final diff and invariants are reviewed; identified partial-update,
+        scope, or authorization findings are resolved or statused.
+      support: not_observable
+    - contract_id: IW-06
+      observation: Actual service-level checks and results are reported; repository-only
+        evidence is identified as such.
+      support: trace
+    - contract_id: IW-07
+      observation: Delivery states criterion status, evidence, limitations, and remaining
+        work accurately.
+      support: not_observable
+    - contract_id: IW-08
+      observation: A command trace cannot establish authorization for every Git or
+        external action; assess only directly observed outcomes and leave unsupported
+        claims ungraded.
+      support: not_observable
+  human:
+    items:
+    - Membership and affected bookings use one transaction and connection.
+    - Future-booking selection respects ownership and preserves past history.
+    - Failure injection demonstrates rollback after an earlier write.
+    - The implementation fits the shared foundation and does not implement unrelated
+      login or routing work.
+  semantic:
+    items:
+    - id: cancellation_semantics
+      requirement_ids:
+      - R1
+      - R2
+      - R3
+      - R4
+      support: model
+      observation: Assess the diff and current verification evidence for retained
+        membership history, qualifying future booking cancellation, ownership isolation,
+        transaction rollback, authorization, and scope. Missing behavior or evidence
+        is not_observable, not a pass.
+limitations:
+- The optional model grader can assess the listed semantic rubric, but no case-specific
+  deterministic cancellation acceptance command is implemented.
+- Repository checks and human review remain separate from that model judgment.
