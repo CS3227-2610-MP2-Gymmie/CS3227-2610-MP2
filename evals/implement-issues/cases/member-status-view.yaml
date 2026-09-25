@@ -1,0 +1,163 @@
+id: gymmie-e4-035-member-status-view
+purpose: Verify implementation of the Member's current membership status view.
+source_issue:
+  url: https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/issues/35
+  title: View membership status
+  epic: 14
+kind: implementation
+expected_skill_use: required
+prompt: 'Add the Member-facing view for current membership status requested in issue
+  #35. Show the current membership''s plan name and expiry date, and whether it is
+  currently active. Keep the displayed status derived from membership history. Do
+  not add purchase, renewal, or cancellation behavior.'
+requirements:
+- id: R1
+  statement: A Member can view their current membership and expiry date.
+  source: issue acceptance criteria
+- id: R2
+  statement: The view shows the current plan name and whether the membership is currently
+    active.
+  source: issue acceptance criteria
+- id: R3
+  statement: Current membership information is derived from complete membership history;
+    coverage includes the expiry date, and account activation is a separate login
+    concern.
+  source: docs/DeveloperGuide.md, Domain model
+preconditions:
+  shared_foundation:
+  - check: The app can authenticate a Member and route that authenticated session
+      to a Member area.
+    source: docs/DeveloperGuide.md, Authentication and authorization; app interaction
+      requirements
+  - check: Membership, plan, and account data can be loaded through the existing Persistence
+      and repository boundary.
+    source: docs/DeveloperGuide.md, Repository contracts
+  - check: Protected Member reads can use service-layer role and ownership checks.
+    source: docs/DeveloperGuide.md, Authentication and authorization
+  - check: These shared capabilities are provided by separate foundation work and
+      are not part of this issue task.
+  fixture:
+  - Use isolated persisted Member account, plan, and complete membership history fixtures,
+    including active, expired, cancelled, and empty-history states.
+  - Make evaluation dates deterministic through explicit dates or an equivalent controlled
+    time source.
+  applicability:
+  - 'Before dispatch, check whether issue #35''s requested view is already implemented
+    in the target checkout. If complete, mark not_applicable rather than treating
+    issue #35 as a fresh implementation case.'
+  - If a shared_foundation check fails, defer execution and report the missing prerequisite;
+    do not implement foundation work in this case.
+preflight:
+  shared_foundation:
+  - id: member_authentication_and_routing
+    evidence:
+    - path: src/main/java/gymmie/Router.java
+      contains: showDashboard()
+    - path: src/main/java/gymmie/LoginController.java
+      contains: showDashboard()
+  - id: membership_history_read_boundary
+    evidence:
+    - path: src/main/java/gymmie/persistence/repository/MembershipRepository.java
+      contains: findByMemberId(Connection connection, long memberId)
+    - path: src/main/java/gymmie/persistence/Persistence.java
+      contains: MembershipRepository memberships
+  - id: member_role_ownership_boundary
+    evidence:
+    - path: src/main/java/gymmie/service/Permissions.java
+      contains: Account requireOwner(Connection connection, Role role, long ownerAccountId)
+  human_readiness:
+  - id: graphical_test_environment
+    required: false
+    question: Confirm a graphical desktop session is available before requesting the
+      opt-in JavaFX navigation test.
+  feature_probe:
+    human_completion_check: issue_35_feature_already_complete
+expected_behavior:
+  completed: The Member can see the current plan name, expiry, and active state derived
+    from persisted history; no current membership is represented without stale current
+    details.
+  unmet_precondition: Do not dispatch the implementation prompt. Record the case as
+    deferred for a missing shared prerequisite.
+  feature_already_present: Mark not_applicable to that checkout.
+prohibited_behavior:
+- Do not add a second mutable membership status or plan identifier to Account.
+- Do not conflate account activation with membership eligibility.
+- Do not implement purchase, renewal, or cancellation in this case.
+- Do not require a particular screen layout, label wording, or API design that the
+  issue and guide do not prescribe.
+checks:
+  deterministic:
+    items:
+    - id: membership_history_model
+      requirement_ids:
+      - R3
+      support: executable
+      command_id: issue35_membership_history_model
+      observation: Existing Member and Membership model tests cover complete-history
+        status, inclusive expiry, cancelled and expired history, and separation from
+        account activation. These tests do not establish that a Member-facing view
+        works.
+    - id: member_view_content
+      requirement_ids:
+      - R1
+      - R2
+      support: not_implemented
+      observation: No deterministic screen-level acceptance check currently establishes
+        the displayed member, plan name, expiry date, or active state.
+  semantic:
+    items:
+    - id: feature_quality
+      requirement_ids:
+      - R1
+      - R2
+      - R3
+      observation: The implementation provides a coherent Member-facing status view
+        derived from complete membership history without adding unrelated workflows.
+      support: model
+  trace:
+    items:
+    - contract_id: IW-01
+      observation: The agent establishes scope from the issue, Developer Guide, relevant
+        source, and existing tests without adding requirements.
+      support: not_observable
+    - contract_id: IW-02
+      observation: Harness-captured starting metadata is not evidence that the agent
+        inspected the baseline or preserved unrelated changes.
+      support: not_observable
+    - contract_id: IW-03
+      observation: The plan maps R1-R3 to intended behavior and observable checks.
+      support: not_observable
+    - contract_id: IW-04
+      observation: The change stays within the status-view feature and includes appropriate
+        tests and affected user documentation.
+      support: not_observable
+    - contract_id: IW-05
+      observation: The final diff is reviewed against R1-R3 and relevant invariants;
+        findings are resolved or statused.
+      support: not_observable
+    - contract_id: IW-06
+      observation: A completed test/check command and its exit code are visible in
+        the CLI event trace; this establishes only that command result.
+      support: trace
+    - contract_id: IW-07
+      observation: Delivery distinguishes completed behavior from blocked or incomplete
+        evidence and states limitations.
+      support: not_observable
+    - contract_id: IW-08
+      observation: A command trace cannot establish authorization for every Git or
+        external action; assess only directly observed outcomes and leave unsupported
+        claims ungraded.
+      support: not_observable
+  human:
+    items:
+    - The view uses complete persisted membership history and the correct inclusive
+      expiry boundary.
+    - Service-layer authorization protects the Member data.
+    - Presentation choices are coherent with the existing application and shared UI
+      conventions.
+limitations:
+- The issue does not specify screen layout or empty-state wording; those remain implementation
+  choices.
+- Only existing domain model tests are executable acceptance evidence for R3; R1/R2
+  screen behavior, protected Member access, and GUI acceptance still require human
+  review.

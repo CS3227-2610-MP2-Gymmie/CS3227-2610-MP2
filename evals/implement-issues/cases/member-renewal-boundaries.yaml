@@ -1,0 +1,149 @@
+id: gymmie-e4-037-member-renewal-boundaries
+purpose: Verify renewal rules at early, expired, and archived-plan boundaries.
+source_issue:
+  url: https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/issues/37
+  title: Renew current membership plan
+  epic: 14
+kind: implementation
+expected_skill_use: required
+prompt: 'Add the Member''s current-plan renewal behavior requested in issue #37. Renewal
+  must extend coverage from the later of today and the current expiry, must keep the
+  current plan, and must allow an existing holder to renew an archived plan. Do not
+  implement plan switching or membership cancellation.'
+requirements:
+- id: R1
+  statement: Renewal extends from the later of today and the existing expiry date.
+  source: issue acceptance criteria; docs/DeveloperGuide.md, Domain model
+- id: R2
+  statement: Renewal does not switch to a different plan.
+  source: issue acceptance criteria
+- id: R3
+  statement: An archived plan remains available to its existing holder for renewal.
+  source: issue acceptance criteria; docs/DeveloperGuide.md, Repository contracts
+- id: R4
+  statement: Renewal preserves membership ownership, plan, start date, and purchase-time
+    price and duration snapshots.
+  source: docs/DeveloperGuide.md, Repository contracts
+preconditions:
+  shared_foundation:
+  - check: The app can authenticate a Member and route that authenticated session
+      to a Member area.
+    source: docs/DeveloperGuide.md, Authentication and authorization; app interaction
+      requirements
+  - check: Membership, plan, and account data can be loaded and updated through the
+      existing Persistence and repository boundary.
+    source: docs/DeveloperGuide.md, Repository contracts
+  - check: Protected Member operations can use service-layer role and ownership checks.
+    source: docs/DeveloperGuide.md, Authentication and authorization
+  - check: These shared capabilities are provided by separate foundation work and
+      are not part of this issue task.
+  fixture:
+  - Use isolated persisted Member, current membership, and matching plan fixtures;
+    cover a future expiry, an expiry before today, and an archived current plan.
+  - Use deterministic dates and retain the purchased duration snapshot if catalogue
+    terms differ from purchase terms.
+  applicability:
+  - 'Before dispatch, check whether issue #37''s requested renewal behavior is already
+    implemented in the target checkout. If complete, mark not_applicable rather than
+    treating issue #37 as a fresh implementation case.'
+  - If a shared_foundation check fails, defer execution and report the missing prerequisite;
+    do not implement foundation work in this case.
+expected_behavior:
+  completed: An authorized Member can renew the current plan from max(today, current
+    expiry) using the membership's purchase-time duration, without changing plan identity
+    or purchase snapshots; existing holders can renew archived plans.
+  unmet_precondition: Do not dispatch the implementation prompt. Record the case as
+    deferred for a missing shared prerequisite.
+  feature_already_present: Mark not_applicable to that checkout.
+prohibited_behavior:
+- Do not switch plans as part of renewal.
+- Do not replace purchase-time price or duration with changed catalogue values.
+- Do not prescribe a specific service API, controller, or renewal screen design beyond
+  the requirements.
+- Do not implement shared login, session routing, or authorization foundation in this
+  issue case.
+checks:
+  deterministic:
+    items:
+    - requirement_ids:
+      - R1
+      observation: With future expiry, renewed expiry is the existing expiry plus
+        the purchased duration; with past expiry, it is today plus the purchased duration.
+        Include the equality boundary.
+      support: not_implemented
+    - requirement_ids:
+      - R2
+      - R4
+      observation: Plan identity, ownership, start date, and purchase snapshots remain
+        unchanged; an attempt to renew against a different plan does not change persisted
+        membership.
+      support: not_implemented
+    - requirement_ids:
+      - R3
+      observation: An archived plan can be renewed by its existing holder while purchase
+        of that archived plan remains rejected.
+      support: not_implemented
+    - requirement_ids:
+      - R1
+      - R4
+      observation: Persisted renewal survives database reopen, and a failed persistence
+        operation leaves the prior membership state intact.
+      support: not_implemented
+  trace:
+    items:
+    - contract_id: IW-01
+      observation: The agent uses the issue, guide, model, repositories, and tests
+        to establish renewal scope.
+      support: not_observable
+    - contract_id: IW-02
+      observation: Harness-captured starting metadata is not evidence that the agent
+        inspected the baseline or preserved unrelated changes.
+      support: not_observable
+    - contract_id: IW-03
+      observation: The plan maps R1-R4 to implementation and deterministic checks.
+      support: not_observable
+    - contract_id: IW-04
+      observation: The implementation is focused and includes suitable tests and affected
+        user documentation.
+      support: not_observable
+    - contract_id: IW-05
+      observation: Review covers date math, snapshots, authorization, persistence,
+        and scope; findings are resolved or statused.
+      support: not_observable
+    - contract_id: IW-06
+      observation: Actual checks and results are reported, with unavailable evidence
+        identified.
+      support: trace
+    - contract_id: IW-07
+      observation: Delivery reports criterion status, evidence, assumptions, and remaining
+        work honestly.
+      support: not_observable
+    - contract_id: IW-08
+      observation: A command trace cannot establish authorization for every Git or
+        external action; assess only directly observed outcomes and leave unsupported
+        claims ungraded.
+      support: not_observable
+  human:
+    items:
+    - Early, equal-to-today, and expired renewal boundaries follow the guide.
+    - Catalogue edits do not rewrite the membership's purchase snapshot.
+    - Archived-plan behavior distinguishes existing-holder renewal from new purchase.
+    - The design uses the existing boundaries without expanding the issue into shared
+      foundation work.
+  semantic:
+    items:
+    - id: renewal_semantics
+      requirement_ids:
+      - R1
+      - R2
+      - R3
+      - R4
+      support: model
+      observation: Assess the diff and current verification evidence for renewal date
+        boundaries, purchase-time snapshots, archived-plan handling, ownership, persistence,
+        rollback, and scope. Missing behavior or evidence is not_observable, not a
+        pass.
+limitations:
+- The optional model grader can assess the listed semantic rubric, but no case-specific
+  deterministic renewal acceptance command is implemented.
+- Repository checks and human review remain separate from that model judgment.
