@@ -5,6 +5,10 @@ import java.net.URL;
 import java.sql.SQLException;
 
 import gymmie.persistence.Persistence;
+import gymmie.service.AuthService;
+import gymmie.service.PasswordHasher;
+import gymmie.service.Permissions;
+import gymmie.service.UserSession;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,6 +21,10 @@ public class App extends Application {
     private static final String APP_TITLE = "Gymmie";
 
     private final Persistence persistence = new Persistence();
+    private final UserSession userSession = new UserSession();
+    private final Permissions permissions = new Permissions(persistence.accounts(), userSession);
+    private final AuthService authService = new AuthService(persistence.accounts(), persistence.unitOfWork(),
+            userSession, new PasswordHasher());
 
     /**
      * Initializes the local database before the welcome window is created.
@@ -31,6 +39,21 @@ public class App extends Application {
     /** Returns the shared persistence boundary for top-level application services. */
     public Persistence getPersistence() {
         return persistence;
+    }
+
+    /** Returns the application's authentication operations. */
+    public AuthService getAuthService() {
+        return authService;
+    }
+
+    /** Returns the credential-free session snapshot for display and dashboard routing. */
+    public UserSession getUserSession() {
+        return userSession;
+    }
+
+    /** Returns the service-layer authorization boundary for protected operations. */
+    public Permissions getPermissions() {
+        return permissions;
     }
 
     /**
