@@ -7,11 +7,11 @@
         fx:controller="gymmie.trainer.CreateSessionController">
     <VBox spacing="18" styleClass="page">
         <Label text="GYMMIE" styleClass="brand" />
-        <Label text="Create session" styleClass="title" wrapText="true" />
+        <Label fx:id="title" text="Create session" styleClass="title" wrapText="true" />
         <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
         <StatusLabel fx:id="status" />
         <VBox fx:id="form" spacing="12" maxWidth="600" styleClass="card">
-            <Label text="Schedule a session for Members. You will be its Trainer." wrapText="true" />
+            <Label fx:id="introduction" text="Schedule a session for Members. You will be its Trainer." wrapText="true" />
             <Label text="Start _date" mnemonicParsing="true" labelFor="${startDate}" />
             <DatePicker fx:id="startDate" editable="false" promptText="Choose a date" maxWidth="Infinity" />
             <Label text="_Start time" mnemonicParsing="true" labelFor="${startTime}" />

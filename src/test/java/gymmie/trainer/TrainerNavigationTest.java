@@ -490,6 +490,212 @@ class TrainerNavigationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void trainerEditsSessionByMouseOrKeyboard(boolean keyboard) throws Exception {
+        Path database = temporaryDirectory.resolve("edit-session.db");
+        AppContext context = new AppContext(database);
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withRole(Role.TRAINER).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, trainer);
+            return null;
+        });
+        context.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        var original = context.getTrainingSessionService().create(LocalDateTime.now().plusDays(2),
+                60, 10, "Original");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            var listFeedback = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showUpcomingSessions();
+                stage.show();
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(listFeedback, text -> text.equals("Upcoming sessions loaded."));
+            var feedback = onFxThread(() -> {
+                Button edit = (Button) stage.getScene().lookup("#editButton-" + original.id());
+                if (keyboard) {
+                    pressKey((Button) stage.getScene().lookup("#rosterButton-" + original.id()), KeyCode.TAB);
+                    assertEquals(edit, stage.getScene().getFocusOwner());
+                    pressKey(edit, KeyCode.SPACE);
+                } else {
+                    edit.fire();
+                }
+                stage.getScene().getRoot().applyCss();
+                DatePicker date = (DatePicker) stage.getScene().lookup("#startDate");
+                assertEquals(original.startsAt().toLocalDate(), date.getValue());
+                assertEquals("60", ((TextField) stage.getScene().lookup("#duration")).getText());
+                assertEquals("10", ((TextField) stage.getScene().lookup("#capacity")).getText());
+                assertEquals("Original", ((TextArea) stage.getScene().lookup("#description")).getText());
+                TextField capacity = (TextField) stage.getScene().lookup("#capacity");
+                capacity.setText("0");
+                Button save = (Button) stage.getScene().lookup("#saveButton");
+                save.fire();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(feedback, text -> text.startsWith("Error:"));
+            onFxThread(() -> {
+                assertFalse(stage.getScene().lookup("#form").isDisabled());
+                assertEquals("0", ((TextField) stage.getScene().lookup("#capacity")).getText());
+                TextField capacity = (TextField) stage.getScene().lookup("#capacity");
+                capacity.setText("5");
+                TextField duration = (TextField) stage.getScene().lookup("#duration");
+                duration.setText("90");
+                TextArea description = (TextArea) stage.getScene().lookup("#description");
+                description.setText("Corrected");
+                Button save = (Button) stage.getScene().lookup("#saveButton");
+                if (keyboard) {
+                    pressKey(description, KeyCode.TAB);
+                    assertEquals(save, stage.getScene().getFocusOwner());
+                    pressKey(save, KeyCode.SPACE);
+                } else {
+                    save.fire();
+                }
+                assertTrue(stage.getScene().lookup("#form").isDisabled());
+                return null;
+            });
+            awaitUi(feedback, text -> text.equals("Success: Session changes saved."));
+            var restarted = new AppContext(database).getPersistence();
+            var saved = restarted.unitOfWork().inTransaction(connection ->
+                    restarted.sessions().findById(connection, original.id()).orElseThrow());
+            assertEquals(original.startsAt(), saved.startsAt());
+            assertEquals(90, saved.durationMinutes());
+            assertEquals(5, saved.capacity());
+            assertEquals("Corrected", saved.description());
+            var refreshed = onFxThread(() -> {
+                writePreview(stage, "edit-session.png");
+                TextArea description = (TextArea) stage.getScene().lookup("#description");
+                description.setText("Unsaved");
+                pressKey((Button) stage.getScene().lookup("#backButton"), KeyCode.SPACE);
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(refreshed, text -> text.equals("Upcoming sessions loaded."));
+            onFxThread(() -> {
+                var cards = (javafx.scene.layout.VBox) stage.getScene().lookup("#sessions");
+                var card = (javafx.scene.layout.VBox) cards.getChildren().getFirst();
+                assertEquals("Corrected", ((Label) card.getChildren().get(2)).getText());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void trainerReschedulesSessionAndRetainsRosterAfterRestart(boolean keyboard) throws Exception {
+        Path database = temporaryDirectory.resolve("reschedule-session.db");
+        AppContext context = new AppContext(database);
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withRole(Role.TRAINER).build();
+        var persistence = context.getPersistence();
+        persistence.unitOfWork().inTransaction(connection -> {
+            persistence.accounts().insert(connection, trainer);
+            for (int id = 3; id <= 5; id++) {
+                persistence.accounts().insert(connection, new gymmie.testutil.AccountBuilder().withId(id)
+                        .withUsername("member" + id).withDisplayName("Member " + id).withRole(Role.MEMBER).build());
+            }
+            return null;
+        });
+        context.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        LocalDate date = LocalDate.now().plusDays(1);
+        var original = context.getTrainingSessionService().create(date.atTime(9, 0), 60, 10, "Keep these details");
+        var bookings = java.util.stream.IntStream.rangeClosed(3, 5).mapToObj(id -> {
+            var builder = new gymmie.testutil.BookingBuilder().withId(id).withMemberId(id)
+                    .withSessionId(original.id());
+            if (id == 5) {
+                builder.withStatus(gymmie.model.BookingStatus.CANCELLED)
+                        .withCancellationReason(gymmie.model.CancellationReason.MEMBER_CANCELLED_BOOKING);
+            }
+            return builder.build();
+        }).toList();
+        persistence.unitOfWork().inTransaction(connection -> {
+            for (var booking : bookings) {
+                persistence.bookings().insert(connection, booking);
+            }
+            return null;
+        });
+        LocalDateTime replacement = date.plusDays(1).atTime(14, 30);
+        Stage stage = onFxThread(Stage::new);
+        try {
+            var listFeedback = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showUpcomingSessions();
+                stage.show();
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(listFeedback, text -> text.equals("Upcoming sessions loaded."));
+            var feedback = onFxThread(() -> {
+                Button edit = (Button) stage.getScene().lookup("#editButton-" + original.id());
+                if (keyboard) {
+                    pressKey((Button) stage.getScene().lookup("#rosterButton-" + original.id()), KeyCode.TAB);
+                    assertEquals(edit, stage.getScene().getFocusOwner());
+                    pressKey(edit, KeyCode.SPACE);
+                } else {
+                    edit.fire();
+                }
+                stage.getScene().getRoot().applyCss();
+                DatePicker picker = (DatePicker) stage.getScene().lookup("#startDate");
+                assertEquals(date, picker.getValue());
+                selectCalendarDate(picker, replacement.toLocalDate(), keyboard);
+                assertEquals(replacement.toLocalDate(), picker.getValue());
+                TextField time = (TextField) stage.getScene().lookup("#startTime");
+                assertEquals("09:00", time.getText());
+                if (keyboard) {
+                    pressKey(picker, KeyCode.TAB);
+                    assertEquals(time, stage.getScene().getFocusOwner());
+                }
+                time.setText("14:30");
+                if (keyboard) {
+                    pressKey(time, KeyCode.ENTER);
+                } else {
+                    Button save = (Button) stage.getScene().lookup("#saveButton");
+                    save.fire();
+                }
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(feedback, text -> text.equals("Success: Session changes saved."));
+            AppContext restarted = new AppContext(database);
+            restarted.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+            var saved = restarted.getTrainingSessionService().getOwnUpcomingSessions();
+            assertEquals(List.of(new gymmie.testutil.TrainingSessionBuilder(original)
+                    .withStartsAt(replacement).build()), saved);
+            assertEquals(bookings, restarted.getPersistence().unitOfWork().inTransaction(connection ->
+                    restarted.getPersistence().bookings().findBySessionId(connection, original.id())));
+            var reopened = onFxThread(() -> {
+                new Router(stage, restarted, new ViewLoader()).showUpcomingSessions();
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(reopened, text -> text.equals("Upcoming sessions loaded."));
+            var rosterFeedback = onFxThread(() -> {
+                var cards = (javafx.scene.layout.VBox) stage.getScene().lookup("#sessions");
+                assertEquals(1, cards.getChildren().size());
+                var card = (javafx.scene.layout.VBox) cards.getChildren().getFirst();
+                assertEquals(replacement.toLocalDate() + " 14:30", ((Label) card.getChildren().getFirst()).getText());
+                Button roster = (Button) stage.getScene().lookup("#rosterButton-" + original.id());
+                roster.fire();
+                return ((StatusLabel) stage.getScene().lookup("#rosterStatus-" + original.id())).textProperty();
+            });
+            awaitUi(rosterFeedback, text -> text.equals("Members booked: 2"));
+            onFxThread(() -> {
+                var roster = (javafx.scene.layout.VBox) stage.getScene().lookup("#roster-" + original.id());
+                assertEquals(3, roster.getChildren().size());
+                assertEquals("Member 3", ((Label) roster.getChildren().get(1)).getText());
+                assertEquals("Member 4", ((Label) roster.getChildren().get(2)).getText());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
     private static void selectCalendarDate(DatePicker picker, LocalDate date, boolean keyboard) {
         if (keyboard) {
             pressKey(picker, KeyCode.F4);
