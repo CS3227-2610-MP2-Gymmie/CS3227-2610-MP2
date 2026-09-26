@@ -6,17 +6,22 @@ import java.util.Optional;
 
 import gymmie.AppContext;
 import gymmie.Router;
+import gymmie.member.service.MemberBookingHistoryService.MemberBooking;
 import gymmie.member.service.MembershipStatusService.RenewableMembership;
+import gymmie.model.BookingStatus;
+import gymmie.model.CancellationReason;
 import gymmie.model.Membership;
 import gymmie.model.MembershipPlan;
 import gymmie.ui.DisplayFormatters;
 import gymmie.ui.StatusLabel;
+import gymmie.ui.UiFeedback;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 
 /** Shows the authenticated Member's current coverage and available membership plans. */
@@ -28,6 +33,7 @@ public final class MemberMembershipController {
     private boolean membershipStatusLoaded;
     private boolean purchaseInProgress;
     private boolean renewalInProgress;
+    private boolean cancellationInProgress;
     private long renewableMembershipId;
     private String currentPlanName;
     @FXML
@@ -44,6 +50,14 @@ public final class MemberMembershipController {
     private Button renewMembership;
     @FXML
     private StatusLabel renewalStatus;
+    @FXML
+    private Button cancelMembership;
+    @FXML
+    private StatusLabel cancellationStatus;
+    @FXML
+    private StatusLabel bookingHistoryStatus;
+    @FXML
+    private ListView<MemberBooking> bookingHistory;
     @FXML
     private ComboBox<MembershipPlan> availablePlans;
     @FXML
@@ -65,13 +79,38 @@ public final class MemberMembershipController {
     private void initialize() {
         configurePlanChoices();
         refreshMembership();
+        loadBookingHistory();
         loadAvailablePlans();
+    }
+
+    private void loadBookingHistory() {
+        bookingHistoryStatus.info("Loading booking history…");
+        Task<List<MemberBooking>> task = new Task<>() {
+            @Override
+            protected List<MemberBooking> call() throws Exception {
+                return context.getMemberBookingHistoryService().bookingHistory();
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            bookingHistory.getItems().setAll(task.getValue());
+            int bookingCount = task.getValue().size();
+            bookingHistoryStatus.info(bookingCount == 0 ? "No bookings yet."
+                    : bookingCount + " booking" + (bookingCount == 1 ? "" : "s"));
+        });
+        task.setOnFailed(_ -> {
+            bookingHistory.getItems().clear();
+            bookingHistoryStatus.error(task.getException(),
+                    "Unable to load booking history. Please reopen this screen.");
+            returnToLoginIfSessionEnded();
+        });
+        Thread.ofPlatform().daemon().name("gymmie-member-booking-history").start(task);
     }
 
     private void configurePlanChoices() {
         availablePlans.setButtonCell(new MembershipPlanCell());
         availablePlans.setCellFactory(_ -> new MembershipPlanCell());
         availablePlans.setOnAction(_ -> updatePurchaseAvailability());
+        bookingHistory.setCellFactory(_ -> new MemberBookingCell());
     }
 
     @FXML
@@ -83,6 +122,7 @@ public final class MemberMembershipController {
         membershipStatusLoaded = false;
         renewableMembershipId = 0;
         updateRenewalAvailability();
+        updateCancellationAvailability();
         updatePurchaseAvailability();
         membershipPlan.setText("Plan: —");
         membershipExpiry.setText("Expiry date: —");
@@ -119,11 +159,13 @@ public final class MemberMembershipController {
                 purchaseStatus.info("Choose a plan to purchase.");
             }
             updateRenewalAvailability();
+            updateCancellationAvailability();
             updatePurchaseAvailability();
         });
         task.setOnFailed(_ -> {
             refreshMembership.setDisable(false);
             updateRenewalAvailability();
+            updateCancellationAvailability();
             updatePurchaseAvailability();
             membershipStatus.error(task.getException(), "Unable to load membership. Please try Refresh.");
             returnToLoginIfSessionEnded();
@@ -133,12 +175,14 @@ public final class MemberMembershipController {
 
     @FXML
     private void renewMembership() {
-        if (renewalInProgress || purchaseInProgress || renewMembership.isDisabled() || !hasRenewableMembership) {
+        if (renewalInProgress || purchaseInProgress || cancellationInProgress || renewMembership.isDisabled()
+                || !hasRenewableMembership) {
             return;
         }
         renewalInProgress = true;
         refreshMembership.setDisable(true);
         updateRenewalAvailability();
+        updateCancellationAvailability();
         updatePurchaseAvailability();
         renewalStatus.info("Renewing membership…");
         Task<Membership> task = new Task<>() {
@@ -159,6 +203,7 @@ public final class MemberMembershipController {
             renewalStatus.success("Membership renewed.");
             purchaseStatus.info("You already have an active membership.");
             updateRenewalAvailability();
+            updateCancellationAvailability();
             updatePurchaseAvailability();
         });
         task.setOnFailed(_ -> {
@@ -166,6 +211,7 @@ public final class MemberMembershipController {
             refreshMembership.setDisable(false);
             renewalStatus.error(task.getException(), "Unable to renew this membership. Please try again.");
             updateRenewalAvailability();
+            updateCancellationAvailability();
             updatePurchaseAvailability();
             returnToLoginIfSessionEnded();
         });
@@ -174,9 +220,68 @@ public final class MemberMembershipController {
 
     private void updateRenewalAvailability() {
         if (renewMembership != null) {
-            renewMembership.setDisable(renewalInProgress || purchaseInProgress || !membershipStatusLoaded
+            renewMembership.setDisable(renewalInProgress || purchaseInProgress || cancellationInProgress
+                    || !membershipStatusLoaded
                     || !hasRenewableMembership);
         }
+    }
+
+    private void updateCancellationAvailability() {
+        if (cancelMembership != null) {
+            cancelMembership.setDisable(cancellationInProgress || purchaseInProgress || renewalInProgress
+                    || !membershipStatusLoaded || !hasActiveMembership);
+        }
+    }
+
+    @FXML
+    private void cancelMembership() {
+        if (cancellationInProgress || purchaseInProgress || renewalInProgress || cancelMembership.isDisabled()
+                || !hasActiveMembership) {
+            return;
+        }
+        if (!UiFeedback.confirm(membershipScreen.getScene().getWindow(), "Cancel membership",
+                "Cancel your current membership immediately? There is no refund. "
+                        + "All future session bookings will also be cancelled.")) {
+            return;
+        }
+        cancellationInProgress = true;
+        refreshMembership.setDisable(true);
+        updateRenewalAvailability();
+        updateCancellationAvailability();
+        updatePurchaseAvailability();
+        cancellationStatus.info("Cancelling membership…");
+        Task<Integer> task = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                return context.getMembershipCancellationService().cancel(renewableMembershipId);
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            int count = task.getValue();
+            cancellationInProgress = false;
+            refreshMembership.setDisable(false);
+            hasActiveMembership = false;
+            hasRenewableMembership = false;
+            membershipStatus.info("Cancelled");
+            renewalStatus.info("Membership was cancelled and cannot be renewed.");
+            cancellationStatus.success("Membership cancelled immediately. No refund was issued. "
+                    + count + " future booking" + (count == 1 ? " was" : "s were") + " cancelled.");
+            loadBookingHistory();
+            purchaseStatus.info("Choose a plan to purchase.");
+            updateRenewalAvailability();
+            updateCancellationAvailability();
+            updatePurchaseAvailability();
+        });
+        task.setOnFailed(_ -> {
+            cancellationInProgress = false;
+            refreshMembership.setDisable(false);
+            cancellationStatus.error(task.getException(), "Unable to cancel this membership. Please try again.");
+            updateRenewalAvailability();
+            updateCancellationAvailability();
+            updatePurchaseAvailability();
+            returnToLoginIfSessionEnded();
+        });
+        Thread.ofPlatform().daemon().name("gymmie-membership-cancellation").start(task);
     }
 
     @FXML
@@ -224,13 +329,15 @@ public final class MemberMembershipController {
     @FXML
     private void purchaseMembership() {
         MembershipPlan selectedPlan = availablePlans.getValue();
-        if (purchaseInProgress || renewalInProgress || purchaseMembership.isDisabled() || selectedPlan == null) {
+        if (purchaseInProgress || renewalInProgress || cancellationInProgress || purchaseMembership.isDisabled()
+                || selectedPlan == null) {
             return;
         }
         purchaseInProgress = true;
         refreshMembership.setDisable(true);
         updatePurchaseAvailability();
         updateRenewalAvailability();
+        updateCancellationAvailability();
         purchaseStatus.info("Purchasing membership…");
         Task<Membership> task = new Task<>() {
             @Override
@@ -252,6 +359,7 @@ public final class MemberMembershipController {
             membershipStatus.info("Active");
             updatePurchaseAvailability();
             updateRenewalAvailability();
+            updateCancellationAvailability();
             purchaseStatus.success("Membership purchased.");
         });
         task.setOnFailed(_ -> {
@@ -260,6 +368,7 @@ public final class MemberMembershipController {
             purchaseStatus.error(task.getException(), "Unable to purchase this plan. Please try again.");
             updatePurchaseAvailability();
             updateRenewalAvailability();
+            updateCancellationAvailability();
             returnToLoginIfSessionEnded();
         });
         Thread.ofPlatform().daemon().name("gymmie-membership-purchase").start(task);
@@ -269,7 +378,8 @@ public final class MemberMembershipController {
         if (purchaseMembership == null) {
             return;
         }
-        purchaseMembership.setDisable(purchaseInProgress || renewalInProgress || !membershipStatusLoaded
+        purchaseMembership.setDisable(purchaseInProgress || renewalInProgress || cancellationInProgress
+                || !membershipStatusLoaded
                 || hasActiveMembership || availablePlans.getValue() == null);
     }
 
@@ -299,6 +409,31 @@ public final class MemberMembershipController {
             super.updateItem(plan, empty);
             setText(empty || plan == null ? null : plan.name() + " · " + plan.durationDays() + " days · "
                     + DisplayFormatters.price(plan.priceCents()));
+        }
+    }
+
+    private static final class MemberBookingCell extends ListCell<MemberBooking> {
+        @Override
+        protected void updateItem(MemberBooking booking, boolean empty) {
+            super.updateItem(booking, empty);
+            if (empty || booking == null) {
+                setText(null);
+            } else if (booking.status() == BookingStatus.CANCELLED) {
+                setText("Booking #" + booking.bookingId() + " · " + DisplayFormatters.dateTime(booking.startsAt())
+                        + " · Cancelled · Reason: " + cancellationReasonText(booking.cancellationReason()));
+            } else {
+                setText("Booking #" + booking.bookingId() + " · " + DisplayFormatters.dateTime(booking.startsAt())
+                        + " · Booked");
+            }
+        }
+
+        private static String cancellationReasonText(CancellationReason reason) {
+            return switch (reason) {
+                case MEMBERSHIP_CANCELLED -> "Membership cancelled";
+                case MEMBER_CANCELLED_BOOKING -> "Member cancelled booking";
+                case TRAINER_CANCELLED_SESSION -> "Trainer cancelled session";
+                case ACCOUNT_DEACTIVATED -> "Account deactivated";
+            };
         }
     }
 }

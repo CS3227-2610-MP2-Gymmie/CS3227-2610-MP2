@@ -251,6 +251,12 @@ original plan and purchase snapshots. These services use the common membership
 models and repositories; plan and membership records remain shared persistence
 concerns rather than role-specific copies.
 
+`MembershipCancellationService` cancels the current membership and the Member's
+future `BOOKED` bookings with the `MEMBERSHIP_CANCELLED` reason in one
+transaction. Past bookings and bookings belonging to other Members are left
+unchanged. `MemberBookingHistoryService` lists the Member's full booking history
+on the membership screen, including cancelled bookings and their reasons.
+
 `MemberMembershipController` and its FXML and CSS live under
 `gymmie.member` and `src/main/resources/gymmie/member`. The Gym User dashboard
 keeps a Member-only **My membership** entry point, while `Router` opens the

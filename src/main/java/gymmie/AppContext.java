@@ -3,6 +3,8 @@ package gymmie;
 import java.nio.file.Path;
 import java.time.Clock;
 
+import gymmie.member.service.MemberBookingHistoryService;
+import gymmie.member.service.MembershipCancellationService;
 import gymmie.member.service.MembershipPurchaseService;
 import gymmie.member.service.MembershipRenewalService;
 import gymmie.member.service.MembershipStatusService;
@@ -28,6 +30,8 @@ public final class AppContext {
     private final MembershipStatusService membershipStatusService;
     private final MembershipPurchaseService membershipPurchaseService;
     private final MembershipRenewalService membershipRenewalService;
+    private final MembershipCancellationService membershipCancellationService;
+    private final MemberBookingHistoryService memberBookingHistoryService;
     private final ProfileService profileService;
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
@@ -62,6 +66,11 @@ public final class AppContext {
                 persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         membershipRenewalService = new MembershipRenewalService(persistence.memberships(), persistence.unitOfWork(),
                 permissions, Clock.systemDefaultZone());
+        membershipCancellationService = new MembershipCancellationService(persistence.memberships(),
+                persistence.bookings(), persistence.sessions(), persistence.unitOfWork(), permissions,
+                Clock.systemDefaultZone());
+        memberBookingHistoryService = new MemberBookingHistoryService(persistence.bookings(), persistence.sessions(),
+                persistence.unitOfWork(), permissions);
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
         trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.unitOfWork(),
@@ -111,6 +120,16 @@ public final class AppContext {
     /** Returns the protected service for renewing a Member's existing plan. */
     public MembershipRenewalService getMembershipRenewalService() {
         return membershipRenewalService;
+    }
+
+    /** Returns the Member-authorized atomic membership cancellation service. */
+    public MembershipCancellationService getMembershipCancellationService() {
+        return membershipCancellationService;
+    }
+
+    /** Returns the Member-authorized booking-history reader. */
+    public MemberBookingHistoryService getMemberBookingHistoryService() {
+        return memberBookingHistoryService;
     }
 
     public AuthService getAuthService() {

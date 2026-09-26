@@ -155,6 +155,23 @@ does not make you active, but remains available to renew.
 
 While loading, previous details are cleared. If loading fails, the card shows an
 error; select **Refresh** to try again. If your session has ended, sign in again.
+
+#### Cancel your current membership
+
+On **My membership**, select **Cancel current membership** while your membership
+is active. Review the confirmation and choose **OK** to cancel it immediately.
+There is no refund. Gymmie also cancels your bookings for sessions that have
+not started; those bookings remain in your history with a cancelled status and
+the membership cancellation reason. Past sessions and bookings already
+cancelled are unchanged.
+
+The **Booking history** card lists each booking with its session date and time.
+Cancelled bookings show **Cancelled** and the reason, including **Membership
+cancelled** for bookings affected by this action. The screen confirms
+cancellation and reports how many future bookings were cancelled. If saving
+fails, the membership and bookings remain unchanged; try again. After
+cancellation, you can purchase another available plan.
+
 #### Buy a membership
 
 On the **My membership** screen, use **Buy a membership**:

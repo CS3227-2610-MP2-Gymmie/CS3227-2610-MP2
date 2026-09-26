@@ -18,6 +18,14 @@
             <Button fx:id="renewMembership" text="_Renew current plan" onAction="#renewMembership"
                     disable="true" />
             <StatusLabel fx:id="renewalStatus" />
+            <Button fx:id="cancelMembership" text="_Cancel current membership" onAction="#cancelMembership"
+                    disable="true" />
+            <StatusLabel fx:id="cancellationStatus" />
+        </VBox>
+        <VBox maxWidth="560" spacing="10" styleClass="card">
+            <Label text="Booking history" styleClass="heading" />
+            <StatusLabel fx:id="bookingHistoryStatus" />
+            <ListView fx:id="bookingHistory" prefHeight="180" accessibleText="Booking history" />
         </VBox>
         <VBox maxWidth="560" spacing="10" styleClass="card">
             <Label text="Buy a membership" styleClass="heading" />
