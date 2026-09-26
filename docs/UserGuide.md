@@ -65,5 +65,26 @@ Manager.
 
 ### Member
 
-### Saving the data
+#### View current membership
 
+Log in with your Member account to open the **Gym User dashboard**. The
+**Current membership** card shows whether a membership covers today, its plan
+name, and its expiry date.
+
+1. Read the status, plan, and expiry date in the card.
+2. Select **Refresh** to load the latest membership history, including after
+   leaving Gymmie open overnight. You can also use **Tab** or **Shift+Tab** to
+   focus the button and press **Space** or **Enter**.
+
+**Active** means the membership covers today; the expiry date is included. An
+archived plan still appears by name while its membership covers today.
+
+If you have no membership covering today, the card shows **Inactive — no current
+membership.** Plan and expiry date show a dash. Expired, cancelled, and future
+memberships do not make you active.
+
+While loading, previous details are cleared. If loading fails, the card shows an
+error; select **Refresh** to try again. If your session has ended, sign in again.
+This view does not support purchasing, renewing, or cancelling a membership.
+
+### Saving the data
