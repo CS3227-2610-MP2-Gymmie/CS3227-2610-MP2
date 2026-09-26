@@ -45,7 +45,13 @@
 
 ## Independent review
 
-[Filled by a separate read-only reviewer. Do not write this section yourself.]
+[Rounds are appended by the independent review command. Do not edit this section.]
+
+## Review responses
+
+| Round | Finding | Fixed or rejected | Reason or change |
+| --- | --- | --- | --- |
+| [round] | [finding] | [fixed/rejected] | [reason or change] |
 
 ## User corrections
 
