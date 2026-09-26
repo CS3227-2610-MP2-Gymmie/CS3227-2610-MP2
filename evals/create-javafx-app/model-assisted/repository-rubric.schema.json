@@ -1,0 +1,57 @@
+{
+  "type": "object",
+  "properties": {
+    "overall_pass": {
+      "type": "boolean"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "minimal_scope",
+              "ui_coherence",
+              "documentation_accuracy",
+              "maintainability"
+            ]
+          },
+          "pass": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 25
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "pass", "score", "evidence", "notes"],
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": "string"
+    }
+  },
+  "required": ["overall_pass", "score", "checks", "summary"],
+  "additionalProperties": false
+}

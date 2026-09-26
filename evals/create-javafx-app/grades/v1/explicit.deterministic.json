@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "trace": "evals/create-javafx-app/traces/v1/explicit-trace.jsonl",
+  "artifact": "evals/create-javafx-app/artifacts/v1/explicit",
+  "overall_pass": false,
+  "counts": {
+    "checks": 20,
+    "passed": 13,
+    "failures": 7,
+    "warnings": 0
+  },
+  "checks": [
+    {
+      "id": "trace.valid_jsonl",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "zero malformed JSONL lines",
+      "actual": 0,
+      "evidence": []
+    },
+    {
+      "id": "trace.turn_completed",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": true,
+      "actual": true,
+      "evidence": [
+        "event counts: {'item.completed': 23, 'item.started': 15, 'thread.started': 1, 'turn.completed': 1, 'turn.started': 1}"
+      ]
+    },
+    {
+      "id": "trace.skill_trigger",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": true,
+      "actual": true,
+      "evidence": [
+        "line 5: /bin/zsh -lc \"sed -n '1,240p' /Users/shawnnygoh/.codex/skills/create-javafx-app/SKILL.md && printf '\\\\n--- repository ---\\\\n' && pwd && rg --files -g '\"'!build'\"' -g '\"'!.gradle'\"' | sed -n '1,160p'\""
+      ]
+    },
+    {
+      "id": "trace.skill_read_before_changes",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": true,
+      "actual": true,
+      "evidence": [
+        "skill line=5, first file-change line=17"
+      ]
+    },
+    {
+      "id": "trace.gradle_check_succeeded",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "at least one successful Gradle check command",
+      "actual": 1,
+      "evidence": [
+        "line 29: /bin/zsh -lc 'GRADLE_USER_HOME=\"$PWD/.gradle-home\" ./gradlew check shadowJar'"
+      ]
+    },
+    {
+      "id": "trace.shadow_jar_succeeded",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "at least one successful Gradle shadowJar command",
+      "actual": 1,
+      "evidence": [
+        "line 29: /bin/zsh -lc 'GRADLE_USER_HOME=\"$PWD/.gradle-home\" ./gradlew check shadowJar'"
+      ]
+    },
+    {
+      "id": "trace.usage_present",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "positive input_tokens and output_tokens",
+      "actual": {
+        "input_tokens": 365186,
+        "cached_input_tokens": 334848,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8380,
+        "reasoning_output_tokens": 3066,
+        "uncached_input_tokens": 30338
+      },
+      "evidence": [
+        "usage aggregated from turn.completed events"
+      ]
+    },
+    {
+      "id": "trace.command_budget",
+      "scope": "trace",
+      "severity": "warning",
+      "pass": true,
+      "expected": "at most 25",
+      "actual": 11,
+      "evidence": [
+        "completed command_execution items: 11"
+      ]
+    },
+    {
+      "id": "trace.failed_command_budget",
+      "scope": "trace",
+      "severity": "warning",
+      "pass": true,
+      "expected": "at most 8",
+      "actual": 5,
+      "evidence": [
+        "line 9 exit=1: /bin/zsh -lc 'java -version && gradle --version'",
+        "line 14 exit=1: /bin/zsh -lc 'GRADLE_USER_HOME=\"$PWD/.gradle-home\" gradle :wrapper --gradle-version 9.7.1'",
+        "line 21 exit=1: /bin/zsh -lc 'GRADLE_USER_HOME=\"$PWD/.gradle-home\" gradle :wrapper --gradle-version 9.7.1 && ./gradlew --version'",
+        "line 24 exit=1: /bin/zsh -lc 'GRADLE_USER_HOME=\"$PWD/.gradle-home\" ./gradlew --version && GRADLE_USER_HOME=\"$PWD/.gradle-home\" ./gradlew check'",
+        "line 32 exit=130: /bin/zsh -lc 'GRADLE_USER_HOME=\"$PWD/.gradle-home\" ./gradlew run'"
+      ]
+    },
+    {
+      "id": "artifact.required_files",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": [
+        "src/main/java/gymmie/App.java",
+        "src/main/java/gymmie/Launcher.java",
+        "src/main/java/gymmie/MainController.java",
+        "src/main/resources/gymmie/view/MainWindow.fxml",
+        "src/main/resources/gymmie/css/gymmie.css",
+        "src/test/java/gymmie/TrivialTest.java",
+        "gradle/wrapper/gradle-wrapper.jar",
+        "gradle/wrapper/gradle-wrapper.properties",
+        "config/checkstyle/checkstyle.xml",
+        "config/checkstyle/suppressions.xml",
+        ".github/workflows/gradle.yml",
+        "build.gradle",
+        "settings.gradle",
+        "gradlew",
+        "gradlew.bat",
+        "README.md",
+        "AGENTS.md",
+        ".gitignore"
+      ],
+      "actual": {
+        "missing": [
+          "src/main/java/gymmie/App.java",
+          "src/main/java/gymmie/Launcher.java",
+          "src/main/java/gymmie/MainController.java",
+          "src/main/resources/gymmie/view/MainWindow.fxml",
+          "src/main/resources/gymmie/css/gymmie.css",
+          "src/test/java/gymmie/TrivialTest.java"
+        ]
+      },
+      "evidence": [
+        "artifact root: evals/create-javafx-app/artifacts/v1/explicit"
+      ]
+    },
+    {
+      "id": "artifact.package_convention",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": "Java sources under src/main/java/gymmie declare package gymmie;",
+      "actual": {
+        "java_files_found": [],
+        "invalid_package_declarations": []
+      },
+      "evidence": [
+        "no Java files found at the required package path"
+      ]
+    },
+    {
+      "id": "artifact.no_com_prefix",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": "no sources under src/main/java/com/gymmie",
+      "actual": true,
+      "evidence": [
+        "evals/create-javafx-app/artifacts/v1/explicit/src/main/java/com/gymmie"
+      ]
+    },
+    {
+      "id": "artifact.app_name_in_root_view",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": "'Gymmie' appears in MainWindow.fxml",
+      "actual": false,
+      "evidence": [
+        "MainWindow.fxml missing"
+      ]
+    },
+    {
+      "id": "artifact.reference_match.checkstyle",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": "byte-for-byte match with checkstyle.xml",
+      "actual": {
+        "generated_exists": true,
+        "reference_exists": true,
+        "generated_sha256": "89138167e2b45ef4711e56fad7f0259fe6f2503c4125762bf2c0dc1d3856c1ef",
+        "reference_sha256": "1ffd4bec0a17de9da2a596e21ca81db3d1bd96dc5746f87440eff9d76990bc82"
+      },
+      "evidence": [
+        "config/checkstyle/checkstyle.xml",
+        "evals/create-javafx-app/reference/checkstyle.xml"
+      ]
+    },
+    {
+      "id": "artifact.reference_match.suppressions",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": "byte-for-byte match with suppressions.xml",
+      "actual": {
+        "generated_exists": true,
+        "reference_exists": true,
+        "generated_sha256": "3ffa2ee7eec9ae8d4a4216c5d428aa030151536ef32f1466badc5cd7fecfc2c7",
+        "reference_sha256": "b54861edac60bbddb96c4e94ff70d8d52193d5270269e59f07fe437d1de3d8da"
+      },
+      "evidence": [
+        "config/checkstyle/suppressions.xml",
+        "evals/create-javafx-app/reference/suppressions.xml"
+      ]
+    },
+    {
+      "id": "artifact.reference_match.gradle",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": false,
+      "expected": "byte-for-byte match with gradle.yml",
+      "actual": {
+        "generated_exists": true,
+        "reference_exists": true,
+        "generated_sha256": "c98e06e0a89082f62b3a2a75f0e3b34cf0378bfabb9e78773199d0f7b9eb2135",
+        "reference_sha256": "2991a56e3c6fd8449e0fd38e8e29842575c536c4c85d3d94d9421d425f661bf9"
+      },
+      "evidence": [
+        ".github/workflows/gradle.yml",
+        "evals/create-javafx-app/reference/gradle.yml"
+      ]
+    },
+    {
+      "id": "artifact.gradle_wrapper_version",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": true,
+      "expected": "distributionUrl contains gradle-9.7.1-bin.zip",
+      "actual": "distributionUrl=https\\://services.gradle.org/distributions/gradle-9.7.1-bin.zip",
+      "evidence": [
+        "gradle/wrapper/gradle-wrapper.properties"
+      ]
+    },
+    {
+      "id": "artifact.gradle_configuration",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": true,
+      "expected": [
+        "application plugin",
+        "JaCoCo plugin",
+        "Checkstyle plugin",
+        "JavaFX plugin",
+        "Shadow plugin",
+        "JDK 25 toolchain",
+        "JUnit Platform",
+        "JUnit launcher"
+      ],
+      "actual": {
+        "missing": []
+      },
+      "evidence": [
+        "build.gradle"
+      ]
+    },
+    {
+      "id": "artifact.documentation_commands",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": true,
+      "expected": {
+        "README.md": [
+          "./gradlew run",
+          "./gradlew check",
+          "./gradlew shadowJar"
+        ],
+        "AGENTS.md": [
+          "./gradlew run",
+          "./gradlew check",
+          "./gradlew shadowJar"
+        ]
+      },
+      "actual": {},
+      "evidence": [
+        "AGENTS.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "artifact.gitignore",
+      "scope": "artifact",
+      "severity": "error",
+      "pass": true,
+      "expected": "ignores build output, Gradle caches, and IDE metadata",
+      "actual": {
+        "exists": true,
+        "missing_groups": []
+      },
+      "evidence": [
+        ".gitignore"
+      ]
+    }
+  ],
+  "artifact_profile": "scaffold"
+}

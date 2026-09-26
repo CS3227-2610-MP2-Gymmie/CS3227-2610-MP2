@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex trace report</title>
+<style>
+:root { color-scheme: light dark; --bg:#f6f7f9; --panel:#fff; --text:#17202a; --muted:#64748b; --line:#d8dee8; --pass:#137333; --pass-bg:#e6f4ea; --fail:#b3261e; --fail-bg:#fce8e6; --accent:#1d4ed8; }
+@media (prefers-color-scheme: dark) { :root { --bg:#101318; --panel:#181c22; --text:#edf2f7; --muted:#a6b0bf; --line:#343b46; --pass:#81c995; --pass-bg:#163c24; --fail:#f28b82; --fail-bg:#4b1f1c; --accent:#8ab4f8; } }
+* { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+main { max-width:1180px; margin:0 auto; padding:36px 24px 80px; } h1 { margin:0 0 6px; font-size:30px; } h2 { margin:38px 0 14px; font-size:21px; }
+.source { color:var(--muted); overflow-wrap:anywhere; } .badges { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; } .badge { display:inline-block; border-radius:999px; padding:3px 9px; font-size:12px; font-weight:700; }
+.badge.pass { color:var(--pass); background:var(--pass-bg); } .badge.fail { color:var(--fail); background:var(--fail-bg); }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; } .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; } .card strong { display:block; font-size:24px; } .card span,.label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+table { width:100%; border-collapse:collapse; background:var(--panel); } th,td { border:1px solid var(--line); padding:9px 11px; text-align:left; } th { color:var(--muted); }
+.event { background:var(--panel); border:1px solid var(--line); border-radius:10px; margin:10px 0; overflow:hidden; } .event header,.event summary { padding:11px 14px; font-weight:700; cursor:pointer; } .event pre { margin:0; border-top:1px solid var(--line); padding:14px; max-height:520px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace; }
+.event .label { padding:10px 14px 6px; border-top:1px solid var(--line); } .event .label + pre { border-top:0; padding-top:4px; } .event ul { margin:0; border-top:1px solid var(--line); padding:12px 34px; } code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+</style>
+</head>
+<body><main>
+<h1>Codex trace report</h1>
+<div class="source">evals/create-javafx-app/traces/v1/contextual.jsonl</div>
+<div class="badges"><span class="badge pass">JSONL parsed cleanly</span><span class="badge pass">Skill trigger observed</span></div>
+<div class="cards">
+  <div class="card"><strong>12</strong><span>Commands</span></div>
+  <div class="card"><strong>2</strong><span>Failed commands</span></div>
+  <div class="card"><strong>14</strong><span>Changed files</span></div>
+  <div class="card"><strong>527,533</strong><span>Input tokens</span></div>
+  <div class="card"><strong>11,436</strong><span>Output tokens</span></div>
+  <div class="card"><strong>2,777</strong><span>Reasoning tokens</span></div>
+</div>
+<h2>Usage</h2>
+<table><tbody>
+<tr><th>Input tokens</th><td>527,533</td></tr>
+<tr><th>Cached input tokens</th><td>468,352</td></tr>
+<tr><th>Cache-write input tokens</th><td>0</td></tr>
+<tr><th>Derived uncached input tokens</th><td>59,181</td></tr>
+<tr><th>Output tokens</th><td>11,436</td></tr>
+<tr><th>Reasoning output tokens</th><td>2,777</td></tr>
+</tbody></table>
+<h2>Skill trigger evidence</h2>
+<p>Detection method: <code>successful_skill_file_read</code>. Successful reads: 1. Read before first file change: True.</p>
+<h2>Agent messages</h2><article class="event message"><header>Line 3 · Agent message</header><pre>I’m using the JavaFX app scaffolding skill because this request maps directly to a Gradle/FXML/CSS desktop project. I’ll first inspect the workspace and the skill’s required structure, then build and verify Gymmie.</pre></article><article class="event message"><header>Line 8 · Agent message</header><pre>The workspace is effectively empty aside from an existing untracked trace file, which I’ll leave untouched. Java 25 is ready; the installed Gradle launcher has a native-library mismatch on this machine, so I’m checking its installation and will generate the required 9.7.1 wrapper through the safest available path.</pre></article><article class="event message"><header>Line 21 · Agent message</header><pre>Gymmie is now scaffolded with the requested Gradle wrapper, FXML scene, CSS theme, controller interaction, tests, style checks, coverage, packaging, documentation, and CI. I’m at the verification pass now: compiling, running Checkstyle/JUnit, and producing the runnable fat JAR.</pre></article><article class="event message"><header>Line 32 · Agent message</header><pre>The full build now passes and the 8.2 MB fat JAR has the correct `gymmie.Launcher` entry point. A direct GUI launch reaches JavaFX initialization, but this execution sandbox exposes no macOS display, so its renderer cannot open a window; I’m doing the remaining static resource and repository checks instead.</pre></article><article class="event message"><header>Line 37 · Agent message</header><pre>Created **Gymmie**, a JavaFX workout dashboard using:
+
+- Gradle 9.7.1
+- Java 25
+- FXML interface with CSS styling
+- JUnit 5, Checkstyle, JaCoCo, and Shadow JAR
+- GitHub Actions CI
+
+Key files:
+
+- [MainWindow.fxml](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/view/MainWindow.fxml)
+- [gymmie.css](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css)
+- [MainController.java](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/MainController.java)
+- [README.md](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/README.md)
+
+Verified successfully:
+
+```shell
+./gradlew check
+./gradlew shadowJar
+```
+
+Runnable artifact: `build/libs/gymmie-1.0.0-all.jar`
+
+Run locally with:
+
+```shell
+./gradlew run
+```
+
+The JavaFX scaffolding skill determined the project structure, quality tooling, CI workflow, and packaging setup. The GUI could not be visually opened in the execution sandbox because it has no macOS display, but compilation, tests, style checks, FXML validation, and fat-JAR packaging all pass.</pre></article>
+<h2>Commands and full output</h2><details class="event command" open><summary><span class="badge pass">completed</span> Command 1 · line 5 · exit 0</summary><pre class="command-text">/bin/zsh -lc &quot;sed -n &#x27;1,240p&#x27; /Users/shawnnygoh/.codex/skills/create-javafx-app/SKILL.md &amp;&amp; pwd &amp;&amp; rg --files -g &#x27;AGENTS.md&#x27; -g &#x27;&quot;&#x27;!build&#x27;&quot;&#x27; -g &#x27;&quot;&#x27;!out&#x27;&quot;&#x27; | sort &amp;&amp; printf &#x27;\\n-- workspace files --\\n&#x27; &amp;&amp; rg --files -g &#x27;&quot;&#x27;!build&#x27;&quot;&#x27; -g &#x27;&quot;&#x27;!out&#x27;&quot;&#x27; | sed -n &#x27;1,240p&#x27;&quot;</pre><div class="label">Output</div><pre>---
+name: create-javafx-app
+description: Scaffold a new JavaFX desktop app with a small, consistent project structure.
+---
+
+## When to use this
+
+Use when you need to set up a new JavaFX desktop app.
+
+## What to build
+
+Create a JavaFX project and add a starter scene as an entry point. Keep it minimal.
+
+## Prerequisites
+
+- JDK 25
+- Gradle 9.7.1
+- A GitHub repository already initialized
+
+## Steps
+
+1. Scaffold the JavaFX app with Gradle by running `gradle :wrapper --gradle-version 9.7.1` and apply the necessary plugins (e.g. OpenJFX JavaFX Plugin 0.1.0, Gradle Shadow 9.6.1).
+
+2. Add style checks following the se-education.org Java coding standard.
+
+3. Add Jacoco for measuring code coverage.
+
+4. Add Shadow Gradle and verify that `./gradlew shadowJar` produces a runnable fat jar.
+
+5. Add JUnit 5 and write one trivial test.
+
+6. Create App.java, Launcher.java, MainController.java and MainWindow.fxml which contains a minimal UI with a title label that displays the app&#x27;s name. Style the UI with CSS.
+
+7. Add a GitHub Actions workflow that checks out the repo, sets up the JDK and runs `./gradlew check`.
+
+8. Add AGENTS.md which includes the tech stack, build commands (`./gradlew run`, `./gradlew check`, `./gradlew shadowJar`), code style convention, and git convention.
+
+9. Add a minimal README.md which includes the project name, a one-line description, and how to build and run the app.
+
+10. Add a .gitignore which excludes any `build/`, `.gradle/` or IDE folders.
+
+## Project structure after setup
+
+- src/
+    - main/java/&lt;package&gt;/
+        - App.java
+        - MainController.java
+        - Launcher.java (entry)
+    - main/resources/&lt;package&gt;/
+        - view/
+            - MainWindow.fxml (root UI)
+        - css/
+            - &lt;package&gt;.css
+    - test/java/&lt;package&gt;/
+        - TrivialTest.java
+- gradle/
+    - wrapper/
+        - gradle-wrapper.jar
+        - gradle-wrapper.properties
+- config/
+    - checkstyle/
+        - checkstyle.xml
+        - suppressions.xml
+- build.gradle
+- settings.gradle
+- gradlew.bat
+- gradlew
+- README.md
+- AGENTS.md
+- .gitignore
+- .github/workflows/gradle.yml
+
+## Definition of done
+
+- `./gradlew run` launches the application window without errors
+- `./gradlew check` passes (Checkstyle and tests both pass)
+- `./gradlew shadowJar` produces a runnable fat jar in `build/libs/`
+- All files mentioned in the project structure above exist
+/Users/shawnnygoh/github-repos/CS3227-2610-MP2
+
+-- workspace files --
+trace.jsonl
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 2 · line 7 · exit 0</summary><pre class="command-text">/bin/zsh -lc &quot;java -version 2&gt;&amp;1; gradle --version 2&gt;&amp;1 | sed -n &#x27;1,45p&#x27;; git status --short --branch; git rev-parse --is-inside-work-tree&quot;</pre><div class="label">Output</div><pre>openjdk version &quot;25.0.3&quot; 2026-04-21 LTS
+OpenJDK Runtime Environment Zulu25.34+17-CA (build 25.0.3+9-LTS)
+OpenJDK 64-Bit Server VM Zulu25.34+17-CA (build 25.0.3+9-LTS, mixed mode, sharing)
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle could not start your build.
+&gt; Could not initialize native services.
+   &gt; Failed to load native library &#x27;libnative-platform.dylib&#x27; for Mac OS X aarch64.
+
+* Try:
+&gt; Run with --stacktrace option to get the stack trace.
+&gt; Run with --info or --debug option to get more log output.
+&gt; Run with --scan to get full insights from a Build Scan (powered by Develocity).
+&gt; Get more help at https://help.gradle.org.
+## No commits yet on main...origin/main [gone]
+?? trace.jsonl
+true
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 3 · line 10 · exit 0</summary><pre class="command-text">/bin/zsh -lc &#x27;which gradle; uname -m; file &quot;$(which gradle)&quot;; ls -la &quot;$(dirname &quot;$(which gradle)&quot;)&quot; | sed -n &#x27;&quot;&#x27;1,80p&#x27;; env | rg &#x27;&quot;&#x27;^(JAVA|GRADLE|SDKMAN|PATH)=&#x27;&quot;&#x27;&quot;</pre><div class="label">Output</div><pre>total 24
+drwxrwxr-x  1166 shawnnygoh  admin  37312 Sep  6 23:13 .
+drwxr-xr-x    40 shawnnygoh  admin   1280 Sep  6 23:12 ..
+-rw-r--r--     1 shawnnygoh  admin      0 May 22  2023 .keepme
+lrwxr-xr-x     1 shawnnygoh  admin     42 Mar  7  2025 2to3-3.12 -&gt; ../Cellar/python@3.12/3.12.9/bin/2to3-3.12
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 411toppm -&gt; ../Cellar/netpbm/11.02.13/bin/411toppm
+lrwxr-xr-x     1 shawnnygoh  admin     37 Feb  5  2025 4channels -&gt; ../Cellar/libraw/0.21.3/bin/4channels
+lrwxr-xr-x@    1 shawnnygoh  admin     50 Mar 27  2025 Magick++-config -&gt; ../Cellar/imagemagick/7.1.1-46/bin/Magick++-config
+lrwxr-xr-x@    1 shawnnygoh  admin     52 Mar 27  2025 MagickCore-config -&gt; ../Cellar/imagemagick/7.1.1-46/bin/MagickCore-config
+lrwxr-xr-x@    1 shawnnygoh  admin     52 Mar 27  2025 MagickWand-config -&gt; ../Cellar/imagemagick/7.1.1-46/bin/MagickWand-config
+lrwxr-xr-x@    1 shawnnygoh  admin     50 Mar 27  2025 ProtocolBench -&gt; ../Cellar/fbthrift/2025.03.10.00/bin/ProtocolBench
+lrwxr-xr-x     1 shawnnygoh  admin     40 Mar 26  2025 SvtAv1EncApp -&gt; ../Cellar/svt-av1/3.0.2/bin/SvtAv1EncApp
+lrwxr-xr-x     1 shawnnygoh  admin     35 Sep 30  2024 aclocal -&gt; ../Cellar/automake/1.17/bin/aclocal
+lrwxr-xr-x     1 shawnnygoh  admin     40 Sep 30  2024 aclocal-1.17 -&gt; ../Cellar/automake/1.17/bin/aclocal-1.17
+lrwxr-xr-x@    1 shawnnygoh  admin     37 Mar 27  2025 acyclic -&gt; ../Cellar/graphviz/12.2.1/bin/acyclic
+lrwxr-xr-x     1 shawnnygoh  admin     36 Feb 27  2026 adaparse -&gt; ../Cellar/ada-url/3.4.3/bin/adaparse
+lrwxr-xr-x     1 shawnnygoh  admin     32 Jan 27  2026 adig -&gt; ../Cellar/c-ares/1.34.6/bin/adig
+lrwxr-xr-x     1 shawnnygoh  admin     37 Mar 26  2025 aead_demo -&gt; ../Cellar/mbedtls/3.6.3/bin/aead_demo
+lrwxr-xr-x     1 shawnnygoh  admin     46 Feb 21  2026 afcclient -&gt; ../Cellar/libimobiledevice/1.4.0/bin/afcclient
+lrwxr-xr-x     1 shawnnygoh  admin     33 Jan 27  2026 ahost -&gt; ../Cellar/c-ares/1.34.6/bin/ahost
+lrwxr-xr-x@    1 shawnnygoh  admin     47 Mar 27  2025 ambiguous_words -&gt; ../Cellar/tesseract/5.5.0_1/bin/ambiguous_words
+lrwxr-xr-x@    1 shawnnygoh  admin     42 Mar 27  2025 animate -&gt; ../Cellar/imagemagick/7.1.1-46/bin/animate
+lrwxr-xr-x@    1 shawnnygoh  admin     33 Mar 27  2025 annotate -&gt; ../Cellar/gd/2.3.3_6/bin/annotate
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 anytopnm -&gt; ../Cellar/netpbm/11.02.13/bin/anytopnm
+lrwxr-xr-x@    1 shawnnygoh  admin     31 Mar  7  2025 aomdec -&gt; ../Cellar/aom/3.12.0/bin/aomdec
+lrwxr-xr-x@    1 shawnnygoh  admin     31 Mar  7  2025 aomenc -&gt; ../Cellar/aom/3.12.0/bin/aomenc
+lrwxr-xr-x     1 shawnnygoh  admin     39 Dec 10  2024 apptainer.lima -&gt; ../Cellar/lima/1.0.2/bin/apptainer.lima
+lrwxr-xr-x@    1 shawnnygoh  admin     40 Mar 27  2025 asciitopgm -&gt; ../Cellar/netpbm/11.02.13/bin/asciitopgm
+lrwxr-xr-x@    1 shawnnygoh  admin     34 Mar 11 01:29 asitop -&gt; ../Cellar/asitop/0.0.24/bin/asitop
+lrwxr-xr-x@    1 shawnnygoh  admin     40 Mar  7  2025 asn1Coding -&gt; ../Cellar/libtasn1/4.20.0/bin/asn1Coding
+lrwxr-xr-x@    1 shawnnygoh  admin     42 Mar  7  2025 asn1Decoding -&gt; ../Cellar/libtasn1/4.20.0/bin/asn1Decoding
+lrwxr-xr-x@    1 shawnnygoh  admin     40 Mar  7  2025 asn1Parser -&gt; ../Cellar/libtasn1/4.20.0/bin/asn1Parser
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 atktopbm -&gt; ../Cellar/netpbm/11.02.13/bin/atktopbm
+lrwxr-xr-x@    1 shawnnygoh  admin     36 Jul  8  2024 autoconf -&gt; ../Cellar/autoconf/2.72/bin/autoconf
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Jul  8  2024 autoheader -&gt; ../Cellar/autoconf/2.72/bin/autoheader
+lrwxr-xr-x@    1 shawnnygoh  admin     36 Jul  8  2024 autom4te -&gt; ../Cellar/autoconf/2.72/bin/autom4te
+lrwxr-xr-x     1 shawnnygoh  admin     36 Sep 30  2024 automake -&gt; ../Cellar/automake/1.17/bin/automake
+lrwxr-xr-x     1 shawnnygoh  admin     41 Sep 30  2024 automake-1.17 -&gt; ../Cellar/automake/1.17/bin/automake-1.17
+lrwxr-xr-x@    1 shawnnygoh  admin     35 Sep  6 23:12 autopoint -&gt; ../Cellar/gettext/1.0/bin/autopoint
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Jul  8  2024 autoreconf -&gt; ../Cellar/autoconf/2.72/bin/autoreconf
+lrwxr-xr-x@    1 shawnnygoh  admin     36 Jul  8  2024 autoscan -&gt; ../Cellar/autoconf/2.72/bin/autoscan
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Jul  8  2024 autoupdate -&gt; ../Cellar/autoconf/2.72/bin/autoupdate
+lrwxr-xr-x@    1 shawnnygoh  admin     35 Mar 27  2025 avifdec -&gt; ../Cellar/libavif/1.2.1/bin/avifdec
+lrwxr-xr-x@    1 shawnnygoh  admin     35 Mar 27  2025 avifenc -&gt; ../Cellar/libavif/1.2.1/bin/avifenc
+lrwxr-xr-x@    1 shawnnygoh  admin     43 Mar 27  2025 avifgainmaputil -&gt; ../Cellar/libavif/1.2.1/bin/avifgainmaputil
+lrwxr-xr-x     1 shawnnygoh  admin     36 Mar 26  2025 aviocat -&gt; ../Cellar/ffmpeg/7.1.1_1/bin/aviocat
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 avstopam -&gt; ../Cellar/netpbm/11.02.13/bin/avstopam
+lrwxr-xr-x@    1 shawnnygoh  admin     36 Mar 27  2025 bcomps -&gt; ../Cellar/graphviz/12.2.1/bin/bcomps
+lrwxr-xr-x     1 shawnnygoh  admin     37 Mar 26  2025 bd_info -&gt; ../Cellar/libbluray/1.3.4/bin/bd_info
+lrwxr-xr-x     1 shawnnygoh  admin     44 Mar 26  2025 bd_list_titles -&gt; ../Cellar/libbluray/1.3.4/bin/bd_list_titles
+lrwxr-xr-x     1 shawnnygoh  admin     39 Mar 26  2025 bd_splice -&gt; ../Cellar/libbluray/1.3.4/bin/bd_splice
+lrwxr-xr-x@    1 shawnnygoh  admin     32 Mar 27  2025 bdftogd -&gt; ../Cellar/gd/2.3.3_6/bin/bdftogd
+lrwxr-xr-x     1 shawnnygoh  admin     41 Feb  5  2025 benchmark_xl -&gt; ../Cellar/jpeg-xl/0.11.1/bin/benchmark_xl
+lrwxr-xr-x@    1 shawnnygoh  admin     41 Mar 27  2025 bioradtopgm -&gt; ../Cellar/netpbm/11.02.13/bin/bioradtopgm
+lrwxr-xr-x     1 shawnnygoh  admin     42 Mar 26  2025 bisect-create -&gt; ../Cellar/ffmpeg/7.1.1_1/bin/bisect-create
+lrwxr-xr-x     1 shawnnygoh  admin     42 Feb  5  2025 bjoentegaard -&gt; ../Cellar/libde265/1.0.15/bin/bjoentegaard
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 bmptopnm -&gt; ../Cellar/netpbm/11.02.13/bin/bmptopnm
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 bmptoppm -&gt; ../Cellar/netpbm/11.02.13/bin/bmptoppm
+lrwxr-xr-x     1 shawnnygoh  admin     35 Jan  4  2026 bomtool -&gt; ../Cellar/pkgconf/2.5.1/bin/bomtool
+-rwxr-xr-x@    1 shawnnygoh  admin   9363 Sep  6 23:12 brew
+lrwxr-xr-x     1 shawnnygoh  admin     33 Jan 27  2026 brotli -&gt; ../Cellar/brotli/1.2.0/bin/brotli
+lrwxr-xr-x@    1 shawnnygoh  admin     40 Mar 27  2025 brushtopbm -&gt; ../Cellar/netpbm/11.02.13/bin/brushtopbm
+lrwxr-xr-x     1 shawnnygoh  admin     45 Feb  5  2025 butteraugli_main -&gt; ../Cellar/jpeg-xl/0.11.1/bin/butteraugli_main
+lrwxr-xr-x     1 shawnnygoh  admin     38 Feb 27  2026 c_rehash -&gt; ../Cellar/openssl@3/3.6.1/bin/c_rehash
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 cairo-trace -&gt; ../Cellar/cairo/1.18.4/bin/cairo-trace
+lrwxr-xr-x@    1 shawnnygoh  admin     41 Mar 27  2025 cameratopam -&gt; ../Cellar/netpbm/11.02.13/bin/cameratopam
+lrwxr-xr-x     1 shawnnygoh  admin     32 Feb 20  2026 ccmake -&gt; ../Cellar/cmake/4.2.3/bin/ccmake
+lrwxr-xr-x@    1 shawnnygoh  admin     36 Mar 27  2025 ccomps -&gt; ../Cellar/graphviz/12.2.1/bin/ccomps
+lrwxr-xr-x     1 shawnnygoh  admin     36 Mar 26  2025 cert_app -&gt; ../Cellar/mbedtls/3.6.3/bin/cert_app
+lrwxr-xr-x     1 shawnnygoh  admin     36 Mar 26  2025 cert_req -&gt; ../Cellar/mbedtls/3.6.3/bin/cert_req
+lrwxr-xr-x     1 shawnnygoh  admin     38 Mar 26  2025 cert_write -&gt; ../Cellar/mbedtls/3.6.3/bin/cert_write
+lrwxr-xr-x     1 shawnnygoh  admin     38 May 22  2023 chruby-exec -&gt; ../Cellar/chruby/0.3.9/bin/chruby-exec
+lrwxr-xr-x     1 shawnnygoh  admin     44 Mar 26  2025 cipher_aead_demo -&gt; ../Cellar/mbedtls/3.6.3/bin/cipher_aead_demo
+lrwxr-xr-x@    1 shawnnygoh  admin     35 Mar 27  2025 circo -&gt; ../Cellar/graphviz/12.2.1/bin/circo
+lrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 cistopbm -&gt; ../Cellar/netpbm/11.02.13/bin/cistopbm
+lrwxr-xr-x@    1 shawnnygoh  admin     36 Sep  6 23:13 cjpeg -&gt; ../Cellar/jpeg-turbo/3.2.0/bin/cjpeg
+lrwxr-xr-x     1 shawnnygoh  admin     33 Feb  5  2025 cjxl -&gt; ../Cellar/jpeg-xl/0.11.1/bin/cjxl
+lrwxr-xr-x@    1 shawnnygoh  admin     49 Mar 27  2025 classifier_tester -&gt; ../Cellar/tesseract/5.5.0_1/bin/classifier_tester
+lrwxr-xr-x     1 shawnnygoh  admin     39 Mar 26  2025 clean-diff -&gt; ../Cellar/ffmpeg/7.1.1_1/bin/clean-diff
+lrwxr-xr-x@    1 shawnnygoh  admin     37 Mar 27  2025 cluster -&gt; ../Cellar/graphviz/12.2.1/bin/cluster
+PATH=/Users/shawnnygoh/.gem/bin:/Users/shawnnygoh/.gem/bin:/Users/shawnnygoh/development/flutter/bin:/Users/shawnnygoh/.codex/packages/standalone/releases/0.153.4-aarch64-apple-darwin/codex-path:/Users/shawnnygoh/.antigravity/antigravity/bin:/opt/homebrew/opt/tcl-tk/bin:/opt/homebrew/opt/tcl-tk/bin:/usr/local/opt/tcl-tk/bin:/Users/shawnnygoh/.pyenv/shims:/opt/homebrew/opt/openssl@3/bin:/usr/local/opt/openssl@3/bin:/opt/homebrew/opt/bison/bin:/usr/local/opt/openssl@1.1/bin:/opt/homebrew/opt/ruby/bin:/opt/homebrew/opt/ruby/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.11/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/go/bin:/usr/local/hatch/bin:/Users/shawnnygoh/.gem/bin:/Users/shawnnygoh/development/flutter/bin:/Users/shawnnygoh/.codex/tmp/arg0/codex-arg0z5aAEq:/Users/shawnnygoh/.codex/packages/standalone/releases/0.153.4-aarch64-apple-darwin/codex-path:/Users/shawnnygoh/.antigravity/antigravity/bin:/Users/shawnnygoh/.local/bin:/opt/homebrew/opt/tcl-tk/bin:/usr/local/opt/tcl-tk/bin:/Users/shawnnygoh/.sdkman/candidates/java/current/bin:/opt/anaconda3/condabin:/opt/homebrew/opt/openssl@3/bin:/usr/local/opt/openssl@3/bin:/opt/homebrew/opt/bison/bin:/usr/local/opt/openssl@1.1/bin:/opt/homebrew/opt/ruby/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/Users/shawnnygoh/.cargo/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/shawnnygoh/.lmstudio/bin:/Users/shawnnygoh/.lmstudio/bin
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 4 · line 12 · exit 0</summary><pre class="command-text">/bin/zsh -lc &quot;readlink /opt/homebrew/bin/gradle; ls -la /opt/homebrew/Cellar/gradle; curl -I -L --max-time 20 https://services.gradle.org/distributions/gradle-9.7.1-bin.zip | sed -n &#x27;1,25p&#x27;&quot;</pre><div class="label">Output</div><pre>
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+  0  144M    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 307 Temporary Redirect
+Date: Mon, 07 Sep 2026 09:03:21 GMT
+Content-Type: text/html; charset=UTF-8
+Content-Length: 169
+Connection: keep-alive
+Location: https://github.com/gradle/gradle-distributions/releases/download/v9.7.1/gradle-9.7.1-bin.zip
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Server: cloudflare
+CF-RAY: a3748a2f5af972da-SIN
+
+HTTP/2 302 
+date: Mon, 07 Sep 2026 09:03:21 GMT
+content-type: text/html; charset=utf-8
+location: https://release-assets.githubusercontent.com/github-production-release-asset/696192900/45f62dc6-d769-4657-adc9-32064153adbe?sp=r&amp;sv=2018-11-09&amp;sr=b&amp;spr=https&amp;se=2026-09-07T09%3A51%3A57Z&amp;rscd=attachment%3B+filename%3Dgradle-9.7.1-bin.zip&amp;rsct=application%2Foctet-stream&amp;skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&amp;sktid=398a6654-997b-47e9-b12b-9515b896b4de&amp;skt=2026-09-07T08%3A51%3A08Z&amp;ske=2026-09-07T09%3A51%3A57Z&amp;sks=b&amp;skv=2018-11-09&amp;sig=2jIX5Ft8%2BzeI33ov0%2FLpxzx9uTN%2FtQf%2FDUxzk%2FGy0LY%3D&amp;jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4ODc3NTQwMSwibmJmIjoxNzg4NzcxODAxLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.HlV4bGAClaqisZps-EhW70_7_4h7liMLjl-Jvu6m644&amp;response-content-disposition=attachment%3B%20filename%3Dgradle-9.7.1-bin.zip&amp;response-content-type=application%2Foctet-stream
+vary: X-PJAX, X-PJAX-Container, Turbo-Visit, Turbo-Frame, X-Requested-With, X-GitHub-Client-Version, Sec-Fetch-Site,Accept-Encoding, Accept, X-Requested-With
+cache-control: no-cache
+strict-transport-security: max-age=31536000; includeSubdomains; preload
+x-frame-options: deny
+x-content-type-options: nosniff
+x-xss-protection: 0
+referrer-policy: no-referrer-when-downgrade
+content-security-policy: default-src &#x27;none&#x27;; base-uri &#x27;self&#x27;; child-src github.githubassets.com github.com/assets-cdn/worker/ github.com/assets/ gist.github.com/assets-cdn/worker/; connect-src &#x27;self&#x27; uploads.github.com www.githubstatus.com collector.github.com raw.githubusercontent.com api.github.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com *.rel.tunnels.api.visualstudio.com wss://*.rel.tunnels.api.visualstudio.com github.githubassets.com objects-origin.githubusercontent.com copilot-proxy.githubusercontent.com proxy.individual.githubcopilot.com proxy.business.githubcopilot.com proxy.enterprise.githubcopilot.com *.actions.githubusercontent.com wss://*.actions.githubusercontent.com productionresultssa0.blob.core.windows.net productionresultssa1.blob.core.windows.net productionresultssa2.blob.core.windows.net productionresultssa3.blob.core.windows.net productionresultssa4.blob.core.windows.net productionresultssa5.blob.core.windows.net productionresultssa6.blob.core.windows.net productionresultssa7.blob.core.windows.net productionresultssa8.blob.core.windows.net productionresultssa9.blob.core.windows.net productionresultssa10.blob.core.windows.net productionresultssa11.blob.core.windows.net productionresultssa12.blob.core.windows.net productionresultssa13.blob.core.windows.net productionresultssa14.blob.core.windows.net productionresultssa15.blob.core.windows.net productionresultssa16.blob.core.windows.net productionresultssa17.blob.core.windows.net productionresultssa18.blob.core.windows.net productionresultssa19.blob.core.windows.net github-production-repository-image-32fea6.s3.amazonaws.com github-production-release-asset-2e65be.s3.amazonaws.com insights.github.com wss://alive.github.com wss://alive-staging.github.com api.githubcopilot.com api.individual.githubcopilot.com api.business.githubcopilot.com api.enterprise.githubcopilot.com wss://production-copilot-host.webpubsub.azure.com; font-src github.githubassets.com; form-action &#x27;self&#x27; github.com gist.github.com copilot-workspace.githubnext.com objects-origin.githubusercontent.com; frame-ancestors &#x27;none&#x27;; frame-src viewscreen.githubusercontent.com notebooks.githubusercontent.com; img-src &#x27;self&#x27; data: blob: github.githubassets.com media.githubusercontent.com camo.githubusercontent.com identicons.github.com avatars.githubusercontent.com private-avatars.githubusercontent.com github-cloud.s3.amazonaws.com objects.githubusercontent.com release-assets.githubusercontent.com secured-user-images.githubusercontent.com user-images.githubusercontent.com private-user-images.githubusercontent.com opengraph.githubassets.com repository-images.githubusercontent.com marketplace-screenshots.githubusercontent.com copilotprodattachments.blob.core.windows.net/github-production-copilot-attachments/ github-production-user-asset-6210df.s3.amazonaws.com customer-stories-feed.github.com spotlights-feed.github.com explore-feed.github.com objects-origin.githubusercontent.com *.githubusercontent.com; manifest-src &#x27;self&#x27;; media-src github.com user-images.githubusercontent.com secured-user-images.githubusercontent.com private-user-images.githubusercontent.com github-production-user-asset-6210df.s3.amazonaws.com gist.github.com github.githubassets.com; script-src github.githubassets.com; style-src &#x27;unsafe-inline&#x27; github.githubassets.com; upgrade-insecure-requests; worker-src github.githubassets.com github.com/assets-cdn/worker/ github.com/assets/ gist.github.com/assets-cdn/worker/
+server: github.com
+content-length: 0
+x-github-request-id: 5F77:2E4ABB:4A2B0C:4FA9BC:6A9E7DD9
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 5 · line 14 · exit 0</summary><pre class="command-text">/bin/zsh -lc &quot;find /opt/homebrew/Cellar/gradle/9.7.1 -name &#x27;libnative-platform.dylib&#x27; -print -exec file {} \\; | sed -n &#x27;1,80p&#x27;; /opt/homebrew/Cellar/gradle/9.7.1/bin/gradle --version --stacktrace 2&gt;&amp;1 | sed -n &#x27;1,160p&#x27;&quot;</pre><div class="label">Output</div><pre>
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle could not start your build.
+&gt; Could not initialize native services.
+   &gt; Failed to load native library &#x27;libnative-platform.dylib&#x27; for Mac OS X aarch64.
+
+* Try:
+&gt; Run with --info or --debug option to get more log output.
+&gt; Run with --scan to get full insights from a Build Scan (powered by Develocity).
+&gt; Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.initialization.exception.InitializationException: Gradle could not start your build.
+	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:49)
+	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:26)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFactory$WithLogging.execute(DefaultCommandLineActionFactory.java:389)
+	at org.gradle.launcher.Main.doAction(Main.java:35)
+	at org.gradle.launcher.bootstrap.EntryPoint.run(EntryPoint.java:53)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.runNoExit(ProcessBootstrap.java:72)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.run(ProcessBootstrap.java:39)
+	at org.gradle.launcher.GradleMain.main(GradleMain.java:26)
+Caused by: org.gradle.internal.service.ServiceCreationException: Could not initialize native services.
+	at org.gradle.internal.nativeintegration.services.NativeServices.initialize(NativeServices.java:284)
+	at org.gradle.internal.nativeintegration.services.NativeServices.initializeOnClient(NativeServices.java:253)
+	at org.gradle.launcher.cli.NativeServicesInitializingAction.execute(NativeServicesInitializingAction.java:48)
+	at org.gradle.launcher.cli.NativeServicesInitializingAction.execute(NativeServicesInitializingAction.java:27)
+	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:41)
+	... 9 more
+Caused by: net.rubygrapefruit.platform.NativeException: Failed to load native library &#x27;libnative-platform.dylib&#x27; for Mac OS X aarch64.
+	at net.rubygrapefruit.platform.internal.NativeLibraryLoader.load(NativeLibraryLoader.java:67)
+	at net.rubygrapefruit.platform.Native.init(Native.java:60)
+	at org.gradle.internal.nativeintegration.services.NativeServices.&lt;init&gt;(NativeServices.java:303)
+	at org.gradle.internal.nativeintegration.services.NativeServices.initialize(NativeServices.java:282)
+	... 13 more
+Caused by: java.io.FileNotFoundException: /Users/shawnnygoh/.gradle/native/660c5614fbf4a5f2a75b1949f50a0caf5cd603558e7d8a26e50b933a0cfb79d1/osx-aarch64/libnative-platform.dylib.lock (Operation not permitted)
+	at java.base/java.io.RandomAccessFile.open0(Native Method)
+	at java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:338)
+	at java.base/java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:257)
+	at java.base/java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:211)
+	at net.rubygrapefruit.platform.internal.NativeLibraryLocator.find(NativeLibraryLocator.java:47)
+	at net.rubygrapefruit.platform.internal.NativeLibraryLoader.load(NativeLibraryLoader.java:45)
+	... 16 more
+
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 6 · line 16 · exit 0</summary><pre class="command-text">/bin/zsh -lc &#x27;mkdir -p src/main/java/gymmie src/main/resources/gymmie/view src/main/resources/gymmie/css src/test/java/gymmie config/checkstyle .github/workflows&#x27;</pre><div class="label">Output</div><pre>(no output)</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 7 · line 20 · exit 0</summary><pre class="command-text">/bin/zsh -lc &#x27;GRADLE_USER_HOME=&quot;$PWD/.gradle&quot; gradle :wrapper --gradle-version 9.7.1&#x27;</pre><div class="label">Output</div><pre>
+Welcome to Gradle 9.7.1!
+
+Here are the highlights of this release:
+ - Isolated Projects graduates to incubating
+ - Broader Configuration Cache compatibility
+ - Resilient Sync helps you fix broken builds
+ - More source locations in problem reports
+
+For more details see https://docs.gradle.org/9.7.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+&gt; Task :wrapper
+
+BUILD SUCCESSFUL in 29s
+1 actionable task: 1 executed
+Caught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html
+</pre></details><details class="event command" open><summary><span class="badge fail">failed</span> Command 8 · line 23 · exit 1</summary><pre class="command-text">/bin/zsh -lc &#x27;GRADLE_USER_HOME=&quot;$PWD/.gradle&quot; ./gradlew --no-daemon check shadowJar&#x27;</pre><div class="label">Output</div><pre>Fetching distribution.
+Downloading https://services.gradle.org/distributions/gradle-9.7.1-bin.zip
+..............10%..............20%...............30%..............40%...............50%..............60%...............70%..............80%..............90%...............100%
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+&gt; Task :compileJava
+Caught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2
+
+&gt; Task :processResources
+&gt; Task :classes
+&gt; Task :compileTestJava
+&gt; Task :processTestResources NO-SOURCE
+&gt; Task :testClasses
+&gt; Task :checkstyleMain
+&gt; Task :shadowJar
+&gt; Task :checkstyleTest
+
+&gt; Task :test FAILED
+
+Gradle Test Executor 3 FAILED
+    org.gradle.api.internal.tasks.testing.TestSuiteExecutionException at SuiteTestDefinitionProcessor.java:45
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+        Caused by: org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestDefinitionProcessor$TestFrameworkNotAvailableException at JUnitPlatformTestDefinitionProcessor.java:101
+Execution failed for task &#x27;:test&#x27; (registered by plugin &#x27;org.gradle.jvm-test-suite&#x27;).
+&gt; Test process encountered an unexpected problem.
+   &gt; Could not start Gradle Test Executor 3.
+      &gt; Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test&#x27;s runtime classpath, including the JUnit Platform launcher.
+
+* Try:
+&gt; Check common problems https://docs.gradle.org/9.7.1/userguide/java_testing.html#sec:java_testing_troubleshooting.
+&gt; Run with --stacktrace option to get the stack trace.
+&gt; Run with --info or --debug option to get more log output.
+&gt; Run with --scan to get full insights from a Build Scan (powered by Develocity).
+&gt; Get more help at https://help.gradle.org.
+
+BUILD FAILED in 28s
+7 actionable tasks: 7 executed
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 9 · line 27 · exit 0</summary><pre class="command-text">/bin/zsh -lc &#x27;GRADLE_USER_HOME=&quot;$PWD/.gradle&quot; ./gradlew --no-daemon check shadowJar&#x27;</pre><div class="label">Output</div><pre>To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+&gt; Task :compileJava UP-TO-DATE
+Caught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2
+
+&gt; Task :processResources UP-TO-DATE
+&gt; Task :classes UP-TO-DATE
+&gt; Task :checkstyleMain UP-TO-DATE
+&gt; Task :compileTestJava UP-TO-DATE
+&gt; Task :processTestResources NO-SOURCE
+&gt; Task :testClasses UP-TO-DATE
+&gt; Task :checkstyleTest UP-TO-DATE
+&gt; Task :shadowJar UP-TO-DATE
+&gt; Task :test
+&gt; Task :jacocoTestReport
+&gt; Task :check
+
+BUILD SUCCESSFUL in 7s
+8 actionable tasks: 2 executed, 6 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 10 · line 29 · exit 0</summary><pre class="command-text">/bin/zsh -lc &quot;ls -lh build/libs &amp;&amp; unzip -p build/libs/gymmie-1.0.0-all.jar META-INF/MANIFEST.MF &amp;&amp; printf &#x27;\\n-- required project files --\\n&#x27; &amp;&amp; for path in gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties build.gradle settings.gradle src/main/java/gymmie/App.java src/main/java/gymmie/Launcher.java src/main/java/gymmie/MainController.java src/main/resources/gymmie/view/MainWindow.fxml src/main/resources/gymmie/css/gymmie.css src/test/java/gymmie/TrivialTest.java config/checkstyle/checkstyle.xml config/checkstyle/suppressions.xml .github/workflows/gradle.yml README.md AGENTS.md .gitignore; do test -f \&quot;&quot;&#x27;$path&quot; || printf &#x27;&quot;&#x27;MISSING %s\\n&#x27; \&quot;&quot;&#x27;$path&quot;; done&#x27;</pre><div class="label">Output</div><pre>total 16696
+-rw-r--r--@ 1 shawnnygoh  staff   8.2M Sep  7 17:08 gymmie-1.0.0-all.jar
+Manifest-Version: 1.0
+Main-Class: gymmie.Launcher
+
+
+-- required project files --
+</pre></details><details class="event command" open><summary><span class="badge fail">failed</span> Command 11 · line 31 · exit 130</summary><pre class="command-text">/bin/zsh -lc &#x27;java -jar build/libs/gymmie-1.0.0-all.jar&#x27;</pre><div class="label">Output</div><pre>WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader in module javafx.graphics (jrt:/javafx.graphics)
+WARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+RenderJob.run: internal exception
+java.lang.ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0
+	at java.base/java.util.Arrays$ArrayList.get(Arrays.java:4225)
+	at java.base/java.util.Collections$UnmodifiableList.get(Collections.java:1505)
+	at javafx.graphics/com.sun.glass.ui.Screen.getMainScreen(Screen.java:56)
+	at javafx.graphics/com.sun.prism.mtl.MTLPipeline.getDefaultResourceFactory(MTLPipeline.java:79)
+	at javafx.graphics/com.sun.prism.GraphicsPipeline.getDefaultResourceFactory(GraphicsPipeline.java:155)
+	at javafx.graphics/com.sun.javafx.tk.quantum.QuantumRenderer.lambda$createResourceFactory$1(QuantumRenderer.java:155)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.base/java.util.concurrent.FutureTask.runAndReset(FutureTask.java:369)
+	at javafx.graphics/com.sun.javafx.tk.RenderJob.run(RenderJob.java:58)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at javafx.graphics/com.sun.javafx.tk.quantum.QuantumRenderer$PipelineRunnable.run(QuantumRenderer.java:122)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+^CException in thread &quot;Thread-4&quot; java.lang.NullPointerException: Cannot invoke &quot;com.sun.glass.ui.Timer.stop()&quot; because &quot;this.pulseTimer&quot; is null
+	at javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit.dispose(QuantumToolkit.java:861)
+	at javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit$1.lambda$run$0(QuantumToolkit.java:248)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+^CException in thread &quot;Glass/Prism Shutdown Hook&quot; java.lang.InternalError: dispose timed out
+	at javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit$1.run(QuantumToolkit.java:256)
+</pre></details><details class="event command" open><summary><span class="badge pass">completed</span> Command 12 · line 36 · exit 0</summary><pre class="command-text">/bin/zsh -lc &#x27;xmllint --noout src/main/resources/gymmie/view/MainWindow.fxml config/checkstyle/checkstyle.xml config/checkstyle/suppressions.xml &amp;&amp; GRADLE_USER_HOME=&quot;$PWD/.gradle&quot; ./gradlew --no-daemon check shadowJar &amp;&amp; git diff --check &amp;&amp; printf &#x27;&quot;&#x27;\\n-- artifact contents --\\n&#x27; &amp;&amp; jar tf build/libs/gymmie-1.0.0-all.jar | rg &#x27;&quot;&#x27;^(gymmie/(Launcher|App|MainController)&#x27;&quot;\\.class|gymmie/view/MainWindow\\.fxml|gymmie/css/gymmie\\.css|javafx/)&#x27; | sed -n &#x27;1,20p&#x27; &amp;&amp; printf &#x27;\\n-- status --\\n&#x27; &amp;&amp; git status --short &amp;&amp; printf &#x27;\\n-- files --\\n&#x27; &amp;&amp; find . -path &#x27;./.git&#x27; -prune -o -path &#x27;./.gradle&#x27; -prune -o -path &#x27;./build&#x27; -prune -o -type f -print | sort&quot;</pre><div class="label">Output</div><pre>To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+&gt; Task :compileJava UP-TO-DATE
+Caught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2
+
+&gt; Task :processResources
+&gt; Task :classes
+&gt; Task :compileTestJava UP-TO-DATE
+&gt; Task :processTestResources NO-SOURCE
+&gt; Task :testClasses UP-TO-DATE
+&gt; Task :shadowJar
+&gt; Task :checkstyleTest
+&gt; Task :checkstyleMain
+&gt; Task :test
+&gt; Task :jacocoTestReport
+&gt; Task :check
+
+BUILD SUCCESSFUL in 8s
+8 actionable tasks: 6 executed, 2 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html
+
+-- artifact contents --
+gymmie/App.class
+gymmie/Launcher.class
+gymmie/MainController.class
+gymmie/css/gymmie.css
+gymmie/view/MainWindow.fxml
+javafx/fxml/FXML.class
+javafx/fxml/FXMLLoader$1.class
+javafx/fxml/FXMLLoader$2.class
+javafx/fxml/FXMLLoader$Attribute.class
+javafx/fxml/FXMLLoader$ControllerAccessor.class
+javafx/fxml/FXMLLoader$ControllerMethodEventHandler.class
+javafx/fxml/FXMLLoader$CopyElement.class
+javafx/fxml/FXMLLoader$DefineElement.class
+javafx/fxml/FXMLLoader$Element$1.class
+javafx/fxml/FXMLLoader$Element.class
+javafx/fxml/FXMLLoader$IncludeElement.class
+javafx/fxml/FXMLLoader$InstanceDeclarationElement.class
+javafx/fxml/FXMLLoader$MethodHandler.class
+javafx/fxml/FXMLLoader$ObservableListChangeAdapter.class
+javafx/fxml/FXMLLoader$ObservableMapChangeAdapter.class
+
+-- status --
+?? .github/
+?? .gitignore
+?? AGENTS.md
+?? README.md
+?? build.gradle
+?? config/
+?? gradle/
+?? gradlew
+?? gradlew.bat
+?? settings.gradle
+?? src/
+?? trace.jsonl
+
+-- files --
+./.github/workflows/gradle.yml
+./.gitignore
+./AGENTS.md
+./README.md
+./build.gradle
+./config/checkstyle/checkstyle.xml
+./config/checkstyle/suppressions.xml
+./gradle/wrapper/gradle-wrapper.jar
+./gradle/wrapper/gradle-wrapper.properties
+./gradlew
+./gradlew.bat
+./settings.gradle
+./src/main/java/gymmie/App.java
+./src/main/java/gymmie/Launcher.java
+./src/main/java/gymmie/MainController.java
+./src/main/resources/gymmie/css/gymmie.css
+./src/main/resources/gymmie/view/MainWindow.fxml
+./src/test/java/gymmie/TrivialTest.java
+./trace.jsonl
+</pre></details>
+<h2>File changes</h2><article class="event change"><header>Line 18 · File change · completed</header><ul><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/.github/workflows/gradle.yml</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/.gitignore</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/AGENTS.md</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/README.md</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/build.gradle</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/config/checkstyle/checkstyle.xml</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/config/checkstyle/suppressions.xml</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/settings.gradle</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/App.java</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/Launcher.java</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/MainController.java</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/view/MainWindow.fxml</li><li><code>add</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/test/java/gymmie/TrivialTest.java</li></ul></article><article class="event change"><header>Line 25 · File change · completed</header><ul><li><code>update</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/build.gradle</li></ul></article><article class="event change"><header>Line 34 · File change · completed</header><ul><li><code>update</code> /Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css</li></ul></article>
+<h2>Raw JSONL</h2><details class="event"><summary>Show all 38 raw events</summary><pre>{&quot;type&quot;: &quot;thread.started&quot;, &quot;thread_id&quot;: &quot;01a07b1a-ff2d-7e11-976f-b305d9defc1b&quot;}
+{&quot;type&quot;: &quot;turn.started&quot;}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_0&quot;, &quot;type&quot;: &quot;agent_message&quot;, &quot;text&quot;: &quot;I’m using the JavaFX app scaffolding skill because this request maps directly to a Gradle/FXML/CSS desktop project. I’ll first inspect the workspace and the skill’s required structure, then build and verify Gymmie.&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_1&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;sed -n &#x27;1,240p&#x27; /Users/shawnnygoh/.codex/skills/create-javafx-app/SKILL.md &amp;&amp; pwd &amp;&amp; rg --files -g &#x27;AGENTS.md&#x27; -g &#x27;\&quot;&#x27;!build&#x27;\&quot;&#x27; -g &#x27;\&quot;&#x27;!out&#x27;\&quot;&#x27; | sort &amp;&amp; printf &#x27;\\\\n-- workspace files --\\\\n&#x27; &amp;&amp; rg --files -g &#x27;\&quot;&#x27;!build&#x27;\&quot;&#x27; -g &#x27;\&quot;&#x27;!out&#x27;\&quot;&#x27; | sed -n &#x27;1,240p&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_1&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;sed -n &#x27;1,240p&#x27; /Users/shawnnygoh/.codex/skills/create-javafx-app/SKILL.md &amp;&amp; pwd &amp;&amp; rg --files -g &#x27;AGENTS.md&#x27; -g &#x27;\&quot;&#x27;!build&#x27;\&quot;&#x27; -g &#x27;\&quot;&#x27;!out&#x27;\&quot;&#x27; | sort &amp;&amp; printf &#x27;\\\\n-- workspace files --\\\\n&#x27; &amp;&amp; rg --files -g &#x27;\&quot;&#x27;!build&#x27;\&quot;&#x27; -g &#x27;\&quot;&#x27;!out&#x27;\&quot;&#x27; | sed -n &#x27;1,240p&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;---\nname: create-javafx-app\ndescription: Scaffold a new JavaFX desktop app with a small, consistent project structure.\n---\n\n## When to use this\n\nUse when you need to set up a new JavaFX desktop app.\n\n## What to build\n\nCreate a JavaFX project and add a starter scene as an entry point. Keep it minimal.\n\n## Prerequisites\n\n- JDK 25\n- Gradle 9.7.1\n- A GitHub repository already initialized\n\n## Steps\n\n1. Scaffold the JavaFX app with Gradle by running `gradle :wrapper --gradle-version 9.7.1` and apply the necessary plugins (e.g. OpenJFX JavaFX Plugin 0.1.0, Gradle Shadow 9.6.1).\n\n2. Add style checks following the se-education.org Java coding standard.\n\n3. Add Jacoco for measuring code coverage.\n\n4. Add Shadow Gradle and verify that `./gradlew shadowJar` produces a runnable fat jar.\n\n5. Add JUnit 5 and write one trivial test.\n\n6. Create App.java, Launcher.java, MainController.java and MainWindow.fxml which contains a minimal UI with a title label that displays the app&#x27;s name. Style the UI with CSS.\n\n7. Add a GitHub Actions workflow that checks out the repo, sets up the JDK and runs `./gradlew check`.\n\n8. Add AGENTS.md which includes the tech stack, build commands (`./gradlew run`, `./gradlew check`, `./gradlew shadowJar`), code style convention, and git convention.\n\n9. Add a minimal README.md which includes the project name, a one-line description, and how to build and run the app.\n\n10. Add a .gitignore which excludes any `build/`, `.gradle/` or IDE folders.\n\n## Project structure after setup\n\n- src/\n    - main/java/&lt;package&gt;/\n        - App.java\n        - MainController.java\n        - Launcher.java (entry)\n    - main/resources/&lt;package&gt;/\n        - view/\n            - MainWindow.fxml (root UI)\n        - css/\n            - &lt;package&gt;.css\n    - test/java/&lt;package&gt;/\n        - TrivialTest.java\n- gradle/\n    - wrapper/\n        - gradle-wrapper.jar\n        - gradle-wrapper.properties\n- config/\n    - checkstyle/\n        - checkstyle.xml\n        - suppressions.xml\n- build.gradle\n- settings.gradle\n- gradlew.bat\n- gradlew\n- README.md\n- AGENTS.md\n- .gitignore\n- .github/workflows/gradle.yml\n\n## Definition of done\n\n- `./gradlew run` launches the application window without errors\n- `./gradlew check` passes (Checkstyle and tests both pass)\n- `./gradlew shadowJar` produces a runnable fat jar in `build/libs/`\n- All files mentioned in the project structure above exist\n/Users/shawnnygoh/github-repos/CS3227-2610-MP2\n\n-- workspace files --\ntrace.jsonl\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_2&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;java -version 2&gt;&amp;1; gradle --version 2&gt;&amp;1 | sed -n &#x27;1,45p&#x27;; git status --short --branch; git rev-parse --is-inside-work-tree\&quot;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_2&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;java -version 2&gt;&amp;1; gradle --version 2&gt;&amp;1 | sed -n &#x27;1,45p&#x27;; git status --short --branch; git rev-parse --is-inside-work-tree\&quot;&quot;, &quot;aggregated_output&quot;: &quot;openjdk version \&quot;25.0.3\&quot; 2026-04-21 LTS\nOpenJDK Runtime Environment Zulu25.34+17-CA (build 25.0.3+9-LTS)\nOpenJDK 64-Bit Server VM Zulu25.34+17-CA (build 25.0.3+9-LTS, mixed mode, sharing)\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nGradle could not start your build.\n&gt; Could not initialize native services.\n   &gt; Failed to load native library &#x27;libnative-platform.dylib&#x27; for Mac OS X aarch64.\n\n* Try:\n&gt; Run with --stacktrace option to get the stack trace.\n&gt; Run with --info or --debug option to get more log output.\n&gt; Run with --scan to get full insights from a Build Scan (powered by Develocity).\n&gt; Get more help at https://help.gradle.org.\n## No commits yet on main...origin/main [gone]\n?? trace.jsonl\ntrue\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_3&quot;, &quot;type&quot;: &quot;agent_message&quot;, &quot;text&quot;: &quot;The workspace is effectively empty aside from an existing untracked trace file, which I’ll leave untouched. Java 25 is ready; the installed Gradle launcher has a native-library mismatch on this machine, so I’m checking its installation and will generate the required 9.7.1 wrapper through the safest available path.&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_4&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;which gradle; uname -m; file \&quot;$(which gradle)\&quot;; ls -la \&quot;$(dirname \&quot;$(which gradle)\&quot;)\&quot; | sed -n &#x27;\&quot;&#x27;1,80p&#x27;; env | rg &#x27;\&quot;&#x27;^(JAVA|GRADLE|SDKMAN|PATH)=&#x27;\&quot;&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_4&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;which gradle; uname -m; file \&quot;$(which gradle)\&quot;; ls -la \&quot;$(dirname \&quot;$(which gradle)\&quot;)\&quot; | sed -n &#x27;\&quot;&#x27;1,80p&#x27;; env | rg &#x27;\&quot;&#x27;^(JAVA|GRADLE|SDKMAN|PATH)=&#x27;\&quot;&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;total 24\ndrwxrwxr-x  1166 shawnnygoh  admin  37312 Sep  6 23:13 .\ndrwxr-xr-x    40 shawnnygoh  admin   1280 Sep  6 23:12 ..\n-rw-r--r--     1 shawnnygoh  admin      0 May 22  2023 .keepme\nlrwxr-xr-x     1 shawnnygoh  admin     42 Mar  7  2025 2to3-3.12 -&gt; ../Cellar/python@3.12/3.12.9/bin/2to3-3.12\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 411toppm -&gt; ../Cellar/netpbm/11.02.13/bin/411toppm\nlrwxr-xr-x     1 shawnnygoh  admin     37 Feb  5  2025 4channels -&gt; ../Cellar/libraw/0.21.3/bin/4channels\nlrwxr-xr-x@    1 shawnnygoh  admin     50 Mar 27  2025 Magick++-config -&gt; ../Cellar/imagemagick/7.1.1-46/bin/Magick++-config\nlrwxr-xr-x@    1 shawnnygoh  admin     52 Mar 27  2025 MagickCore-config -&gt; ../Cellar/imagemagick/7.1.1-46/bin/MagickCore-config\nlrwxr-xr-x@    1 shawnnygoh  admin     52 Mar 27  2025 MagickWand-config -&gt; ../Cellar/imagemagick/7.1.1-46/bin/MagickWand-config\nlrwxr-xr-x@    1 shawnnygoh  admin     50 Mar 27  2025 ProtocolBench -&gt; ../Cellar/fbthrift/2025.03.10.00/bin/ProtocolBench\nlrwxr-xr-x     1 shawnnygoh  admin     40 Mar 26  2025 SvtAv1EncApp -&gt; ../Cellar/svt-av1/3.0.2/bin/SvtAv1EncApp\nlrwxr-xr-x     1 shawnnygoh  admin     35 Sep 30  2024 aclocal -&gt; ../Cellar/automake/1.17/bin/aclocal\nlrwxr-xr-x     1 shawnnygoh  admin     40 Sep 30  2024 aclocal-1.17 -&gt; ../Cellar/automake/1.17/bin/aclocal-1.17\nlrwxr-xr-x@    1 shawnnygoh  admin     37 Mar 27  2025 acyclic -&gt; ../Cellar/graphviz/12.2.1/bin/acyclic\nlrwxr-xr-x     1 shawnnygoh  admin     36 Feb 27  2026 adaparse -&gt; ../Cellar/ada-url/3.4.3/bin/adaparse\nlrwxr-xr-x     1 shawnnygoh  admin     32 Jan 27  2026 adig -&gt; ../Cellar/c-ares/1.34.6/bin/adig\nlrwxr-xr-x     1 shawnnygoh  admin     37 Mar 26  2025 aead_demo -&gt; ../Cellar/mbedtls/3.6.3/bin/aead_demo\nlrwxr-xr-x     1 shawnnygoh  admin     46 Feb 21  2026 afcclient -&gt; ../Cellar/libimobiledevice/1.4.0/bin/afcclient\nlrwxr-xr-x     1 shawnnygoh  admin     33 Jan 27  2026 ahost -&gt; ../Cellar/c-ares/1.34.6/bin/ahost\nlrwxr-xr-x@    1 shawnnygoh  admin     47 Mar 27  2025 ambiguous_words -&gt; ../Cellar/tesseract/5.5.0_1/bin/ambiguous_words\nlrwxr-xr-x@    1 shawnnygoh  admin     42 Mar 27  2025 animate -&gt; ../Cellar/imagemagick/7.1.1-46/bin/animate\nlrwxr-xr-x@    1 shawnnygoh  admin     33 Mar 27  2025 annotate -&gt; ../Cellar/gd/2.3.3_6/bin/annotate\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 anytopnm -&gt; ../Cellar/netpbm/11.02.13/bin/anytopnm\nlrwxr-xr-x@    1 shawnnygoh  admin     31 Mar  7  2025 aomdec -&gt; ../Cellar/aom/3.12.0/bin/aomdec\nlrwxr-xr-x@    1 shawnnygoh  admin     31 Mar  7  2025 aomenc -&gt; ../Cellar/aom/3.12.0/bin/aomenc\nlrwxr-xr-x     1 shawnnygoh  admin     39 Dec 10  2024 apptainer.lima -&gt; ../Cellar/lima/1.0.2/bin/apptainer.lima\nlrwxr-xr-x@    1 shawnnygoh  admin     40 Mar 27  2025 asciitopgm -&gt; ../Cellar/netpbm/11.02.13/bin/asciitopgm\nlrwxr-xr-x@    1 shawnnygoh  admin     34 Mar 11 01:29 asitop -&gt; ../Cellar/asitop/0.0.24/bin/asitop\nlrwxr-xr-x@    1 shawnnygoh  admin     40 Mar  7  2025 asn1Coding -&gt; ../Cellar/libtasn1/4.20.0/bin/asn1Coding\nlrwxr-xr-x@    1 shawnnygoh  admin     42 Mar  7  2025 asn1Decoding -&gt; ../Cellar/libtasn1/4.20.0/bin/asn1Decoding\nlrwxr-xr-x@    1 shawnnygoh  admin     40 Mar  7  2025 asn1Parser -&gt; ../Cellar/libtasn1/4.20.0/bin/asn1Parser\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 atktopbm -&gt; ../Cellar/netpbm/11.02.13/bin/atktopbm\nlrwxr-xr-x@    1 shawnnygoh  admin     36 Jul  8  2024 autoconf -&gt; ../Cellar/autoconf/2.72/bin/autoconf\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Jul  8  2024 autoheader -&gt; ../Cellar/autoconf/2.72/bin/autoheader\nlrwxr-xr-x@    1 shawnnygoh  admin     36 Jul  8  2024 autom4te -&gt; ../Cellar/autoconf/2.72/bin/autom4te\nlrwxr-xr-x     1 shawnnygoh  admin     36 Sep 30  2024 automake -&gt; ../Cellar/automake/1.17/bin/automake\nlrwxr-xr-x     1 shawnnygoh  admin     41 Sep 30  2024 automake-1.17 -&gt; ../Cellar/automake/1.17/bin/automake-1.17\nlrwxr-xr-x@    1 shawnnygoh  admin     35 Sep  6 23:12 autopoint -&gt; ../Cellar/gettext/1.0/bin/autopoint\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Jul  8  2024 autoreconf -&gt; ../Cellar/autoconf/2.72/bin/autoreconf\nlrwxr-xr-x@    1 shawnnygoh  admin     36 Jul  8  2024 autoscan -&gt; ../Cellar/autoconf/2.72/bin/autoscan\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Jul  8  2024 autoupdate -&gt; ../Cellar/autoconf/2.72/bin/autoupdate\nlrwxr-xr-x@    1 shawnnygoh  admin     35 Mar 27  2025 avifdec -&gt; ../Cellar/libavif/1.2.1/bin/avifdec\nlrwxr-xr-x@    1 shawnnygoh  admin     35 Mar 27  2025 avifenc -&gt; ../Cellar/libavif/1.2.1/bin/avifenc\nlrwxr-xr-x@    1 shawnnygoh  admin     43 Mar 27  2025 avifgainmaputil -&gt; ../Cellar/libavif/1.2.1/bin/avifgainmaputil\nlrwxr-xr-x     1 shawnnygoh  admin     36 Mar 26  2025 aviocat -&gt; ../Cellar/ffmpeg/7.1.1_1/bin/aviocat\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 avstopam -&gt; ../Cellar/netpbm/11.02.13/bin/avstopam\nlrwxr-xr-x@    1 shawnnygoh  admin     36 Mar 27  2025 bcomps -&gt; ../Cellar/graphviz/12.2.1/bin/bcomps\nlrwxr-xr-x     1 shawnnygoh  admin     37 Mar 26  2025 bd_info -&gt; ../Cellar/libbluray/1.3.4/bin/bd_info\nlrwxr-xr-x     1 shawnnygoh  admin     44 Mar 26  2025 bd_list_titles -&gt; ../Cellar/libbluray/1.3.4/bin/bd_list_titles\nlrwxr-xr-x     1 shawnnygoh  admin     39 Mar 26  2025 bd_splice -&gt; ../Cellar/libbluray/1.3.4/bin/bd_splice\nlrwxr-xr-x@    1 shawnnygoh  admin     32 Mar 27  2025 bdftogd -&gt; ../Cellar/gd/2.3.3_6/bin/bdftogd\nlrwxr-xr-x     1 shawnnygoh  admin     41 Feb  5  2025 benchmark_xl -&gt; ../Cellar/jpeg-xl/0.11.1/bin/benchmark_xl\nlrwxr-xr-x@    1 shawnnygoh  admin     41 Mar 27  2025 bioradtopgm -&gt; ../Cellar/netpbm/11.02.13/bin/bioradtopgm\nlrwxr-xr-x     1 shawnnygoh  admin     42 Mar 26  2025 bisect-create -&gt; ../Cellar/ffmpeg/7.1.1_1/bin/bisect-create\nlrwxr-xr-x     1 shawnnygoh  admin     42 Feb  5  2025 bjoentegaard -&gt; ../Cellar/libde265/1.0.15/bin/bjoentegaard\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 bmptopnm -&gt; ../Cellar/netpbm/11.02.13/bin/bmptopnm\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 bmptoppm -&gt; ../Cellar/netpbm/11.02.13/bin/bmptoppm\nlrwxr-xr-x     1 shawnnygoh  admin     35 Jan  4  2026 bomtool -&gt; ../Cellar/pkgconf/2.5.1/bin/bomtool\n-rwxr-xr-x@    1 shawnnygoh  admin   9363 Sep  6 23:12 brew\nlrwxr-xr-x     1 shawnnygoh  admin     33 Jan 27  2026 brotli -&gt; ../Cellar/brotli/1.2.0/bin/brotli\nlrwxr-xr-x@    1 shawnnygoh  admin     40 Mar 27  2025 brushtopbm -&gt; ../Cellar/netpbm/11.02.13/bin/brushtopbm\nlrwxr-xr-x     1 shawnnygoh  admin     45 Feb  5  2025 butteraugli_main -&gt; ../Cellar/jpeg-xl/0.11.1/bin/butteraugli_main\nlrwxr-xr-x     1 shawnnygoh  admin     38 Feb 27  2026 c_rehash -&gt; ../Cellar/openssl@3/3.6.1/bin/c_rehash\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 cairo-trace -&gt; ../Cellar/cairo/1.18.4/bin/cairo-trace\nlrwxr-xr-x@    1 shawnnygoh  admin     41 Mar 27  2025 cameratopam -&gt; ../Cellar/netpbm/11.02.13/bin/cameratopam\nlrwxr-xr-x     1 shawnnygoh  admin     32 Feb 20  2026 ccmake -&gt; ../Cellar/cmake/4.2.3/bin/ccmake\nlrwxr-xr-x@    1 shawnnygoh  admin     36 Mar 27  2025 ccomps -&gt; ../Cellar/graphviz/12.2.1/bin/ccomps\nlrwxr-xr-x     1 shawnnygoh  admin     36 Mar 26  2025 cert_app -&gt; ../Cellar/mbedtls/3.6.3/bin/cert_app\nlrwxr-xr-x     1 shawnnygoh  admin     36 Mar 26  2025 cert_req -&gt; ../Cellar/mbedtls/3.6.3/bin/cert_req\nlrwxr-xr-x     1 shawnnygoh  admin     38 Mar 26  2025 cert_write -&gt; ../Cellar/mbedtls/3.6.3/bin/cert_write\nlrwxr-xr-x     1 shawnnygoh  admin     38 May 22  2023 chruby-exec -&gt; ../Cellar/chruby/0.3.9/bin/chruby-exec\nlrwxr-xr-x     1 shawnnygoh  admin     44 Mar 26  2025 cipher_aead_demo -&gt; ../Cellar/mbedtls/3.6.3/bin/cipher_aead_demo\nlrwxr-xr-x@    1 shawnnygoh  admin     35 Mar 27  2025 circo -&gt; ../Cellar/graphviz/12.2.1/bin/circo\nlrwxr-xr-x@    1 shawnnygoh  admin     38 Mar 27  2025 cistopbm -&gt; ../Cellar/netpbm/11.02.13/bin/cistopbm\nlrwxr-xr-x@    1 shawnnygoh  admin     36 Sep  6 23:13 cjpeg -&gt; ../Cellar/jpeg-turbo/3.2.0/bin/cjpeg\nlrwxr-xr-x     1 shawnnygoh  admin     33 Feb  5  2025 cjxl -&gt; ../Cellar/jpeg-xl/0.11.1/bin/cjxl\nlrwxr-xr-x@    1 shawnnygoh  admin     49 Mar 27  2025 classifier_tester -&gt; ../Cellar/tesseract/5.5.0_1/bin/classifier_tester\nlrwxr-xr-x     1 shawnnygoh  admin     39 Mar 26  2025 clean-diff -&gt; ../Cellar/ffmpeg/7.1.1_1/bin/clean-diff\nlrwxr-xr-x@    1 shawnnygoh  admin     37 Mar 27  2025 cluster -&gt; ../Cellar/graphviz/12.2.1/bin/cluster\nPATH=/Users/shawnnygoh/.gem/bin:/Users/shawnnygoh/.gem/bin:/Users/shawnnygoh/development/flutter/bin:/Users/shawnnygoh/.codex/packages/standalone/releases/0.153.4-aarch64-apple-darwin/codex-path:/Users/shawnnygoh/.antigravity/antigravity/bin:/opt/homebrew/opt/tcl-tk/bin:/opt/homebrew/opt/tcl-tk/bin:/usr/local/opt/tcl-tk/bin:/Users/shawnnygoh/.pyenv/shims:/opt/homebrew/opt/openssl@3/bin:/usr/local/opt/openssl@3/bin:/opt/homebrew/opt/bison/bin:/usr/local/opt/openssl@1.1/bin:/opt/homebrew/opt/ruby/bin:/opt/homebrew/opt/ruby/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.11/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/usr/local/go/bin:/usr/local/hatch/bin:/Users/shawnnygoh/.gem/bin:/Users/shawnnygoh/development/flutter/bin:/Users/shawnnygoh/.codex/tmp/arg0/codex-arg0z5aAEq:/Users/shawnnygoh/.codex/packages/standalone/releases/0.153.4-aarch64-apple-darwin/codex-path:/Users/shawnnygoh/.antigravity/antigravity/bin:/Users/shawnnygoh/.local/bin:/opt/homebrew/opt/tcl-tk/bin:/usr/local/opt/tcl-tk/bin:/Users/shawnnygoh/.sdkman/candidates/java/current/bin:/opt/anaconda3/condabin:/opt/homebrew/opt/openssl@3/bin:/usr/local/opt/openssl@3/bin:/opt/homebrew/opt/bison/bin:/usr/local/opt/openssl@1.1/bin:/opt/homebrew/opt/ruby/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/Users/shawnnygoh/.cargo/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/shawnnygoh/.lmstudio/bin:/Users/shawnnygoh/.lmstudio/bin\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_5&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;readlink /opt/homebrew/bin/gradle; ls -la /opt/homebrew/Cellar/gradle; curl -I -L --max-time 20 https://services.gradle.org/distributions/gradle-9.7.1-bin.zip | sed -n &#x27;1,25p&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_5&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;readlink /opt/homebrew/bin/gradle; ls -la /opt/homebrew/Cellar/gradle; curl -I -L --max-time 20 https://services.gradle.org/distributions/gradle-9.7.1-bin.zip | sed -n &#x27;1,25p&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\n\r  0  144M    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\nHTTP/1.1 307 Temporary Redirect\r\nDate: Mon, 07 Sep 2026 09:03:21 GMT\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 169\r\nConnection: keep-alive\r\nLocation: https://github.com/gradle/gradle-distributions/releases/download/v9.7.1/gradle-9.7.1-bin.zip\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nServer: cloudflare\r\nCF-RAY: a3748a2f5af972da-SIN\r\n\r\nHTTP/2 302 \r\ndate: Mon, 07 Sep 2026 09:03:21 GMT\r\ncontent-type: text/html; charset=utf-8\r\nlocation: https://release-assets.githubusercontent.com/github-production-release-asset/696192900/45f62dc6-d769-4657-adc9-32064153adbe?sp=r&amp;sv=2018-11-09&amp;sr=b&amp;spr=https&amp;se=2026-09-07T09%3A51%3A57Z&amp;rscd=attachment%3B+filename%3Dgradle-9.7.1-bin.zip&amp;rsct=application%2Foctet-stream&amp;skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&amp;sktid=398a6654-997b-47e9-b12b-9515b896b4de&amp;skt=2026-09-07T08%3A51%3A08Z&amp;ske=2026-09-07T09%3A51%3A57Z&amp;sks=b&amp;skv=2018-11-09&amp;sig=2jIX5Ft8%2BzeI33ov0%2FLpxzx9uTN%2FtQf%2FDUxzk%2FGy0LY%3D&amp;jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4ODc3NTQwMSwibmJmIjoxNzg4NzcxODAxLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.HlV4bGAClaqisZps-EhW70_7_4h7liMLjl-Jvu6m644&amp;response-content-disposition=attachment%3B%20filename%3Dgradle-9.7.1-bin.zip&amp;response-content-type=application%2Foctet-stream\r\nvary: X-PJAX, X-PJAX-Container, Turbo-Visit, Turbo-Frame, X-Requested-With, X-GitHub-Client-Version, Sec-Fetch-Site,Accept-Encoding, Accept, X-Requested-With\r\ncache-control: no-cache\r\nstrict-transport-security: max-age=31536000; includeSubdomains; preload\r\nx-frame-options: deny\r\nx-content-type-options: nosniff\r\nx-xss-protection: 0\r\nreferrer-policy: no-referrer-when-downgrade\r\ncontent-security-policy: default-src &#x27;none&#x27;; base-uri &#x27;self&#x27;; child-src github.githubassets.com github.com/assets-cdn/worker/ github.com/assets/ gist.github.com/assets-cdn/worker/; connect-src &#x27;self&#x27; uploads.github.com www.githubstatus.com collector.github.com raw.githubusercontent.com api.github.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com *.rel.tunnels.api.visualstudio.com wss://*.rel.tunnels.api.visualstudio.com github.githubassets.com objects-origin.githubusercontent.com copilot-proxy.githubusercontent.com proxy.individual.githubcopilot.com proxy.business.githubcopilot.com proxy.enterprise.githubcopilot.com *.actions.githubusercontent.com wss://*.actions.githubusercontent.com productionresultssa0.blob.core.windows.net productionresultssa1.blob.core.windows.net productionresultssa2.blob.core.windows.net productionresultssa3.blob.core.windows.net productionresultssa4.blob.core.windows.net productionresultssa5.blob.core.windows.net productionresultssa6.blob.core.windows.net productionresultssa7.blob.core.windows.net productionresultssa8.blob.core.windows.net productionresultssa9.blob.core.windows.net productionresultssa10.blob.core.windows.net productionresultssa11.blob.core.windows.net productionresultssa12.blob.core.windows.net productionresultssa13.blob.core.windows.net productionresultssa14.blob.core.windows.net productionresultssa15.blob.core.windows.net productionresultssa16.blob.core.windows.net productionresultssa17.blob.core.windows.net productionresultssa18.blob.core.windows.net productionresultssa19.blob.core.windows.net github-production-repository-image-32fea6.s3.amazonaws.com github-production-release-asset-2e65be.s3.amazonaws.com insights.github.com wss://alive.github.com wss://alive-staging.github.com api.githubcopilot.com api.individual.githubcopilot.com api.business.githubcopilot.com api.enterprise.githubcopilot.com wss://production-copilot-host.webpubsub.azure.com; font-src github.githubassets.com; form-action &#x27;self&#x27; github.com gist.github.com copilot-workspace.githubnext.com objects-origin.githubusercontent.com; frame-ancestors &#x27;none&#x27;; frame-src viewscreen.githubusercontent.com notebooks.githubusercontent.com; img-src &#x27;self&#x27; data: blob: github.githubassets.com media.githubusercontent.com camo.githubusercontent.com identicons.github.com avatars.githubusercontent.com private-avatars.githubusercontent.com github-cloud.s3.amazonaws.com objects.githubusercontent.com release-assets.githubusercontent.com secured-user-images.githubusercontent.com user-images.githubusercontent.com private-user-images.githubusercontent.com opengraph.githubassets.com repository-images.githubusercontent.com marketplace-screenshots.githubusercontent.com copilotprodattachments.blob.core.windows.net/github-production-copilot-attachments/ github-production-user-asset-6210df.s3.amazonaws.com customer-stories-feed.github.com spotlights-feed.github.com explore-feed.github.com objects-origin.githubusercontent.com *.githubusercontent.com; manifest-src &#x27;self&#x27;; media-src github.com user-images.githubusercontent.com secured-user-images.githubusercontent.com private-user-images.githubusercontent.com github-production-user-asset-6210df.s3.amazonaws.com gist.github.com github.githubassets.com; script-src github.githubassets.com; style-src &#x27;unsafe-inline&#x27; github.githubassets.com; upgrade-insecure-requests; worker-src github.githubassets.com github.com/assets-cdn/worker/ github.com/assets/ gist.github.com/assets-cdn/worker/\r\nserver: github.com\r\ncontent-length: 0\r\nx-github-request-id: 5F77:2E4ABB:4A2B0C:4FA9BC:6A9E7DD9\r\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_6&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;find /opt/homebrew/Cellar/gradle/9.7.1 -name &#x27;libnative-platform.dylib&#x27; -print -exec file {} \\\\; | sed -n &#x27;1,80p&#x27;; /opt/homebrew/Cellar/gradle/9.7.1/bin/gradle --version --stacktrace 2&gt;&amp;1 | sed -n &#x27;1,160p&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_6&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;find /opt/homebrew/Cellar/gradle/9.7.1 -name &#x27;libnative-platform.dylib&#x27; -print -exec file {} \\\\; | sed -n &#x27;1,80p&#x27;; /opt/homebrew/Cellar/gradle/9.7.1/bin/gradle --version --stacktrace 2&gt;&amp;1 | sed -n &#x27;1,160p&#x27;\&quot;&quot;, &quot;aggregated_output&quot;: &quot;\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nGradle could not start your build.\n&gt; Could not initialize native services.\n   &gt; Failed to load native library &#x27;libnative-platform.dylib&#x27; for Mac OS X aarch64.\n\n* Try:\n&gt; Run with --info or --debug option to get more log output.\n&gt; Run with --scan to get full insights from a Build Scan (powered by Develocity).\n&gt; Get more help at https://help.gradle.org.\n\n* Exception is:\norg.gradle.initialization.exception.InitializationException: Gradle could not start your build.\n\tat org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:49)\n\tat org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:26)\n\tat org.gradle.launcher.cli.DefaultCommandLineActionFactory$WithLogging.execute(DefaultCommandLineActionFactory.java:389)\n\tat org.gradle.launcher.Main.doAction(Main.java:35)\n\tat org.gradle.launcher.bootstrap.EntryPoint.run(EntryPoint.java:53)\n\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat org.gradle.launcher.bootstrap.ProcessBootstrap.runNoExit(ProcessBootstrap.java:72)\n\tat org.gradle.launcher.bootstrap.ProcessBootstrap.run(ProcessBootstrap.java:39)\n\tat org.gradle.launcher.GradleMain.main(GradleMain.java:26)\nCaused by: org.gradle.internal.service.ServiceCreationException: Could not initialize native services.\n\tat org.gradle.internal.nativeintegration.services.NativeServices.initialize(NativeServices.java:284)\n\tat org.gradle.internal.nativeintegration.services.NativeServices.initializeOnClient(NativeServices.java:253)\n\tat org.gradle.launcher.cli.NativeServicesInitializingAction.execute(NativeServicesInitializingAction.java:48)\n\tat org.gradle.launcher.cli.NativeServicesInitializingAction.execute(NativeServicesInitializingAction.java:27)\n\tat org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:41)\n\t... 9 more\nCaused by: net.rubygrapefruit.platform.NativeException: Failed to load native library &#x27;libnative-platform.dylib&#x27; for Mac OS X aarch64.\n\tat net.rubygrapefruit.platform.internal.NativeLibraryLoader.load(NativeLibraryLoader.java:67)\n\tat net.rubygrapefruit.platform.Native.init(Native.java:60)\n\tat org.gradle.internal.nativeintegration.services.NativeServices.&lt;init&gt;(NativeServices.java:303)\n\tat org.gradle.internal.nativeintegration.services.NativeServices.initialize(NativeServices.java:282)\n\t... 13 more\nCaused by: java.io.FileNotFoundException: /Users/shawnnygoh/.gradle/native/660c5614fbf4a5f2a75b1949f50a0caf5cd603558e7d8a26e50b933a0cfb79d1/osx-aarch64/libnative-platform.dylib.lock (Operation not permitted)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:338)\n\tat java.base/java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:257)\n\tat java.base/java.io.RandomAccessFile.&lt;init&gt;(RandomAccessFile.java:211)\n\tat net.rubygrapefruit.platform.internal.NativeLibraryLocator.find(NativeLibraryLocator.java:47)\n\tat net.rubygrapefruit.platform.internal.NativeLibraryLoader.load(NativeLibraryLoader.java:45)\n\t... 16 more\n\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_7&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;mkdir -p src/main/java/gymmie src/main/resources/gymmie/view src/main/resources/gymmie/css src/test/java/gymmie config/checkstyle .github/workflows&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_7&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;mkdir -p src/main/java/gymmie src/main/resources/gymmie/view src/main/resources/gymmie/css src/test/java/gymmie config/checkstyle .github/workflows&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_8&quot;, &quot;type&quot;: &quot;file_change&quot;, &quot;changes&quot;: [{&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/.github/workflows/gradle.yml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/.gitignore&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/AGENTS.md&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/README.md&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/build.gradle&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/config/checkstyle/checkstyle.xml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/config/checkstyle/suppressions.xml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/settings.gradle&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/App.java&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/Launcher.java&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/MainController.java&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/view/MainWindow.fxml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/test/java/gymmie/TrivialTest.java&quot;, &quot;kind&quot;: &quot;add&quot;}], &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_8&quot;, &quot;type&quot;: &quot;file_change&quot;, &quot;changes&quot;: [{&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/.github/workflows/gradle.yml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/.gitignore&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/AGENTS.md&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/README.md&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/build.gradle&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/config/checkstyle/checkstyle.xml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/config/checkstyle/suppressions.xml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/settings.gradle&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/App.java&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/Launcher.java&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/MainController.java&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/view/MainWindow.fxml&quot;, &quot;kind&quot;: &quot;add&quot;}, {&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/test/java/gymmie/TrivialTest.java&quot;, &quot;kind&quot;: &quot;add&quot;}], &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_9&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; gradle :wrapper --gradle-version 9.7.1&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_9&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; gradle :wrapper --gradle-version 9.7.1&#x27;&quot;, &quot;aggregated_output&quot;: &quot;\nWelcome to Gradle 9.7.1!\n\nHere are the highlights of this release:\n - Isolated Projects graduates to incubating\n - Broader Configuration Cache compatibility\n - Resilient Sync helps you fix broken builds\n - More source locations in problem reports\n\nFor more details see https://docs.gradle.org/9.7.1/release-notes.html\n\nStarting a Gradle Daemon (subsequent builds will be faster)\n\n&gt; Task :wrapper\n\nBUILD SUCCESSFUL in 29s\n1 actionable task: 1 executed\nCaught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2\nConsider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_10&quot;, &quot;type&quot;: &quot;agent_message&quot;, &quot;text&quot;: &quot;Gymmie is now scaffolded with the requested Gradle wrapper, FXML scene, CSS theme, controller interaction, tests, style checks, coverage, packaging, documentation, and CI. I’m at the verification pass now: compiling, running Checkstyle/JUnit, and producing the runnable fat JAR.&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_11&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; ./gradlew --no-daemon check shadowJar&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_11&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; ./gradlew --no-daemon check shadowJar&#x27;&quot;, &quot;aggregated_output&quot;: &quot;Fetching distribution.\nDownloading https://services.gradle.org/distributions/gradle-9.7.1-bin.zip\n..............10%..............20%...............30%..............40%...............50%..............60%...............70%..............80%..............90%...............100%\nTo honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n\n&gt; Task :compileJava\nCaught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2\n\n&gt; Task :processResources\n&gt; Task :classes\n&gt; Task :compileTestJava\n&gt; Task :processTestResources NO-SOURCE\n&gt; Task :testClasses\n&gt; Task :checkstyleMain\n&gt; Task :shadowJar\n&gt; Task :checkstyleTest\n\n&gt; Task :test FAILED\n\nGradle Test Executor 3 FAILED\n    org.gradle.api.internal.tasks.testing.TestSuiteExecutionException at SuiteTestDefinitionProcessor.java:45\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\n        Caused by: org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestDefinitionProcessor$TestFrameworkNotAvailableException at JUnitPlatformTestDefinitionProcessor.java:101\nExecution failed for task &#x27;:test&#x27; (registered by plugin &#x27;org.gradle.jvm-test-suite&#x27;).\n&gt; Test process encountered an unexpected problem.\n   &gt; Could not start Gradle Test Executor 3.\n      &gt; Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test&#x27;s runtime classpath, including the JUnit Platform launcher.\n\n* Try:\n&gt; Check common problems https://docs.gradle.org/9.7.1/userguide/java_testing.html#sec:java_testing_troubleshooting.\n&gt; Run with --stacktrace option to get the stack trace.\n&gt; Run with --info or --debug option to get more log output.\n&gt; Run with --scan to get full insights from a Build Scan (powered by Develocity).\n&gt; Get more help at https://help.gradle.org.\n\nBUILD FAILED in 28s\n7 actionable tasks: 7 executed\n&quot;, &quot;exit_code&quot;: 1, &quot;status&quot;: &quot;failed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_12&quot;, &quot;type&quot;: &quot;file_change&quot;, &quot;changes&quot;: [{&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/build.gradle&quot;, &quot;kind&quot;: &quot;update&quot;}], &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_12&quot;, &quot;type&quot;: &quot;file_change&quot;, &quot;changes&quot;: [{&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/build.gradle&quot;, &quot;kind&quot;: &quot;update&quot;}], &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_13&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; ./gradlew --no-daemon check shadowJar&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_13&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; ./gradlew --no-daemon check shadowJar&#x27;&quot;, &quot;aggregated_output&quot;: &quot;To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n\n&gt; Task :compileJava UP-TO-DATE\nCaught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2\n\n&gt; Task :processResources UP-TO-DATE\n&gt; Task :classes UP-TO-DATE\n&gt; Task :checkstyleMain UP-TO-DATE\n&gt; Task :compileTestJava UP-TO-DATE\n&gt; Task :processTestResources NO-SOURCE\n&gt; Task :testClasses UP-TO-DATE\n&gt; Task :checkstyleTest UP-TO-DATE\n&gt; Task :shadowJar UP-TO-DATE\n&gt; Task :test\n&gt; Task :jacocoTestReport\n&gt; Task :check\n\nBUILD SUCCESSFUL in 7s\n8 actionable tasks: 2 executed, 6 up-to-date\nConsider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_14&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;ls -lh build/libs &amp;&amp; unzip -p build/libs/gymmie-1.0.0-all.jar META-INF/MANIFEST.MF &amp;&amp; printf &#x27;\\\\n-- required project files --\\\\n&#x27; &amp;&amp; for path in gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties build.gradle settings.gradle src/main/java/gymmie/App.java src/main/java/gymmie/Launcher.java src/main/java/gymmie/MainController.java src/main/resources/gymmie/view/MainWindow.fxml src/main/resources/gymmie/css/gymmie.css src/test/java/gymmie/TrivialTest.java config/checkstyle/checkstyle.xml config/checkstyle/suppressions.xml .github/workflows/gradle.yml README.md AGENTS.md .gitignore; do test -f \\\&quot;\&quot;&#x27;$path\&quot; || printf &#x27;\&quot;&#x27;MISSING %s\\\\n&#x27; \\\&quot;\&quot;&#x27;$path\&quot;; done&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_14&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc \&quot;ls -lh build/libs &amp;&amp; unzip -p build/libs/gymmie-1.0.0-all.jar META-INF/MANIFEST.MF &amp;&amp; printf &#x27;\\\\n-- required project files --\\\\n&#x27; &amp;&amp; for path in gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties build.gradle settings.gradle src/main/java/gymmie/App.java src/main/java/gymmie/Launcher.java src/main/java/gymmie/MainController.java src/main/resources/gymmie/view/MainWindow.fxml src/main/resources/gymmie/css/gymmie.css src/test/java/gymmie/TrivialTest.java config/checkstyle/checkstyle.xml config/checkstyle/suppressions.xml .github/workflows/gradle.yml README.md AGENTS.md .gitignore; do test -f \\\&quot;\&quot;&#x27;$path\&quot; || printf &#x27;\&quot;&#x27;MISSING %s\\\\n&#x27; \\\&quot;\&quot;&#x27;$path\&quot;; done&#x27;&quot;, &quot;aggregated_output&quot;: &quot;total 16696\n-rw-r--r--@ 1 shawnnygoh  staff   8.2M Sep  7 17:08 gymmie-1.0.0-all.jar\nManifest-Version: 1.0\r\nMain-Class: gymmie.Launcher\r\n\r\n\n-- required project files --\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_15&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;java -jar build/libs/gymmie-1.0.0-all.jar&#x27;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_15&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;java -jar build/libs/gymmie-1.0.0-all.jar&#x27;&quot;, &quot;aggregated_output&quot;: &quot;WARNING: A restricted method in java.lang.System has been called\r\nWARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader in module javafx.graphics (jrt:/javafx.graphics)\r\nWARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module\r\nWARNING: Restricted methods will be blocked in a future release unless native access is enabled\r\n\r\nRenderJob.run: internal exception\r\njava.lang.ArrayIndexOutOfBoundsException: Index 0 out of bounds for length 0\r\n\tat java.base/java.util.Arrays$ArrayList.get(Arrays.java:4225)\r\n\tat java.base/java.util.Collections$UnmodifiableList.get(Collections.java:1505)\r\n\tat javafx.graphics/com.sun.glass.ui.Screen.getMainScreen(Screen.java:56)\r\n\tat javafx.graphics/com.sun.prism.mtl.MTLPipeline.getDefaultResourceFactory(MTLPipeline.java:79)\r\n\tat javafx.graphics/com.sun.prism.GraphicsPipeline.getDefaultResourceFactory(GraphicsPipeline.java:155)\r\n\tat javafx.graphics/com.sun.javafx.tk.quantum.QuantumRenderer.lambda$createResourceFactory$1(QuantumRenderer.java:155)\r\n\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)\r\n\tat java.base/java.util.concurrent.FutureTask.runAndReset(FutureTask.java:369)\r\n\tat javafx.graphics/com.sun.javafx.tk.RenderJob.run(RenderJob.java:58)\r\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)\r\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\r\n\tat javafx.graphics/com.sun.javafx.tk.quantum.QuantumRenderer$PipelineRunnable.run(QuantumRenderer.java:122)\r\n\tat java.base/java.lang.Thread.run(Thread.java:1474)\r\n^CException in thread \&quot;Thread-4\&quot; java.lang.NullPointerException: Cannot invoke \&quot;com.sun.glass.ui.Timer.stop()\&quot; because \&quot;this.pulseTimer\&quot; is null\r\n\tat javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit.dispose(QuantumToolkit.java:861)\r\n\tat javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit$1.lambda$run$0(QuantumToolkit.java:248)\r\n\tat java.base/java.lang.Thread.run(Thread.java:1474)\r\n^CException in thread \&quot;Glass/Prism Shutdown Hook\&quot; java.lang.InternalError: dispose timed out\r\n\tat javafx.graphics/com.sun.javafx.tk.quantum.QuantumToolkit$1.run(QuantumToolkit.java:256)\r\n&quot;, &quot;exit_code&quot;: 130, &quot;status&quot;: &quot;failed&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_16&quot;, &quot;type&quot;: &quot;agent_message&quot;, &quot;text&quot;: &quot;The full build now passes and the 8.2 MB fat JAR has the correct `gymmie.Launcher` entry point. A direct GUI launch reaches JavaFX initialization, but this execution sandbox exposes no macOS display, so its renderer cannot open a window; I’m doing the remaining static resource and repository checks instead.&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_17&quot;, &quot;type&quot;: &quot;file_change&quot;, &quot;changes&quot;: [{&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css&quot;, &quot;kind&quot;: &quot;update&quot;}], &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_17&quot;, &quot;type&quot;: &quot;file_change&quot;, &quot;changes&quot;: [{&quot;path&quot;: &quot;/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css&quot;, &quot;kind&quot;: &quot;update&quot;}], &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.started&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_18&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;xmllint --noout src/main/resources/gymmie/view/MainWindow.fxml config/checkstyle/checkstyle.xml config/checkstyle/suppressions.xml &amp;&amp; GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; ./gradlew --no-daemon check shadowJar &amp;&amp; git diff --check &amp;&amp; printf &#x27;\&quot;&#x27;\\\\n-- artifact contents --\\\\n&#x27; &amp;&amp; jar tf build/libs/gymmie-1.0.0-all.jar | rg &#x27;\&quot;&#x27;^(gymmie/(Launcher|App|MainController)&#x27;\&quot;\\\\.class|gymmie/view/MainWindow\\\\.fxml|gymmie/css/gymmie\\\\.css|javafx/)&#x27; | sed -n &#x27;1,20p&#x27; &amp;&amp; printf &#x27;\\\\n-- status --\\\\n&#x27; &amp;&amp; git status --short &amp;&amp; printf &#x27;\\\\n-- files --\\\\n&#x27; &amp;&amp; find . -path &#x27;./.git&#x27; -prune -o -path &#x27;./.gradle&#x27; -prune -o -path &#x27;./build&#x27; -prune -o -type f -print | sort\&quot;&quot;, &quot;aggregated_output&quot;: &quot;&quot;, &quot;exit_code&quot;: null, &quot;status&quot;: &quot;in_progress&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_18&quot;, &quot;type&quot;: &quot;command_execution&quot;, &quot;command&quot;: &quot;/bin/zsh -lc &#x27;xmllint --noout src/main/resources/gymmie/view/MainWindow.fxml config/checkstyle/checkstyle.xml config/checkstyle/suppressions.xml &amp;&amp; GRADLE_USER_HOME=\&quot;$PWD/.gradle\&quot; ./gradlew --no-daemon check shadowJar &amp;&amp; git diff --check &amp;&amp; printf &#x27;\&quot;&#x27;\\\\n-- artifact contents --\\\\n&#x27; &amp;&amp; jar tf build/libs/gymmie-1.0.0-all.jar | rg &#x27;\&quot;&#x27;^(gymmie/(Launcher|App|MainController)&#x27;\&quot;\\\\.class|gymmie/view/MainWindow\\\\.fxml|gymmie/css/gymmie\\\\.css|javafx/)&#x27; | sed -n &#x27;1,20p&#x27; &amp;&amp; printf &#x27;\\\\n-- status --\\\\n&#x27; &amp;&amp; git status --short &amp;&amp; printf &#x27;\\\\n-- files --\\\\n&#x27; &amp;&amp; find . -path &#x27;./.git&#x27; -prune -o -path &#x27;./.gradle&#x27; -prune -o -path &#x27;./build&#x27; -prune -o -type f -print | sort\&quot;&quot;, &quot;aggregated_output&quot;: &quot;To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n\n&gt; Task :compileJava UP-TO-DATE\nCaught exception: Could not start the FSEvents stream: /Users/shawnnygoh/github-repos/CS3227-2610-MP2\n\n&gt; Task :processResources\n&gt; Task :classes\n&gt; Task :compileTestJava UP-TO-DATE\n&gt; Task :processTestResources NO-SOURCE\n&gt; Task :testClasses UP-TO-DATE\n&gt; Task :shadowJar\n&gt; Task :checkstyleTest\n&gt; Task :checkstyleMain\n&gt; Task :test\n&gt; Task :jacocoTestReport\n&gt; Task :check\n\nBUILD SUCCESSFUL in 8s\n8 actionable tasks: 6 executed, 2 up-to-date\nConsider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html\n\n-- artifact contents --\ngymmie/App.class\ngymmie/Launcher.class\ngymmie/MainController.class\ngymmie/css/gymmie.css\ngymmie/view/MainWindow.fxml\njavafx/fxml/FXML.class\njavafx/fxml/FXMLLoader$1.class\njavafx/fxml/FXMLLoader$2.class\njavafx/fxml/FXMLLoader$Attribute.class\njavafx/fxml/FXMLLoader$ControllerAccessor.class\njavafx/fxml/FXMLLoader$ControllerMethodEventHandler.class\njavafx/fxml/FXMLLoader$CopyElement.class\njavafx/fxml/FXMLLoader$DefineElement.class\njavafx/fxml/FXMLLoader$Element$1.class\njavafx/fxml/FXMLLoader$Element.class\njavafx/fxml/FXMLLoader$IncludeElement.class\njavafx/fxml/FXMLLoader$InstanceDeclarationElement.class\njavafx/fxml/FXMLLoader$MethodHandler.class\njavafx/fxml/FXMLLoader$ObservableListChangeAdapter.class\njavafx/fxml/FXMLLoader$ObservableMapChangeAdapter.class\n\n-- status --\n?? .github/\n?? .gitignore\n?? AGENTS.md\n?? README.md\n?? build.gradle\n?? config/\n?? gradle/\n?? gradlew\n?? gradlew.bat\n?? settings.gradle\n?? src/\n?? trace.jsonl\n\n-- files --\n./.github/workflows/gradle.yml\n./.gitignore\n./AGENTS.md\n./README.md\n./build.gradle\n./config/checkstyle/checkstyle.xml\n./config/checkstyle/suppressions.xml\n./gradle/wrapper/gradle-wrapper.jar\n./gradle/wrapper/gradle-wrapper.properties\n./gradlew\n./gradlew.bat\n./settings.gradle\n./src/main/java/gymmie/App.java\n./src/main/java/gymmie/Launcher.java\n./src/main/java/gymmie/MainController.java\n./src/main/resources/gymmie/css/gymmie.css\n./src/main/resources/gymmie/view/MainWindow.fxml\n./src/test/java/gymmie/TrivialTest.java\n./trace.jsonl\n&quot;, &quot;exit_code&quot;: 0, &quot;status&quot;: &quot;completed&quot;}}
+{&quot;type&quot;: &quot;item.completed&quot;, &quot;item&quot;: {&quot;id&quot;: &quot;item_19&quot;, &quot;type&quot;: &quot;agent_message&quot;, &quot;text&quot;: &quot;Created **Gymmie**, a JavaFX workout dashboard using:\n\n- Gradle 9.7.1\n- Java 25\n- FXML interface with CSS styling\n- JUnit 5, Checkstyle, JaCoCo, and Shadow JAR\n- GitHub Actions CI\n\nKey files:\n\n- [MainWindow.fxml](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/view/MainWindow.fxml)\n- [gymmie.css](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/resources/gymmie/css/gymmie.css)\n- [MainController.java](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/src/main/java/gymmie/MainController.java)\n- [README.md](/Users/shawnnygoh/github-repos/CS3227-2610-MP2/README.md)\n\nVerified successfully:\n\n```shell\n./gradlew check\n./gradlew shadowJar\n```\n\nRunnable artifact: `build/libs/gymmie-1.0.0-all.jar`\n\nRun locally with:\n\n```shell\n./gradlew run\n```\n\nThe JavaFX scaffolding skill determined the project structure, quality tooling, CI workflow, and packaging setup. The GUI could not be visually opened in the execution sandbox because it has no macOS display, but compilation, tests, style checks, FXML validation, and fat-JAR packaging all pass.&quot;}}
+{&quot;type&quot;: &quot;turn.completed&quot;, &quot;usage&quot;: {&quot;input_tokens&quot;: 527533, &quot;cached_input_tokens&quot;: 468352, &quot;cache_write_input_tokens&quot;: 0, &quot;output_tokens&quot;: 11436, &quot;reasoning_output_tokens&quot;: 2777}}</pre></details>
+</main></body></html>

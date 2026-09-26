@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "trace": "evals/create-javafx-app/traces/v2/negative-trace.jsonl",
+  "artifact": "evals/create-javafx-app/artifacts/v2/negative",
+  "overall_pass": true,
+  "counts": {
+    "checks": 7,
+    "passed": 7,
+    "failures": 0,
+    "warnings": 0
+  },
+  "checks": [
+    {
+      "id": "trace.valid_jsonl",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "zero malformed JSONL lines",
+      "actual": 0,
+      "evidence": []
+    },
+    {
+      "id": "trace.turn_completed",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": true,
+      "actual": true,
+      "evidence": [
+        "event counts: {'item.completed': 22, 'item.started': 16, 'thread.started': 1, 'turn.completed': 1, 'turn.started': 1}"
+      ]
+    },
+    {
+      "id": "trace.skill_trigger",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": false,
+      "actual": false,
+      "evidence": [
+        "no successful read of the target SKILL.md was observed"
+      ]
+    },
+    {
+      "id": "trace.gradle_check_succeeded",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "at least one successful Gradle check command",
+      "actual": 1,
+      "evidence": [
+        "line 25: /bin/zsh -lc 'GRADLE_USER_HOME=/private/tmp/gymmie-gradle ./gradlew check'"
+      ]
+    },
+    {
+      "id": "trace.usage_present",
+      "scope": "trace",
+      "severity": "error",
+      "pass": true,
+      "expected": "positive input_tokens and output_tokens",
+      "actual": {
+        "input_tokens": 479079,
+        "cached_input_tokens": 431360,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 9395,
+        "reasoning_output_tokens": 2361,
+        "uncached_input_tokens": 47719
+      },
+      "evidence": [
+        "usage aggregated from turn.completed events"
+      ]
+    },
+    {
+      "id": "trace.command_budget",
+      "scope": "trace",
+      "severity": "warning",
+      "pass": true,
+      "expected": "at most 25",
+      "actual": 15,
+      "evidence": [
+        "completed command_execution items: 15"
+      ]
+    },
+    {
+      "id": "trace.failed_command_budget",
+      "scope": "trace",
+      "severity": "warning",
+      "pass": true,
+      "expected": "at most 8",
+      "actual": 1,
+      "evidence": [
+        "line 19 exit=1: /bin/zsh -lc './gradlew check'"
+      ]
+    }
+  ],
+  "artifact_profile": "trigger-only"
+}
