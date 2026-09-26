@@ -10,6 +10,26 @@
 
 ### Trainer
 
+#### View your upcoming sessions
+
+Log in as a Trainer and choose **My upcoming sessions** on the **Trainer dashboard**.
+
+1. Read your sessions in start-time order. Each card shows the local start date
+   and time, session number, duration, capacity, and description.
+2. Choose **Refresh** to reload the list and apply the current time cut-off.
+3. Choose **Back to dashboard** to return.
+
+Only your own uncancelled sessions starting strictly after your computer's
+current local time appear. Sessions that have already started are excluded.
+**No upcoming sessions.** means there are no matching sessions. The list updates
+when opened or refreshed; use **Refresh** if you leave it open.
+
+Click buttons with the mouse, or use **Tab** and **Shift+Tab** to focus them and
+**Space** to activate them. The page scrolls for longer lists. Previous details
+are cleared while refreshing. If loading fails, an error appears; retry with
+**Refresh**. Access requires an active Trainer account; sign in again if your
+session has ended.
+
 #### Create a training session
 
 Log in as a Trainer and choose **Create session** on the **Trainer dashboard**.

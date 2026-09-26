@@ -7,6 +7,7 @@ import gymmie.model.Role;
 import gymmie.service.UserSession;
 import gymmie.trainer.CreateSessionController;
 import gymmie.trainer.TrainerProfileController;
+import gymmie.trainer.UpcomingSessionsController;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -70,6 +71,16 @@ public final class Router {
     public void showCreateSession() throws IOException {
         show(views.loadResource("/gymmie/trainer/view/CreateSession.fxml",
                 new CreateSessionController(context, this)), "Create session");
+    }
+
+    /**
+     * Opens upcoming sessions; the service enforces Trainer role and ownership.
+     *
+     * @throws IOException if the view cannot be loaded.
+     */
+    public void showUpcomingSessions() throws IOException {
+        show(views.loadResource("/gymmie/trainer/view/UpcomingSessions.fxml",
+                new UpcomingSessionsController(context, this)), "My upcoming sessions");
     }
 
     /** Opens the Member's current membership and purchase screen. */
