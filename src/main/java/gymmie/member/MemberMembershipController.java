@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import gymmie.AppContext;
 import gymmie.Router;
-import gymmie.member.service.MembershipStatusService.CurrentMembership;
+import gymmie.member.service.MembershipStatusService.RenewableMembership;
 import gymmie.model.Membership;
 import gymmie.model.MembershipPlan;
 import gymmie.ui.DisplayFormatters;
@@ -24,8 +24,12 @@ public final class MemberMembershipController {
     private final AppContext context;
     private final Router router;
     private boolean hasActiveMembership;
+    private boolean hasRenewableMembership;
     private boolean membershipStatusLoaded;
     private boolean purchaseInProgress;
+    private boolean renewalInProgress;
+    private long renewableMembershipId;
+    private String currentPlanName;
     @FXML
     private VBox membershipScreen;
     @FXML
@@ -36,6 +40,10 @@ public final class MemberMembershipController {
     private StatusLabel membershipStatus;
     @FXML
     private Button refreshMembership;
+    @FXML
+    private Button renewMembership;
+    @FXML
+    private StatusLabel renewalStatus;
     @FXML
     private ComboBox<MembershipPlan> availablePlans;
     @FXML
@@ -72,25 +80,36 @@ public final class MemberMembershipController {
             return;
         }
         refreshMembership.setDisable(true);
+        membershipStatusLoaded = false;
+        renewableMembershipId = 0;
+        updateRenewalAvailability();
+        updatePurchaseAvailability();
         membershipPlan.setText("Plan: —");
         membershipExpiry.setText("Expiry date: —");
         membershipStatus.info("Loading membership…");
-        Task<Optional<CurrentMembership>> task = new Task<>() {
+        Task<Optional<RenewableMembership>> task = new Task<>() {
             @Override
-            protected Optional<CurrentMembership> call() throws Exception {
-                return context.getMembershipStatusService().currentMembership();
+            protected Optional<RenewableMembership> call() throws Exception {
+                return context.getMembershipStatusService().renewableMembership();
             }
         };
         task.setOnSucceeded(_ -> {
             refreshMembership.setDisable(false);
-            if (task.getValue().isPresent()) {
-                CurrentMembership current = task.getValue().orElseThrow();
-                hasActiveMembership = true;
-                membershipPlan.setText("Plan: " + current.planName());
+            hasRenewableMembership = task.getValue().isPresent();
+            if (hasRenewableMembership) {
+                RenewableMembership current = task.getValue().orElseThrow();
+                hasActiveMembership = current.activeToday();
+                renewableMembershipId = current.membershipId();
+                currentPlanName = current.planName();
+                membershipPlan.setText("Plan: " + currentPlanName);
                 membershipExpiry.setText("Expiry date: " + DisplayFormatters.date(current.expiryDate()));
-                membershipStatus.info("Active");
+                membershipStatus.info(current.activeToday() ? "Active" : "Expired");
             } else {
                 hasActiveMembership = false;
+                renewableMembershipId = 0;
+                membershipPlan.setText("Plan: —");
+                membershipExpiry.setText("Expiry date: —");
+                currentPlanName = null;
                 membershipStatus.info("Inactive — no current membership.");
             }
             membershipStatusLoaded = true;
@@ -99,14 +118,65 @@ public final class MemberMembershipController {
             } else if (!availablePlans.getItems().isEmpty()) {
                 purchaseStatus.info("Choose a plan to purchase.");
             }
+            updateRenewalAvailability();
             updatePurchaseAvailability();
         });
         task.setOnFailed(_ -> {
             refreshMembership.setDisable(false);
+            updateRenewalAvailability();
+            updatePurchaseAvailability();
             membershipStatus.error(task.getException(), "Unable to load membership. Please try Refresh.");
             returnToLoginIfSessionEnded();
         });
         Thread.ofPlatform().daemon().name("gymmie-membership-status").start(task);
+    }
+
+    @FXML
+    private void renewMembership() {
+        if (renewalInProgress || purchaseInProgress || renewMembership.isDisabled() || !hasRenewableMembership) {
+            return;
+        }
+        renewalInProgress = true;
+        refreshMembership.setDisable(true);
+        updateRenewalAvailability();
+        updatePurchaseAvailability();
+        renewalStatus.info("Renewing membership…");
+        Task<Membership> task = new Task<>() {
+            @Override
+            protected Membership call() throws Exception {
+                return context.getMembershipRenewalService().renew(renewableMembershipId);
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            Membership renewed = task.getValue();
+            hasActiveMembership = true;
+            hasRenewableMembership = true;
+            renewalInProgress = false;
+            refreshMembership.setDisable(false);
+            membershipPlan.setText("Plan: " + currentPlanName);
+            membershipExpiry.setText("Expiry date: " + DisplayFormatters.date(renewed.expiryDate()));
+            membershipStatus.info("Active");
+            renewalStatus.success("Membership renewed.");
+            purchaseStatus.info("You already have an active membership.");
+            updateRenewalAvailability();
+            updatePurchaseAvailability();
+        });
+        task.setOnFailed(_ -> {
+            renewalInProgress = false;
+            refreshMembership.setDisable(false);
+            renewalStatus.error(task.getException(), "Unable to renew this membership. Please try again.");
+            updateRenewalAvailability();
+            updatePurchaseAvailability();
+            returnToLoginIfSessionEnded();
+        });
+        Thread.ofPlatform().daemon().name("gymmie-membership-renewal").start(task);
+    }
+
+    private void updateRenewalAvailability() {
+        if (renewMembership != null) {
+            renewMembership.setDisable(renewalInProgress || purchaseInProgress || !membershipStatusLoaded
+                    || !hasRenewableMembership);
+        }
     }
 
     @FXML
@@ -154,11 +224,13 @@ public final class MemberMembershipController {
     @FXML
     private void purchaseMembership() {
         MembershipPlan selectedPlan = availablePlans.getValue();
-        if (purchaseInProgress || purchaseMembership.isDisabled() || selectedPlan == null) {
+        if (purchaseInProgress || renewalInProgress || purchaseMembership.isDisabled() || selectedPlan == null) {
             return;
         }
         purchaseInProgress = true;
+        refreshMembership.setDisable(true);
         updatePurchaseAvailability();
+        updateRenewalAvailability();
         purchaseStatus.info("Purchasing membership…");
         Task<Membership> task = new Task<>() {
             @Override
@@ -169,18 +241,25 @@ public final class MemberMembershipController {
         task.setOnSucceeded(_ -> {
             Membership purchased = task.getValue();
             hasActiveMembership = true;
+            hasRenewableMembership = true;
             membershipStatusLoaded = true;
+            renewableMembershipId = purchased.id();
+            currentPlanName = selectedPlan.name();
             purchaseInProgress = false;
-            updatePurchaseAvailability();
-            purchaseStatus.success("Membership purchased.");
-            membershipPlan.setText("Plan: " + selectedPlan.name());
+            refreshMembership.setDisable(false);
+            membershipPlan.setText("Plan: " + currentPlanName);
             membershipExpiry.setText("Expiry date: " + DisplayFormatters.date(purchased.expiryDate()));
             membershipStatus.info("Active");
+            updatePurchaseAvailability();
+            updateRenewalAvailability();
+            purchaseStatus.success("Membership purchased.");
         });
         task.setOnFailed(_ -> {
             purchaseInProgress = false;
+            refreshMembership.setDisable(false);
             purchaseStatus.error(task.getException(), "Unable to purchase this plan. Please try again.");
             updatePurchaseAvailability();
+            updateRenewalAvailability();
             returnToLoginIfSessionEnded();
         });
         Thread.ofPlatform().daemon().name("gymmie-membership-purchase").start(task);
@@ -190,8 +269,8 @@ public final class MemberMembershipController {
         if (purchaseMembership == null) {
             return;
         }
-        purchaseMembership.setDisable(purchaseInProgress || !membershipStatusLoaded || hasActiveMembership
-                || availablePlans.getValue() == null);
+        purchaseMembership.setDisable(purchaseInProgress || renewalInProgress || !membershipStatusLoaded
+                || hasActiveMembership || availablePlans.getValue() == null);
     }
 
     private void returnToLoginIfSessionEnded() {
