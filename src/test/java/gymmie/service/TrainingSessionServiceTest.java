@@ -25,6 +25,7 @@ import gymmie.service.exception.AccountDeactivatedException;
 import gymmie.service.exception.AuthenticationException;
 import gymmie.service.exception.AuthorizationException;
 import gymmie.testutil.AccountBuilder;
+import gymmie.testutil.TrainingSessionBuilder;
 import gymmie.trainer.service.TrainingSessionService;
 
 class TrainingSessionServiceTest {
@@ -113,6 +114,57 @@ class TrainingSessionServiceTest {
         assertThrows(AccountDeactivatedException.class, () -> service.create(NOW.plusDays(1), 60, 10, null));
         assertFalse(context.getUserSession().isAuthenticated());
         assertEmpty();
+    }
+
+    @Test
+    void listsOnlyOwnUncancelledFutureSessionsInStartOrderUsingLocalTime() throws Exception {
+        var other = new AccountBuilder().withId(3).withUsername("otherTrainer").withRole(Role.TRAINER).build();
+        var later = new TrainingSessionBuilder().withId(1).withStartsAt(NOW.plusDays(1)).build();
+        var next = new TrainingSessionBuilder().withId(2).withStartsAt(NOW.plusNanos(1)).build();
+        var tied = new TrainingSessionBuilder(next).withId(3).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, other);
+            for (var session : List.of(later, next, tied,
+                    new TrainingSessionBuilder().withId(4).withStartsAt(NOW).build(),
+                    new TrainingSessionBuilder().withId(5).withStartsAt(NOW.minusNanos(1)).build(),
+                    new TrainingSessionBuilder().withId(6).withStartsAt(NOW.minusHours(1)).build(),
+                    new TrainingSessionBuilder(later).withId(7).withCancelled(true).build(),
+                    new TrainingSessionBuilder(later).withId(8).withTrainerId(other.id()).build())) {
+                context.getPersistence().sessions().insert(connection, session);
+            }
+            return null;
+        });
+        assertEquals(List.of(next, tied, later), service.getOwnUpcomingSessions());
+        context.getUserSession().establish(other);
+        assertEquals(List.of(8L), service.getOwnUpcomingSessions().stream().map(session -> session.id()).toList());
+        context.getUserSession().establish(trainer);
+        var persistence = context.getPersistence();
+        var advanced = new TrainingSessionService(persistence.sessions(), persistence.unitOfWork(),
+                context.getPermissions(), Clock.offset(CLOCK, java.time.Duration.ofDays(1)));
+        assertTrue(advanced.getOwnUpcomingSessions().isEmpty());
+    }
+
+    @Test
+    void upcomingReadRejectsMissingWrongStaleAndDeactivatedRoles() throws Exception {
+        assertTrue(service.getOwnUpcomingSessions().isEmpty());
+        context.getUserSession().clear();
+        assertThrows(AuthenticationException.class, service::getOwnUpcomingSessions);
+        for (Role role : List.of(Role.MANAGER, Role.MEMBER)) {
+            var other = new AccountBuilder().withId(role.ordinal() + 10).withUsername("reader_" + role.name())
+                    .withRole(role).build();
+            context.getPersistence().unitOfWork().inTransaction(connection -> {
+                context.getPersistence().accounts().insert(connection, other);
+                return null;
+            });
+            context.getUserSession().establish(new AccountBuilder(other).withRole(Role.TRAINER).build());
+            assertThrows(AuthorizationException.class, service::getOwnUpcomingSessions);
+            context.getUserSession().establish(other);
+            assertThrows(AuthorizationException.class, service::getOwnUpcomingSessions);
+        }
+        replaceTrainer(new AccountBuilder(trainer).withActive(false).build());
+        context.getUserSession().establish(trainer);
+        assertThrows(AccountDeactivatedException.class, service::getOwnUpcomingSessions);
+        assertFalse(context.getUserSession().isAuthenticated());
     }
 
     private void replaceTrainer(Account replacement) throws Exception {

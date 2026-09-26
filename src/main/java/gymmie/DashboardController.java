@@ -47,6 +47,9 @@ public final class DashboardController {
     @FXML
     private Button createSessionButton;
 
+    @FXML
+    private Button upcomingSessionsButton;
+
     /** Creates a dashboard using the current session and shared account services. */
     public DashboardController(AppContext context, Router router, String dashboardTitle) {
         this.context = context;
@@ -63,6 +66,8 @@ public final class DashboardController {
         Role role = context.getUserSession().requireUser().role();
         boolean trainer = role == Role.TRAINER;
         boolean member = role == Role.MEMBER;
+        upcomingSessionsButton.setVisible(trainer);
+        upcomingSessionsButton.setManaged(trainer);
         createSessionButton.setVisible(trainer);
         createSessionButton.setManaged(trainer);
         profileButton.setVisible(trainer);
@@ -80,6 +85,15 @@ public final class DashboardController {
             router.showMemberMembership();
         } catch (IOException exception) {
             status.error("Unable to open your membership. Please try again.");
+        }
+    }
+
+    @FXML
+    private void openUpcomingSessions() {
+        try {
+            router.showUpcomingSessions();
+        } catch (IOException exception) {
+            status.error("Unable to open upcoming sessions. Please try again.");
         }
     }
 

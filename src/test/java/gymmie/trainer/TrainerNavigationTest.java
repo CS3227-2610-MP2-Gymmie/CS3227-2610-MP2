@@ -332,6 +332,164 @@ class TrainerNavigationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void trainerOpensAndRefreshesUpcomingSessionsByMouseOrKeyboard(boolean keyboard) throws Exception {
+        AppContext context = new AppContext(temporaryDirectory.resolve("upcoming.db"));
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withRole(Role.TRAINER).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, trainer);
+            return null;
+        });
+        context.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        var session = context.getTrainingSessionService().create(LocalDateTime.now().plusDays(1),
+                60, 10, "Strength and mobility\nBring a towel.");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<String> feedback = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showDashboard();
+                stage.show();
+                stage.getScene().getRoot().applyCss();
+                Button open = (Button) stage.getScene().lookup("#upcomingSessionsButton");
+                assertTrue(open.isVisible());
+                assertTrue(open.isFocusTraversable());
+                if (keyboard) {
+                    pressKey(open, KeyCode.SPACE);
+                } else {
+                    open.fire();
+                }
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(feedback, text -> text.equals("Upcoming sessions loaded."));
+            onFxThread(() -> {
+                var cards = (javafx.scene.layout.VBox) stage.getScene().lookup("#sessions");
+                assertEquals(1, cards.getChildren().size());
+                var card = (javafx.scene.layout.VBox) cards.getChildren().getFirst();
+                Label description = (Label) card.getChildren().get(2);
+                assertEquals("Strength and mobility\nBring a towel.", description.getText());
+                stage.setWidth(520);
+                stage.getScene().getRoot().applyCss();
+                stage.getScene().getRoot().layout();
+                writePreview(stage, "upcoming-sessions.png");
+                return null;
+            });
+            context.getPersistence().unitOfWork().inTransaction(connection -> {
+                context.getPersistence().sessions().update(connection,
+                        new gymmie.testutil.TrainingSessionBuilder(session).withCancelled(true).build());
+                return null;
+            });
+            onFxThread(() -> {
+                Button refresh = (Button) stage.getScene().lookup("#refreshButton");
+                if (keyboard) {
+                    Button back = (Button) stage.getScene().lookup("#backButton");
+                    pressKey(back, KeyCode.TAB);
+                    assertEquals(refresh, stage.getScene().getFocusOwner());
+                    pressKey(refresh, KeyCode.SPACE);
+                } else {
+                    refresh.fire();
+                }
+                return null;
+            });
+            awaitUi(feedback, text -> text.equals("No upcoming sessions."));
+            onFxThread(() -> {
+                assertTrue(((javafx.scene.layout.VBox) stage.getScene().lookup("#sessions"))
+                        .getChildren().isEmpty());
+                pressKey((Button) stage.getScene().lookup("#backButton"), KeyCode.SPACE);
+                stage.getScene().getRoot().applyCss();
+                assertEquals("Trainer dashboard", ((Label) stage.getScene().lookup("#title")).getText());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void trainerSelectsRosterAndRefreshesByMouseOrKeyboard(boolean keyboard) throws Exception {
+        AppContext context = new AppContext(temporaryDirectory.resolve("roster-ui.db"));
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withRole(Role.TRAINER).build();
+        var member = new gymmie.testutil.AccountBuilder().withId(3).withUsername("private_login")
+                .withDisplayName("Member display name").withRole(Role.MEMBER).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, trainer);
+            context.getPersistence().accounts().insert(connection, member);
+            return null;
+        });
+        context.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        long sessionId = context.getTrainingSessionService()
+                .create(LocalDateTime.now().plusDays(1), 60, 10, "Roster session").id();
+        var booking = new gymmie.testutil.BookingBuilder().withSessionId(sessionId).withMemberId(member.id()).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().bookings().insert(connection, booking);
+            return null;
+        });
+        Stage stage = onFxThread(Stage::new);
+        try {
+            var feedback = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showUpcomingSessions();
+                stage.show();
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(feedback, text -> text.equals("Upcoming sessions loaded."));
+            var rosterFeedback = onFxThread(() -> {
+                Button open = (Button) stage.getScene().lookup("#rosterButton-" + sessionId);
+                assertTrue(open.isFocusTraversable());
+                if (keyboard) {
+                    pressKey((Button) stage.getScene().lookup("#refreshButton"), KeyCode.TAB);
+                    assertEquals(open, stage.getScene().getFocusOwner());
+                    pressKey(open, KeyCode.SPACE);
+                } else {
+                    open.fire();
+                }
+                return ((StatusLabel) stage.getScene().lookup("#rosterStatus-" + sessionId)).textProperty();
+            });
+            awaitUi(rosterFeedback, text -> text.equals("Members booked: 1"));
+            onFxThread(() -> {
+                var roster = (javafx.scene.layout.VBox) stage.getScene().lookup("#roster-" + sessionId);
+                assertEquals(2, roster.getChildren().size());
+                Label name = (Label) roster.getChildren().getLast();
+                assertEquals("Member display name", name.getText());
+                stage.getScene().getRoot().applyCss();
+                stage.getScene().getRoot().layout();
+                writePreview(stage, "session-roster.png");
+                return null;
+            });
+            context.getPersistence().unitOfWork().inTransaction(connection -> {
+                context.getPersistence().bookings().update(connection,
+                        new gymmie.testutil.BookingBuilder(booking).withStatus(gymmie.model.BookingStatus.CANCELLED)
+                                .withCancellationReason(gymmie.model.CancellationReason.MEMBER_CANCELLED_BOOKING)
+                                .build());
+                return null;
+            });
+            var refreshed = onFxThread(() -> {
+                Button refresh = (Button) stage.getScene().lookup("#rosterButton-" + sessionId);
+                if (keyboard) {
+                    pressKey(refresh, KeyCode.SPACE);
+                } else {
+                    refresh.fire();
+                }
+                return ((StatusLabel) stage.getScene().lookup("#rosterStatus-" + sessionId)).textProperty();
+            });
+            awaitUi(refreshed, text -> text.equals("No Members booked."));
+            onFxThread(() -> {
+                var roster = (javafx.scene.layout.VBox) stage.getScene().lookup("#roster-" + sessionId);
+                assertEquals(1, roster.getChildren().size());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
     private static void selectCalendarDate(DatePicker picker, LocalDate date, boolean keyboard) {
         if (keyboard) {
             pressKey(picker, KeyCode.F4);
