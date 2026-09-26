@@ -225,7 +225,11 @@ available plan.
 
 On the **Gym User dashboard**, choose **My bookings**. The screen separates
 bookings whose session has not started from past bookings, and shows each
-session's local date and time and its booking status.
+session's local date and time, Trainer, description, duration, and booking
+status. Choose **Cancel booking** on an upcoming booking to release its place
+for another Member. Review the confirmation and choose **OK** to cancel. Choose
+**Cancel** or close the confirmation to keep your booking. A booking cannot be
+cancelled after its session starts.
 
 Cancelled bookings stay in the appropriate list and show why they were
 cancelled: **Trainer cancelled session**, **Member cancelled booking**,

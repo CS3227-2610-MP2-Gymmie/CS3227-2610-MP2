@@ -12,11 +12,14 @@ import gymmie.model.BookingStatus;
 import gymmie.model.CancellationReason;
 import gymmie.ui.DisplayFormatters;
 import gymmie.ui.StatusLabel;
+import gymmie.ui.UiFeedback;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.VBox;
 
 /** Shows the authenticated Member's upcoming and past bookings. */
 public final class MemberBookingsController {
@@ -44,8 +47,8 @@ public final class MemberBookingsController {
 
     @FXML
     private void initialize() {
-        upcomingBookings.setCellFactory(_ -> new MemberBookingCell());
-        pastBookings.setCellFactory(_ -> new MemberBookingCell());
+        upcomingBookings.setCellFactory(_ -> new MemberBookingCell(true));
+        pastBookings.setCellFactory(_ -> new MemberBookingCell(false));
         loadBookings();
     }
 
@@ -88,6 +91,29 @@ public final class MemberBookingsController {
         Thread.ofPlatform().daemon().name("gymmie-member-bookings").start(task);
     }
 
+    private void cancelBooking(MemberBooking booking, Button cancelButton) {
+        if (!UiFeedback.confirm(upcomingBookings.getScene().getWindow(), "Cancel booking",
+                "Cancel your booking for " + DisplayFormatters.dateTime(booking.startsAt())
+                        + "? The released space will be available to another Member.")) {
+            return;
+        }
+        cancelButton.setDisable(true);
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                context.getMemberBookingCancellationService().cancel(booking.bookingId());
+                return null;
+            }
+        };
+        task.setOnSucceeded(_ -> loadBookings());
+        task.setOnFailed(_ -> {
+            cancelButton.setDisable(false);
+            bookingsStatus.error(task.getException(), "Unable to cancel this booking. Please refresh and try again.");
+            returnToLoginIfSessionEnded();
+        });
+        Thread.ofPlatform().daemon().name("gymmie-member-booking-cancel").start(task);
+    }
+
     private static String countText(int count, String label) {
         return count + " " + label + (count == 1 ? "" : "s");
     }
@@ -125,19 +151,43 @@ public final class MemberBookingsController {
         }
     }
 
-    private static final class MemberBookingCell extends ListCell<MemberBooking> {
+    private final class MemberBookingCell extends ListCell<MemberBooking> {
+        private final boolean upcoming;
+
+        private MemberBookingCell(boolean upcoming) {
+            this.upcoming = upcoming;
+        }
+
         @Override
         protected void updateItem(MemberBooking booking, boolean empty) {
             super.updateItem(booking, empty);
             if (empty || booking == null) {
                 setText(null);
+                setGraphic(null);
             } else if (booking.status() == BookingStatus.CANCELLED) {
-                setText("Booking #" + booking.bookingId() + " · " + DisplayFormatters.dateTime(booking.startsAt())
-                        + " · Cancelled · Reason: " + cancellationReasonText(booking.cancellationReason()));
+                setBookingGraphic(booking,
+                        "Cancelled · Reason: " + cancellationReasonText(booking.cancellationReason()), false);
             } else {
-                setText("Booking #" + booking.bookingId() + " · " + DisplayFormatters.dateTime(booking.startsAt())
-                        + " · Booked");
+                setBookingGraphic(booking, "Booked", upcoming);
             }
+        }
+
+        private void setBookingGraphic(MemberBooking booking, String bookingStatus, boolean canCancel) {
+            setText(null);
+            Label details = new Label("Booking #" + booking.bookingId() + " · "
+                    + DisplayFormatters.dateTime(booking.startsAt()) + " · " + bookingStatus
+                    + "\nTrainer: " + booking.trainerName() + " · Duration: " + booking.durationMinutes()
+                    + " minutes\nDescription: " + (booking.description() == null || booking.description().isBlank()
+                            ? "No description provided" : booking.description()));
+            details.setWrapText(true);
+            VBox content = new VBox(6, details);
+            if (canCancel) {
+                Button cancelButton = new Button("Cancel booking");
+                cancelButton.setAccessibleText("Cancel booking #" + booking.bookingId());
+                cancelButton.setOnAction(_ -> cancelBooking(booking, cancelButton));
+                content.getChildren().add(cancelButton);
+            }
+            setGraphic(content);
         }
 
         private static String cancellationReasonText(CancellationReason reason) {

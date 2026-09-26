@@ -24,6 +24,6 @@ class MemberBookingTimeGroupingTest {
     }
 
     private static MemberBooking booking(long id, LocalDateTime startsAt) {
-        return new MemberBooking(id, startsAt, BookingStatus.BOOKED, null);
+        return new MemberBooking(id, startsAt, "Trainer", "Workout", 60, BookingStatus.BOOKED, null);
     }
 }
