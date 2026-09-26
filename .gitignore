@@ -3,6 +3,3 @@ build/
 .idea/
 data/
 .vscode/
-/evals/implement-issues/runs/
-/evals/**/__pycache__/
-/evals/**/*.py[cod]
