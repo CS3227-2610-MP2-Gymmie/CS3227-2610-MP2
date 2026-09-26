@@ -9,9 +9,9 @@
 
 ## Summary
 
-| Skill triggered | Verification passed on first run | Final verification result | Tests added or changed | Docs updated | Number of user corrections |
+| Skills used | Verification passed on first run | Final verification result | Tests added or changed | Docs updated | Number of user corrections |
 | --- | --- | --- | --- | --- | --- |
-| [yes/no] | [yes/no/not applicable] | [result] | [list or none] | [list or none] | [number] |
+| [each skill whose SKILL.md was read and followed: name (explicit/implicit/referenced), or none] | [yes/no/not applicable] | [result] | [list or none] | [list or none] | [number] |
 
 ## Acceptance criteria
 
@@ -25,7 +25,7 @@
 - [ ] Mapped criteria to intended changes and checks.
 - [ ] Kept changes in scope. Unexpected files and why: [none or list].
 - [ ] Ran verification on the final code state; reran checks after relevant later edits.
-- [ ] Repository skills or tools used: [list or none].
+- [ ] Other tools used besides skills above: [list or none].
 - [ ] No commit, push, or external action occurred without authorization.
 
 ## Verification runs

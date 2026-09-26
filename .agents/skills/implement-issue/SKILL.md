@@ -1,6 +1,6 @@
 ---
 name: implement-issue
-description: Implement a scoped issue from its requirements through review, verification, delivery, and a short implementation report. Use for direct issue-scoped implementation requests; not for suggestions, issue drafting, review-only, or test-only work.
+description: Implement a scoped issue from its requirements through review, verification, delivery, and a short implementation report. Use for direct requests to implement or fix a tracked issue or stated acceptance criteria; not for suggestions, issue drafting, review-only or test-only work, or changes to agent skills and workflow tooling.
 ---
 
 # Implement an Issue
@@ -13,7 +13,7 @@ Use this loop proportionally: **Understand → Plan → Implement and Test → R
 
 1. **Understand.** Inspect enough applicable instructions, source, tests, and documentation to establish scope from evidence. Resolve routine uncertainty from the repository; identify material ambiguity or conflict and its impact, and pause only work that depends on a decision.
    - Input: user request and repository state. Output: scoped outcome and acceptance criteria, with unresolved decisions identified.
-2. **Plan.** Record a concise working map from each criterion to intended changes and observable checks; revise it when evidence changes scope, assumptions, dependencies, or expected behavior. Inspect the current branch, revision, and working-tree status before editing; preserve and distinguish unrelated work. A clean tree or baseline commit is not required.
+2. **Plan.** Record a concise working map from each criterion to intended changes and observable checks; revise it when evidence changes scope, assumptions, dependencies, or expected behavior. Inspect the current branch, revision, and working-tree status before editing; preserve and distinguish unrelated work. If on the repository's default branch, create a task branch following repository conventions before editing. A clean tree or baseline commit is not required.
    - Input: scope and baseline. Output: proportional criterion-to-change-to-check plan.
 3. **Implement and Test.** Make focused changes within authorized scope. Add or update suitable tests and affected documentation according to repository conventions; when required documentation is missing, add the smallest suitable entry within scope. Preserve test intent; never weaken or bypass tests to obtain a pass.
    - Input: plan. Output: scoped changes and appropriate tests or documented reasons none apply.
@@ -23,10 +23,10 @@ Use this loop proportionally: **Understand → Plan → Implement and Test → R
    - Input: reviewed final code state. Output: actual check results associated with criteria and the state checked.
 6. **Deliver.** Summarize outcomes, evidence, assumptions, limitations, and remaining work honestly. Use only these criterion statuses: **completed** when the outcome has evidence; **blocked** when a dependency, environment, or external state prevents progress; **awaiting-decision** when a material choice needs the user's input; and **incomplete** when work or evidence remains without such a blocker.
    - Input: verification results. Output: concise, evidence-based delivery summary.
-7. **Commit when authorized.** Follow repository Git conventions and preserve existing work. Stage and commit only when the user authorized it; authorization in the request is sufficient. Prepare required deliverables, including the report, before committing. Push requires separate authorization. Perform external actions only within explicit user authorization.
-   - Input: reviewed and verified changes plus authorization. Output: reported commit/action results, or an uncommitted delivery.
-8. **Report.** At delivery, write a short implementation report from [assets/report-template.md](assets/report-template.md) to the location specified by the user or repository instructions. Otherwise use `evals/implement-issue/reports/issue-<NNN>-<slug>.md`. When a commit is authorized, include the report in it. Summarize the report in chat. If the user later corrects or redirects the work during the session, update its **User corrections** section.
-   - Input: task evidence and template. Output: completed report at the selected location and a chat summary.
+7. **Report.** Write a short implementation report from [assets/report-template.md](assets/report-template.md) to the location specified by the user or repository instructions; otherwise use `evals/implement-issue/reports/issue-<number>-<slug>.md`, where `<number>` is the issue's own number (for example `issue-42-short-title.md`). Summarize the report in chat. If the user later corrects or redirects the work during the session, update its **User corrections** section.
+   - Input: task evidence and template. Output: completed report and a chat summary.
+8. **Commit when authorized.** Follow repository Git conventions and preserve existing work. Stage and commit only when the user authorized it; authorization in the request is sufficient. Include the report in the commit. Push requires separate authorization. Perform external actions only within explicit user authorization.
+   - Input: reviewed and verified changes, the report, and authorization. Output: reported commit/action results, or an uncommitted delivery.
 
 ## Boundaries
 
