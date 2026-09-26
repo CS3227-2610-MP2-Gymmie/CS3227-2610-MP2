@@ -73,8 +73,8 @@ public final class AppContext {
                 persistence.unitOfWork(), permissions);
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
-        trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.unitOfWork(),
-                permissions, Clock.systemDefaultZone());
+        trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.bookings(),
+                persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         sessionRosterService = new SessionRosterService(persistence.sessions(), persistence.bookings(),
                 persistence.accounts(), persistence.unitOfWork(), permissions);
         trainerProfileService = new TrainerProfileService(persistence.accounts(), persistence.trainerProfiles(),
