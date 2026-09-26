@@ -10,6 +10,8 @@
         <Label fx:id="title" styleClass="title" wrapText="true" />
         <Label fx:id="welcome" wrapText="true" />
         <VBox fx:id="actions" spacing="18">
+            <Button fx:id="upcomingSessionsButton" text="My _upcoming sessions"
+                    onAction="#openUpcomingSessions" />
             <Button fx:id="createSessionButton" text="Create _session" onAction="#createSession" />
             <Button fx:id="profileButton" text="My _profile" onAction="#editProfile" />
             <Button fx:id="memberMembershipButton" text="My _membership" onAction="#openMembership"

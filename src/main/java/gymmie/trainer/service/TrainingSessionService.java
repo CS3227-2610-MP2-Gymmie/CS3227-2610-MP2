@@ -2,6 +2,8 @@ package gymmie.trainer.service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 
 import gymmie.model.Constraints;
@@ -12,7 +14,7 @@ import gymmie.persistence.UnitOfWork;
 import gymmie.persistence.repository.TrainingSessionRepository;
 import gymmie.service.Permissions;
 
-/** Creates sessions owned by the currently authenticated Trainer. */
+/** Creates and lists sessions owned by the currently authenticated Trainer. */
 public final class TrainingSessionService {
     private final TrainingSessionRepository sessions;
     private final UnitOfWork unitOfWork;
@@ -26,6 +28,24 @@ public final class TrainingSessionService {
         this.unitOfWork = Objects.requireNonNull(unitOfWork);
         this.permissions = Objects.requireNonNull(permissions);
         this.clock = Objects.requireNonNull(clock);
+    }
+
+    /**
+     * Lists only the signed-in Trainer's uncancelled sessions starting after the local cut-off.
+     *
+     * @return upcoming sessions ordered by start time, then identifier.
+     * @throws Exception if authorization or persistence fails.
+     */
+    public List<TrainingSession> getOwnUpcomingSessions() throws Exception {
+        return unitOfWork.inTransaction(connection -> {
+            var trainer = permissions.requireRole(connection, Role.TRAINER);
+            LocalDateTime now = LocalDateTime.now(clock);
+            return sessions.findByTrainerId(connection, trainer.id()).stream()
+                    .filter(session -> session.trainerId() == trainer.id())
+                    .filter(session -> !session.cancelled() && session.startsAt().isAfter(now))
+                    .sorted(Comparator.comparing(TrainingSession::startsAt).thenComparingLong(TrainingSession::id))
+                    .toList();
+        });
     }
 
     /**
