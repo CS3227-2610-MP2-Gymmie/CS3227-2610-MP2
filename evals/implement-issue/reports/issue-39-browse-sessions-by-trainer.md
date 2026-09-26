@@ -168,14 +168,76 @@ Reviewed: 2026-09-26; base: upstream/master; model: gpt-6-astra; HEAD: 1cf8763; 
 
 Reviewed: 2026-09-26; base: upstream/master; model: gpt-6-astra; HEAD: f80c047; Uncommitted changes: yes.
 
+
+### Round 5
+
+| Area | Score (1–5) | Evidence |
+| --- | --- | --- |
+| Members can browse sessions by Trainer. | 5 | Member dashboard opens the browser; filtering uses Trainer IDs. The navigation test exercises opening and filtering session cards. |
+| Session details include Trainer, start time, duration, description, capacity, and current booking count. | 5 | `sessionCard()` renders all six fields. Service assertions verify their values, and UI assertions verify their displayed text. |
+| Displayed sessions and counts reflect current upcoming availability. | 5 | Transactional reads exclude started/cancelled sessions and inactive Trainers, counting only BOOKED reservations. Tests cover exclusions, successful refresh after persisted changes, and refresh failure. |
+| Access is restricted to active Members. | 5 | Persisted account authorization precedes session reads. Tests reject unauthenticated, Trainer, Manager, and deactivated Member callers. |
+| Acceptance criteria met | 5 | All four criteria have implementation and relevant service or UI coverage; no blocking defect identified. |
+| Test adequacy | 4 | Existing artifacts show all 239 tests passing without skips, including the five new service/UI tests. Gradle was not rerun during this read-only review. |
+| Scope and design fit | 5 | Reuses repositories, transaction boundaries, injected clock, background JavaFX tasks, shared formatting, and existing navigation patterns. |
+| Consistency with repository conventions | 5 | User Guide and exception documentation are updated; membership presentation assertions remain intact. Existing Checkstyle reports contain zero violations, and the diff passes whitespace checks. Git status shows no uncommitted or untracked files. |
+
+**Overall:** pass — The reviewed working-tree diff satisfies the reported acceptance criteria with relevant tests and no identified blocking findings.
+
+**Blocking:** None.
+
+**Non-blocking:** None.
+
+Reviewed: 2026-09-26; base: upstream/master; model: gpt-6-astra; HEAD: 289ff4b; Uncommitted changes: no.
+
+## Review responses
+
+### Round 1
+
+- Fixed the failed-refresh state: the Trainer filter stays disabled until a
+  successful reload, so it cannot replace the error with an empty-results
+  message. Added UI coverage for failed refresh feedback.
+- The request for acceptance tests was deferred under the then-applicable
+  instruction not to add tests unless explicitly requested. The user later
+  explicitly requested them; service and UI coverage was added in response.
+
+### Round 2
+
+- Added the missing `@throws IOException` documentation to
+  `Router.showMemberSessions()`.
+- Added the requested service and UI tests after the user's explicit test
+  instruction, addressing this round's coverage finding.
+
+### Round 3
+
+- Added service tests for all session details, ordering, past/cancelled and
+  inactive-Trainer exclusions, booking counts, and authorization failures.
+- Added UI tests for Trainer filtering and failed-load feedback.
+
+### Round 4
+
+- Added UI assertions for the Trainer, rendered start time, duration, booking
+  count, capacity, and description.
+- Added a successful-refresh test that changes persisted session availability
+  and booking counts, then verifies the refreshed cards.
+- Preserved the existing membership UI presentation assertions by scrolling
+  the virtualized booking list into view before checking its rendered text.
+- Reran `./gradlew check` and `./gradlew test -PuiTests=true`; both passed.
+
+### Round 5
+
+- The user ran this review after merging `upstream/master`. It passed with no
+  blocking or non-blocking findings; no follow-up fix was requested.
+
+No review findings were ultimately rejected.
+
 ## Review disposition
 
-The first review's refresh-failure finding and second review's Javadoc finding
-were fixed. After the fourth review, the UI tests were extended to assert every
-rendered session field and a successful refresh after persisted session and
-booking changes. The existing membership UI test again checks rendered
-cancellation text after scrolling its ListView into view. Both requested Gradle
-commands pass on this final code. No fifth review was run.
+The refresh-failure and Router Javadoc findings were fixed. Coverage findings
+from rounds 1–4 were addressed with service and UI tests, including rendered
+field assertions, successful refresh, failed refresh, and visible-cell
+presentation checks. The user-run fifth review after the upstream merge passed
+without findings.
 
 ## User corrections
 
