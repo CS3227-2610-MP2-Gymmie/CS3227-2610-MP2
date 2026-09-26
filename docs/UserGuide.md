@@ -235,4 +235,23 @@ membership first, or the selected plan is archived before the purchase finishes,
 the dashboard shows an error. Select **Refresh plans** to reload the current
 offerings, then choose an available plan and try again.
 
+#### Browse sessions by Trainer
+
+On the **Gym User dashboard**, choose **Browse sessions** to see upcoming
+sessions from active Trainers. Each session card shows the Trainer's display
+name, local start date and time, duration, description, capacity, and current
+number of booked Members. Cancelled and past sessions are not shown.
+
+1. Choose **All trainers** or a Trainer from the **Trainer** list to filter the
+   session cards. Trainer names include an account number to distinguish
+   Trainers who share a display name.
+2. Choose **Refresh** to reload current sessions and booking counts.
+3. Choose **Back to dashboard** to return.
+
+Booking counts include current bookings and exclude cancelled bookings. A
+session list with **No upcoming sessions are available.** means there are no
+sessions to browse. If loading fails, choose **Refresh** to try again. Use
+**Tab** and **Shift+Tab** to move through the controls and press **Space** or
+**Enter** to activate them.
+
 ### Saving the data

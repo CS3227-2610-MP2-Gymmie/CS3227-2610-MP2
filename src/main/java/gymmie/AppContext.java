@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 
 import gymmie.member.service.MemberBookingHistoryService;
+import gymmie.member.service.MemberSessionBrowseService;
 import gymmie.member.service.MembershipCancellationService;
 import gymmie.member.service.MembershipPurchaseService;
 import gymmie.member.service.MembershipRenewalService;
@@ -32,6 +33,7 @@ public final class AppContext {
     private final MembershipRenewalService membershipRenewalService;
     private final MembershipCancellationService membershipCancellationService;
     private final MemberBookingHistoryService memberBookingHistoryService;
+    private final MemberSessionBrowseService memberSessionBrowseService;
     private final ProfileService profileService;
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
@@ -71,6 +73,8 @@ public final class AppContext {
                 Clock.systemDefaultZone());
         memberBookingHistoryService = new MemberBookingHistoryService(persistence.bookings(), persistence.sessions(),
                 persistence.unitOfWork(), permissions);
+        memberSessionBrowseService = new MemberSessionBrowseService(persistence.accounts(), persistence.sessions(),
+                persistence.bookings(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
         trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.bookings(),
@@ -130,6 +134,11 @@ public final class AppContext {
     /** Returns the Member-authorized booking-history reader. */
     public MemberBookingHistoryService getMemberBookingHistoryService() {
         return memberBookingHistoryService;
+    }
+
+    /** Returns the Member-authorized reader for upcoming sessions by Trainer. */
+    public MemberSessionBrowseService getMemberSessionBrowseService() {
+        return memberSessionBrowseService;
     }
 
     public AuthService getAuthService() {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/membership.css"
+        fx:controller="gymmie.member.MemberSessionBrowseController">
+    <VBox fx:id="sessionScreen" spacing="18" styleClass="page membership-page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label text="Browse sessions" styleClass="title" wrapText="true" />
+        <Button text="_Back to dashboard" onAction="#back" />
+        <VBox maxWidth="720" spacing="12" styleClass="card">
+            <Label text="Upcoming training sessions" styleClass="heading" />
+            <Label text="Choose a Trainer to narrow the list. Booking counts include current reservations."
+                    wrapText="true" />
+            <Label text="_Trainer" mnemonicParsing="true" labelFor="${trainerFilter}" />
+            <ComboBox fx:id="trainerFilter" maxWidth="Infinity" accessibleText="Filter sessions by Trainer" />
+            <Button fx:id="refreshButton" text="_Refresh" onAction="#refreshSessions" />
+            <StatusLabel fx:id="sessionStatus" />
+        </VBox>
+        <VBox fx:id="sessionCards" maxWidth="720" spacing="12" />
+    </VBox>
+</ScrollPane>

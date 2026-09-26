@@ -16,6 +16,8 @@
             <Button fx:id="profileButton" text="My _profile" onAction="#editProfile" />
             <Button fx:id="memberMembershipButton" text="My _membership" onAction="#openMembership"
                     visible="false" managed="false" />
+            <Button fx:id="browseSessionsButton" text="_Browse sessions" onAction="#openMemberSessions"
+                    visible="false" managed="false" />
             <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
             <VBox maxWidth="440" spacing="10" styleClass="card">
                 <Label text="Change password" styleClass="heading" />

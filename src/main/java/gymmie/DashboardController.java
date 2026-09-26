@@ -25,6 +25,8 @@ public final class DashboardController {
     @FXML
     private Button memberMembershipButton;
     @FXML
+    private Button browseSessionsButton;
+    @FXML
     private VBox actions;
     @FXML
     private PasswordField currentPassword;
@@ -74,6 +76,8 @@ public final class DashboardController {
         profileButton.setManaged(trainer);
         memberMembershipButton.setVisible(member);
         memberMembershipButton.setManaged(member);
+        browseSessionsButton.setVisible(member);
+        browseSessionsButton.setManaged(member);
         title.setText(dashboardTitle);
         welcome.setText("Welcome, " + context.getUserSession().requireUser().displayName());
         Platform.runLater(logoutButton::requestFocus);
@@ -85,6 +89,15 @@ public final class DashboardController {
             router.showMemberMembership();
         } catch (IOException exception) {
             status.error("Unable to open your membership. Please try again.");
+        }
+    }
+
+    @FXML
+    private void openMemberSessions() {
+        try {
+            router.showMemberSessions();
+        } catch (IOException exception) {
+            status.error("Unable to open session browsing. Please try again.");
         }
     }
 
