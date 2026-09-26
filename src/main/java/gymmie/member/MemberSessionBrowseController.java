@@ -70,7 +70,7 @@ public final class MemberSessionBrowseController {
             showSessions();
             if (showBookingConfirmation) {
                 showBookingConfirmation = false;
-                sessionStatus.success("Session booked. See My membership → Booking history.");
+                sessionStatus.success("Session booked. See My bookings.");
             }
         });
         task.setOnFailed(_ -> {

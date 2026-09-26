@@ -254,8 +254,9 @@ concerns rather than role-specific copies.
 `MembershipCancellationService` cancels the current membership and the Member's
 future `BOOKED` bookings with the `MEMBERSHIP_CANCELLED` reason in one
 transaction. Past bookings and bookings belonging to other Members are left
-unchanged. `MemberBookingHistoryService` lists the Member's full booking history
-on the membership screen, including cancelled bookings and their reasons.
+unchanged. `MemberBookingHistoryService` supplies the Member's full booking
+history, including cancelled bookings and their reasons, to the **My bookings**
+screen, where bookings are separated by whether their sessions have started.
 
 `MemberMembershipController` and its FXML and CSS live under
 `gymmie.member` and `src/main/resources/gymmie/member`. The Gym User dashboard

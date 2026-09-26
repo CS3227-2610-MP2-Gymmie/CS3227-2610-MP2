@@ -6,10 +6,7 @@ import java.util.Optional;
 
 import gymmie.AppContext;
 import gymmie.Router;
-import gymmie.member.service.MemberBookingHistoryService.MemberBooking;
 import gymmie.member.service.MembershipStatusService.RenewableMembership;
-import gymmie.model.BookingStatus;
-import gymmie.model.CancellationReason;
 import gymmie.model.Membership;
 import gymmie.model.MembershipPlan;
 import gymmie.ui.DisplayFormatters;
@@ -21,7 +18,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 
 /** Shows the authenticated Member's current coverage and available membership plans. */
@@ -55,10 +51,6 @@ public final class MemberMembershipController {
     @FXML
     private StatusLabel cancellationStatus;
     @FXML
-    private StatusLabel bookingHistoryStatus;
-    @FXML
-    private ListView<MemberBooking> bookingHistory;
-    @FXML
     private ComboBox<MembershipPlan> availablePlans;
     @FXML
     private Button purchaseMembership;
@@ -79,38 +71,13 @@ public final class MemberMembershipController {
     private void initialize() {
         configurePlanChoices();
         refreshMembership();
-        loadBookingHistory();
         loadAvailablePlans();
-    }
-
-    private void loadBookingHistory() {
-        bookingHistoryStatus.info("Loading booking history…");
-        Task<List<MemberBooking>> task = new Task<>() {
-            @Override
-            protected List<MemberBooking> call() throws Exception {
-                return context.getMemberBookingHistoryService().bookingHistory();
-            }
-        };
-        task.setOnSucceeded(_ -> {
-            bookingHistory.getItems().setAll(task.getValue());
-            int bookingCount = task.getValue().size();
-            bookingHistoryStatus.info(bookingCount == 0 ? "No bookings yet."
-                    : bookingCount + " booking" + (bookingCount == 1 ? "" : "s"));
-        });
-        task.setOnFailed(_ -> {
-            bookingHistory.getItems().clear();
-            bookingHistoryStatus.error(task.getException(),
-                    "Unable to load booking history. Please reopen this screen.");
-            returnToLoginIfSessionEnded();
-        });
-        Thread.ofPlatform().daemon().name("gymmie-member-booking-history").start(task);
     }
 
     private void configurePlanChoices() {
         availablePlans.setButtonCell(new MembershipPlanCell());
         availablePlans.setCellFactory(_ -> new MembershipPlanCell());
         availablePlans.setOnAction(_ -> updatePurchaseAvailability());
-        bookingHistory.setCellFactory(_ -> new MemberBookingCell());
     }
 
     @FXML
@@ -266,7 +233,6 @@ public final class MemberMembershipController {
             renewalStatus.info("Membership was cancelled and cannot be renewed.");
             cancellationStatus.success("Membership cancelled immediately. No refund was issued. "
                     + count + " future booking" + (count == 1 ? " was" : "s were") + " cancelled.");
-            loadBookingHistory();
             purchaseStatus.info("Choose a plan to purchase.");
             updateRenewalAvailability();
             updateCancellationAvailability();
@@ -412,28 +378,4 @@ public final class MemberMembershipController {
         }
     }
 
-    private static final class MemberBookingCell extends ListCell<MemberBooking> {
-        @Override
-        protected void updateItem(MemberBooking booking, boolean empty) {
-            super.updateItem(booking, empty);
-            if (empty || booking == null) {
-                setText(null);
-            } else if (booking.status() == BookingStatus.CANCELLED) {
-                setText("Booking #" + booking.bookingId() + " · " + DisplayFormatters.dateTime(booking.startsAt())
-                        + " · Cancelled · Reason: " + cancellationReasonText(booking.cancellationReason()));
-            } else {
-                setText("Booking #" + booking.bookingId() + " · " + DisplayFormatters.dateTime(booking.startsAt())
-                        + " · Booked");
-            }
-        }
-
-        private static String cancellationReasonText(CancellationReason reason) {
-            return switch (reason) {
-                case MEMBERSHIP_CANCELLED -> "Membership cancelled";
-                case MEMBER_CANCELLED_BOOKING -> "Member cancelled booking";
-                case TRAINER_CANCELLED_SESSION -> "Trainer cancelled session";
-                case ACCOUNT_DEACTIVATED -> "Account deactivated";
-            };
-        }
-    }
 }
