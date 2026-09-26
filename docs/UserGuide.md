@@ -30,6 +30,21 @@ are cleared while refreshing. If loading fails, an error appears; retry with
 **Refresh**. Access requires an active Trainer account; sign in again if your
 session has ended.
 
+#### View a session roster
+
+On **Trainer dashboard → My upcoming sessions**, find the session you want and
+choose its **View roster** button. The roster opens inside that session's card.
+It lists currently booked Members by display name in alphabetical order, with
+a count. Cancelled bookings are excluded. Members with the same display name
+appear separately. Login usernames and passwords are never shown in rosters.
+
+Use the mouse, or **Tab** / **Shift+Tab** to focus the session's **View roster**
+button and **Space** to activate it. Choose **Refresh roster** to reload current
+bookings and display names. **No Members booked.** means the roster is empty.
+Previous names are cleared while loading; if an error appears, activate the
+button again to retry. Only an active, signed-in Trainer can access rosters for
+their own sessions. Refreshing the session list closes all open rosters.
+
 #### Create a training session
 
 Log in as a Trainer and choose **Create session** on the **Trainer dashboard**.
