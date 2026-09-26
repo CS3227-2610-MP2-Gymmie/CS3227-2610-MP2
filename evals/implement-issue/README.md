@@ -2,7 +2,7 @@
 
 The implement-issue skill writes one report per issue into `reports/` for later reflection.
 
-## Optional independent review
+## Independent review
 
 After the implementing session, run the review script from a normal terminal
 before committing the report:
