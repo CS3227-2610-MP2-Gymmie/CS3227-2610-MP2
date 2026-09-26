@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" stylesheets="@../../css/gymmie.css"
+        fx:controller="gymmie.trainer.CreateSessionController">
+    <VBox spacing="18" styleClass="page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label text="Create session" styleClass="title" wrapText="true" />
+        <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
+        <StatusLabel fx:id="status" />
+        <VBox fx:id="form" spacing="12" maxWidth="600" styleClass="card">
+            <Label text="Schedule a session for Members. You will be its Trainer." wrapText="true" />
+            <Label text="Start _date" mnemonicParsing="true" labelFor="${startDate}" />
+            <DatePicker fx:id="startDate" editable="false" promptText="Choose a date" maxWidth="Infinity" />
+            <Label text="_Start time" mnemonicParsing="true" labelFor="${startTime}" />
+            <TextField fx:id="startTime" promptText="HH:mm (e.g. 14:30)" onAction="#save" />
+            <Label text="Use 24-hour local system time. The start must be in the future." wrapText="true" />
+            <Label text="D_uration (minutes)" mnemonicParsing="true" labelFor="${duration}" />
+            <TextField fx:id="duration" promptText="15–240" onAction="#save" />
+            <Label text="_Capacity (Members)" mnemonicParsing="true" labelFor="${capacity}" />
+            <TextField fx:id="capacity" promptText="1–50" onAction="#save" />
+            <Label text="D_escription (optional)" mnemonicParsing="true" labelFor="${description}" />
+            <TextArea fx:id="description" wrapText="true" prefRowCount="3" />
+            <Button fx:id="saveButton" text="C_reate session" onAction="#save" />
+        </VBox>
+    </VBox>
+</ScrollPane>

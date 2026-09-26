@@ -10,6 +10,34 @@
 
 ### Trainer
 
+#### Create a training session
+
+Log in as a Trainer and choose **Create session** on the **Trainer dashboard**.
+
+1. Open **Start date** using its calendar button and select a date. Use the
+   calendar's month arrows to browse to another month.
+2. Enter **Start time** as `HH:mm`, for example `14:30`. Use 24-hour time in your
+   computer's local time zone. The selected date and time must still be strictly
+   in the future when you submit the form.
+3. Enter **Duration (minutes)** as a whole number from 15 to 240.
+4. Enter **Capacity (Members)** as a whole number from 1 to 50.
+5. Add a **Description**, or leave it empty. Multiple lines are supported.
+6. Choose **Create session**. **Success: Session created for …** confirms it was
+   saved under your Trainer account. The form clears so you can create another.
+7. Choose **Back to dashboard** to return.
+
+Use **Tab** and **Shift+Tab** to move through the controls and **Space** to
+activate focused buttons. On **Start date**, press **F4** to open the calendar,
+use the arrow keys to move between dates, and press **Enter** to select one.
+You can also press **Enter** in a single-line field to submit. All actions are
+also available with the mouse.
+
+Missing dates, invalid times, past or current start times, and values outside
+the numeric limits show an error. Correct the inputs and retry; failed submissions keep your inputs
+and do not create a session. Creation requires an active, signed-in Trainer.
+Saved sessions remain after restarting Gymmie. Returning to the dashboard before
+submitting discards unsaved inputs.
+
 #### View and edit your profile
 
 Log in as a Trainer and choose **My profile** on the **Trainer dashboard**.

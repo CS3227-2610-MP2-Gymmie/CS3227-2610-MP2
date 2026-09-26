@@ -5,6 +5,7 @@ import java.io.IOException;
 import gymmie.member.MemberMembershipController;
 import gymmie.model.Role;
 import gymmie.service.UserSession;
+import gymmie.trainer.CreateSessionController;
 import gymmie.trainer.TrainerProfileController;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -59,6 +60,16 @@ public final class Router {
     public void showTrainerProfile() throws IOException {
         show(views.loadResource("/gymmie/trainer/view/TrainerProfile.fxml",
                 new TrainerProfileController(context, this)), "My Trainer profile");
+    }
+
+    /**
+     * Opens the session creation form; its service enforces Trainer authorization.
+     *
+     * @throws IOException if the view cannot be loaded.
+     */
+    public void showCreateSession() throws IOException {
+        show(views.loadResource("/gymmie/trainer/view/CreateSession.fxml",
+                new CreateSessionController(context, this)), "Create session");
     }
 
     /** Opens the Member's current membership and purchase screen. */

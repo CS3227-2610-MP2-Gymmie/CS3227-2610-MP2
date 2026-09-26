@@ -55,6 +55,21 @@ public interface TrainingSessionRepository {
     List<TrainingSession> findUpcoming(Connection connection, LocalDateTime now) throws SQLException;
 
     /**
+     * Creates an uncancelled session with a database-assigned identifier.
+     *
+     * @param connection caller-owned connection.
+     * @param trainerId owning Trainer identifier.
+     * @param startsAt validated future local start time.
+     * @param durationMinutes validated duration in minutes.
+     * @param capacity validated Member capacity.
+     * @param description optional description.
+     * @return the stored session with its assigned identifier.
+     * @throws SQLException if insertion fails.
+     */
+    TrainingSession create(Connection connection, long trainerId, LocalDateTime startsAt,
+            int durationMinutes, int capacity, String description) throws SQLException;
+
+    /**
      * Inserts a session.
      *
      * @param connection caller-owned connection.
