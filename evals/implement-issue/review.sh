@@ -18,7 +18,7 @@ else
 fi
 review_file=$(mktemp); body_file=$(mktemp); report_file=$(mktemp)
 trap 'rm -f "$review_file" "$body_file" "$report_file"' EXIT
-prompt=$(cat <<EOF
+IFS= read -r -d '' prompt <<EOF || true
 You are an independent, read-only reviewer. You did not write this change. Read AGENTS.md, relevant documentation, and the report at $report.
 Review the diff from merge base $merge_base (base ref $base_ref) to the current working tree, including uncommitted changes and untracked files (use git status to find them). Do not edit files.
 Earlier review rounds in the report are context only. Judge the current code on its own merits. You may reject the implementer's reasons for dismissing earlier findings.
@@ -29,7 +29,6 @@ Return exactly this Markdown format and nothing else:
 - **Blocking:** a Markdown list of blocking findings, or None.
 - **Non-blocking:** a Markdown list of other findings, or None.
 EOF
-)
 codex exec -m "$model" --sandbox read-only -o "$review_file" "$prompt"
 {
     printf '\n### Round %s\n\n' "$round"
