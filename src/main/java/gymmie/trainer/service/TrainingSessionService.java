@@ -18,7 +18,7 @@ import gymmie.persistence.repository.TrainingSessionRepository;
 import gymmie.service.Permissions;
 import gymmie.service.exception.AuthorizationException;
 
-/** Creates, edits and lists sessions owned by the currently authenticated Trainer. */
+/** Creates, edits, deletes and lists sessions owned by the currently authenticated Trainer. */
 public final class TrainingSessionService {
     private final TrainingSessionRepository sessions;
     private final BookingRepository bookings;
@@ -114,6 +114,26 @@ public final class TrainingSessionService {
             requireNoOverlap(connection, existing.trainerId(), sessionId, startsAt, durationMinutes);
             sessions.update(connection, replacement);
             return replacement;
+        });
+    }
+
+    /**
+     * Deletes an owned session only when it has no booking history.
+     *
+     * @param sessionId session to delete after user confirmation.
+     * @throws Exception if authorization, the atomic history guard or persistence fails.
+     */
+    public void delete(long sessionId) throws Exception {
+        unitOfWork.inTransaction(connection -> {
+            permissions.requireRole(connection, Role.TRAINER);
+            var existing = sessions.findById(connection, sessionId)
+                    .orElseThrow(() -> new AuthorizationException("Session is unavailable"));
+            permissions.requireOwner(connection, Role.TRAINER, existing.trainerId());
+            if (!sessions.deleteIfNeverBooked(connection, sessionId)) {
+                throw new ValidationException("Sessions with booking history cannot be deleted, even if all "
+                        + "bookings are cancelled. Retain this session for cancellation");
+            }
+            return null;
         });
     }
 
