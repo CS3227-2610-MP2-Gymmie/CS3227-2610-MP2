@@ -14,6 +14,7 @@ import gymmie.service.Permissions;
 import gymmie.service.ProfileService;
 import gymmie.service.Seeder;
 import gymmie.service.UserSession;
+import gymmie.trainer.service.SessionRosterService;
 import gymmie.trainer.service.TrainerProfileService;
 import gymmie.trainer.service.TrainingSessionService;
 
@@ -28,6 +29,7 @@ public final class AppContext {
     private final ProfileService profileService;
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
+    private final SessionRosterService sessionRosterService;
 
     /**
      * Initializes the application's default local database and services.
@@ -60,6 +62,8 @@ public final class AppContext {
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
         trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.unitOfWork(),
                 permissions, Clock.systemDefaultZone());
+        sessionRosterService = new SessionRosterService(persistence.sessions(), persistence.bookings(),
+                persistence.accounts(), persistence.unitOfWork(), permissions);
         trainerProfileService = new TrainerProfileService(persistence.accounts(), persistence.trainerProfiles(),
                 persistence.unitOfWork(), userSession, authService);
     }
@@ -79,6 +83,11 @@ public final class AppContext {
     /** Returns the Trainer-authorized session creation service. */
     public TrainingSessionService getTrainingSessionService() {
         return trainingSessionService;
+    }
+
+    /** Returns the Trainer-authorized display-name roster service. */
+    public SessionRosterService getSessionRosterService() {
+        return sessionRosterService;
     }
 
     public ProfileService getProfileService() {

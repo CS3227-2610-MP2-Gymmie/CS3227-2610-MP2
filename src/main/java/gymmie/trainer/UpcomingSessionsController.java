@@ -77,8 +77,45 @@ public final class UpcomingSessionsController {
         String description = session.description();
         VBox card = new VBox(10, start, details,
                 label(description == null || description.isBlank() ? "No description." : description));
+        Button rosterButton = new Button("View roster");
+        rosterButton.setId("rosterButton-" + session.id());
+        rosterButton.setAccessibleText("View roster for session " + session.id());
+        VBox roster = new VBox(8);
+        roster.setId("roster-" + session.id());
+        rosterButton.setOnAction(_ -> loadRoster(session.id(), rosterButton, roster));
+        card.getChildren().addAll(rosterButton, roster);
         card.getStyleClass().add("card");
         return card;
+    }
+
+    private void loadRoster(long sessionId, Button button, VBox roster) {
+        roster.getChildren().clear();
+        StatusLabel feedback = new StatusLabel();
+        feedback.setId("rosterStatus-" + sessionId);
+        feedback.info("Loading roster…");
+        roster.getChildren().add(feedback);
+        button.setDisable(true);
+        Task<List<String>> task = new Task<>() {
+            @Override
+            protected List<String> call() throws Exception {
+                return context.getSessionRosterService().getRoster(sessionId);
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            button.setDisable(false);
+            button.setText("Refresh roster");
+            button.setAccessibleText("Refresh roster for session " + sessionId);
+            feedback.info(task.getValue().isEmpty()
+                    ? "No Members booked." : "Members booked: " + task.getValue().size());
+            for (String name : task.getValue()) {
+                roster.getChildren().add(label(name));
+            }
+        });
+        task.setOnFailed(_ -> {
+            button.setDisable(false);
+            feedback.error(task.getException(), "Unable to load the roster. Please try again.");
+        });
+        Thread.ofPlatform().daemon().name("gymmie-session-roster").start(task);
     }
 
     private Label label(String text) {
