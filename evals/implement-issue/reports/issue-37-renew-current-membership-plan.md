@@ -69,19 +69,19 @@
 
 | Area | Score (1–5) | Evidence |
 | --- | --- | --- |
-| Renewal extends from the later of today and the current expiry date. | 5 | `Membership.renew()` implements the required calculation; tests cover remaining coverage, expired membership, and expiry today. |
-| Renewal cannot switch to a different plan. | 5 | Renewal accepts only the displayed membership ID; model and repository preserve plan identity and purchase snapshots. |
-| An archived plan remains available for existing holders to renew. | 5 | Service and UI tests cover archived renewal. The shared selector excludes cancelled history before choosing the latest eligible membership, fixing the earlier review finding. |
-| Acceptance criteria met | 5 | All three criteria are implemented across the model, service, persistence, and Member UI. |
-| Test adequacy | 5 | Final checks pass with 207 tests; 13 renewal service tests and JavaFX checks cover failure recovery, failed refresh, stale-action prevention, and successful renewal feedback. |
-| Scope and design fit | 5 | Reuses authorization, transactions, repository updates, and aggregate overlap validation; centralizes renewal selection. |
-| Consistency with repository conventions | 5 | Package layout, Javadoc, shared UI components, and guide updates follow conventions. Existing Checkstyle artifacts contain zero violations; diff whitespace checks pass. |
+| Renewal extends from the later of today and the current expiry date. | 5 | `Membership.renew()` implements this calculation; service tests cover future expiry, expired membership, and expiry today. |
+| Renewal cannot switch to a different plan. | 5 | Renewal accepts only a membership ID; model and repository preserve plan identity and purchase snapshots. |
+| An archived plan remains available for existing holders to renew. | 5 | Renewal does not require catalogue availability; service and UI tests cover archived plans. |
+| Acceptance criteria met | 5 | All three criteria are implemented through the Member UI, authorized service, and persistence boundary. |
+| Test adequacy | 4 | Covers ownership, authorization, overlap rejection, rollback, and UI failure recovery; missing the specific stale-selection regression below. Existing results show 13 renewal tests passing; UI tests are skipped in those artifacts. Tests were not rerun during this read-only review. |
+| Scope and design fit | 5 | Reuses transactions, permissions, repository updates, and aggregate validation; shares target selection between display and renewal. |
+| Consistency with repository conventions | 5 | Package placement, Javadoc, shared UI components, and guide updates follow conventions; existing Checkstyle reports contain zero violations and diff whitespace checks pass. |
 
-**Overall:** pass — The acceptance criteria are met, and both UI findings from the review were addressed and covered by the final verification runs.
+**Overall:** pass — The acceptance criteria are satisfied, with one nonblocking test-coverage gap.
 
-**Findings:** None outstanding. The review's purchase-status finding is fixed by updating the guidance after renewal. Its UI coverage finding is addressed by `renewalFailureShowsFeedbackAndRestoresActions` and `failedRefreshClearsPreviouslyLoadedMembershipAndDisablesRenewal`.
+**Findings:** Missing regression test in `MembershipRenewalServiceTest`: display expired membership A, purchase membership B for the same Member, then attempt `renew(A.id())` and assert rejection with both records unchanged; the existing foreign-owner test does not cover this stale-selection scenario.
 
-Reviewed: 2026-09-26 (base: master, model: gpt-6-astra; findings resolved and final tree verified)
+Reviewed: 2026-09-26 (base: upstream/master, model: gpt-6-astra)
 
 ## User corrections
 
