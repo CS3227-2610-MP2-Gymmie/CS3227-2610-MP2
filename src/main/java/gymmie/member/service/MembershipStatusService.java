@@ -1,4 +1,4 @@
-package gymmie.service;
+package gymmie.member.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -11,6 +11,7 @@ import gymmie.model.Role;
 import gymmie.persistence.UnitOfWork;
 import gymmie.persistence.repository.MembershipPlanRepository;
 import gymmie.persistence.repository.MembershipRepository;
+import gymmie.service.Permissions;
 
 /** Reads the signed-in Member's current membership without changing history. */
 public final class MembershipStatusService {

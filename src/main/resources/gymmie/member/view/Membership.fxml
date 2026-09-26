@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/membership.css"
+        fx:controller="gymmie.member.MemberMembershipController">
+    <VBox fx:id="membershipScreen" spacing="18" styleClass="page membership-page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label text="My membership" styleClass="title" wrapText="true" />
+        <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
+        <VBox maxWidth="560" spacing="10" styleClass="card">
+            <Label text="Current membership" styleClass="heading" />
+            <StatusLabel fx:id="membershipStatus" />
+            <Label fx:id="membershipPlan" text="Plan: —" styleClass="membership-plan" wrapText="true" />
+            <Label fx:id="membershipExpiry" text="Expiry date: —" wrapText="true" />
+            <Button fx:id="refreshMembership" text="_Refresh" onAction="#refreshMembership" />
+        </VBox>
+        <VBox maxWidth="560" spacing="10" styleClass="card">
+            <Label text="Buy a membership" styleClass="heading" />
+            <Label text="Choose an available plan. Price and duration are saved with your purchase."
+                    wrapText="true" />
+            <ComboBox fx:id="availablePlans" maxWidth="Infinity" accessibleText="Available membership plans" />
+            <Button fx:id="refreshPlans" text="_Refresh plans" onAction="#refreshAvailablePlans" />
+            <Button fx:id="purchaseMembership" text="_Purchase membership" onAction="#purchaseMembership"
+                    disable="true" />
+            <StatusLabel fx:id="purchaseStatus" />
+        </VBox>
+    </VBox>
+</ScrollPane>

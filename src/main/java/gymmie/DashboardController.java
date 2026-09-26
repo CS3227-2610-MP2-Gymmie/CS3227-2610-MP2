@@ -1,11 +1,8 @@
 package gymmie;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import gymmie.model.Role;
-import gymmie.service.MembershipStatusService.CurrentMembership;
-import gymmie.ui.DisplayFormatters;
 import gymmie.ui.StatusLabel;
 import gymmie.ui.UiFeedback;
 import javafx.application.Platform;
@@ -26,15 +23,7 @@ public final class DashboardController {
     @FXML
     private Label welcome;
     @FXML
-    private VBox membershipCard;
-    @FXML
-    private Label membershipPlan;
-    @FXML
-    private Label membershipExpiry;
-    @FXML
-    private StatusLabel membershipStatus;
-    @FXML
-    private Button refreshMembership;
+    private Button memberMembershipButton;
     @FXML
     private VBox actions;
     @FXML
@@ -74,50 +63,20 @@ public final class DashboardController {
         boolean member = role == Role.MEMBER;
         profileButton.setVisible(trainer);
         profileButton.setManaged(trainer);
-        membershipCard.setVisible(member);
-        membershipCard.setManaged(member);
+        memberMembershipButton.setVisible(member);
+        memberMembershipButton.setManaged(member);
         title.setText(dashboardTitle);
         welcome.setText("Welcome, " + context.getUserSession().requireUser().displayName());
-        if (member) {
-            refreshMembership();
-        }
         Platform.runLater(logoutButton::requestFocus);
     }
 
     @FXML
-    private void refreshMembership() {
-        if (refreshMembership.isDisabled()) {
-            return;
+    private void openMembership() {
+        try {
+            router.showMemberMembership();
+        } catch (IOException exception) {
+            status.error("Unable to open your membership. Please try again.");
         }
-        refreshMembership.setDisable(true);
-        membershipPlan.setText("Plan: —");
-        membershipExpiry.setText("Expiry date: —");
-        membershipStatus.info("Loading membership…");
-        Task<Optional<CurrentMembership>> task = new Task<>() {
-            @Override
-            protected Optional<CurrentMembership> call() throws Exception {
-                return context.getMembershipStatusService().currentMembership();
-            }
-        };
-        task.setOnSucceeded(_ -> {
-            refreshMembership.setDisable(false);
-            if (task.getValue().isPresent()) {
-                CurrentMembership current = task.getValue().orElseThrow();
-                membershipPlan.setText("Plan: " + current.planName());
-                membershipExpiry.setText("Expiry date: " + DisplayFormatters.date(current.expiryDate()));
-                membershipStatus.info("Active");
-            } else {
-                membershipStatus.info("Inactive — no current membership.");
-            }
-        });
-        task.setOnFailed(_ -> {
-            refreshMembership.setDisable(false);
-            membershipStatus.error(task.getException(), "Unable to load membership. Please try Refresh.");
-            if (!context.getUserSession().isAuthenticated()) {
-                logout();
-            }
-        });
-        Thread.ofPlatform().daemon().name("gymmie-membership-status").start(task);
     }
 
     @FXML

@@ -67,11 +67,11 @@ Manager.
 
 #### View current membership
 
-Log in with your Member account to open the **Gym User dashboard**. The
-**Current membership** card shows whether a membership covers today, its plan
+Log in with your Member account to open the **Gym User dashboard**, then select
+**My membership**. The screen shows whether a membership covers today, its plan
 name, and its expiry date.
 
-1. Read the status, plan, and expiry date in the card.
+1. Read the status, plan, and expiry date in the **Current membership** card.
 2. Select **Refresh** to load the latest membership history, including after
    leaving Gymmie open overnight. You can also use **Tab** or **Shift+Tab** to
    focus the button and press **Space** or **Enter**.
@@ -85,6 +85,20 @@ memberships do not make you active.
 
 While loading, previous details are cleared. If loading fails, the card shows an
 error; select **Refresh** to try again. If your session has ended, sign in again.
-This view does not support purchasing, renewing, or cancelling a membership.
+#### Buy a membership
+
+On the **My membership** screen, use **Buy a membership**:
+
+1. Choose an available plan. Each option shows its duration and price in SGD.
+   Archived plans are not offered for new purchases.
+2. Select **Purchase membership**. The membership starts today and becomes
+   active immediately. Its purchase price and duration are saved with the
+   membership, so later plan edits do not change this purchase.
+
+A Member can have only one active membership at a time. The purchase button is
+disabled while a current membership is active. If another session purchases a
+membership first, or the selected plan is archived before the purchase finishes,
+the dashboard shows an error. Select **Refresh plans** to reload the current
+offerings, then choose an available plan and try again.
 
 ### Saving the data
