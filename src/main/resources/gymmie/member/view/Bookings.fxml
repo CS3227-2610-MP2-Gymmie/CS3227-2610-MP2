@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/membership.css"
+        fx:controller="gymmie.member.MemberBookingsController">
+    <VBox spacing="18" styleClass="page membership-page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label text="My bookings" styleClass="title" wrapText="true" />
+        <Button text="_Back to dashboard" onAction="#back" />
+        <Button fx:id="refreshButton" text="_Refresh bookings" onAction="#refreshBookings" />
+        <StatusLabel fx:id="bookingsStatus" />
+        <VBox maxWidth="720" spacing="10" styleClass="card">
+            <Label text="Upcoming bookings" styleClass="heading" />
+            <StatusLabel fx:id="upcomingStatus" />
+            <ListView fx:id="upcomingBookings" prefHeight="200" accessibleText="Upcoming bookings" />
+        </VBox>
+        <VBox maxWidth="720" spacing="10" styleClass="card">
+            <Label text="Past bookings" styleClass="heading" />
+            <StatusLabel fx:id="pastStatus" />
+            <ListView fx:id="pastBookings" prefHeight="200" accessibleText="Past bookings" />
+        </VBox>
+    </VBox>
+</ScrollPane>

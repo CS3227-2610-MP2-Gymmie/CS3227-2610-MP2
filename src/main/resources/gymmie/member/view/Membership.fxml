@@ -23,11 +23,6 @@
             <StatusLabel fx:id="cancellationStatus" />
         </VBox>
         <VBox maxWidth="560" spacing="10" styleClass="card">
-            <Label text="Booking history" styleClass="heading" />
-            <StatusLabel fx:id="bookingHistoryStatus" />
-            <ListView fx:id="bookingHistory" prefHeight="180" accessibleText="Booking history" />
-        </VBox>
-        <VBox maxWidth="560" spacing="10" styleClass="card">
             <Label text="Buy a membership" styleClass="heading" />
             <Label text="Choose an available plan. Price and duration are saved with your purchase."
                     wrapText="true" />

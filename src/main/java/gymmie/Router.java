@@ -2,6 +2,7 @@ package gymmie;
 
 import java.io.IOException;
 
+import gymmie.member.MemberBookingsController;
 import gymmie.member.MemberMembershipController;
 import gymmie.member.MemberSessionBrowseController;
 import gymmie.model.Role;
@@ -100,6 +101,16 @@ public final class Router {
     public void showMemberMembership() throws IOException {
         show(views.loadResource("/gymmie/member/view/Membership.fxml",
                 new MemberMembershipController(context, this)), "My membership");
+    }
+
+    /**
+     * Opens the Member's upcoming and past bookings.
+     *
+     * @throws IOException if the bookings view cannot be loaded.
+     */
+    public void showMemberBookings() throws IOException {
+        show(views.loadResource("/gymmie/member/view/Bookings.fxml",
+                new MemberBookingsController(context, this)), "My bookings");
     }
 
     /**

@@ -152,7 +152,7 @@ class MemberSessionBrowseNavigationTest {
                 book.fire();
                 return null;
             });
-            awaitUi(status, "Success: Session booked. See My membership → Booking history."::equals);
+            awaitUi(status, "Success: Session booked. See My bookings."::equals);
             onFxThread(() -> {
                 VBox card = (VBox) ((VBox) stage.getScene().lookup("#sessionCards")).getChildren().getFirst();
                 Button booked = (Button) card.getChildren().get(4);

@@ -212,12 +212,27 @@ not started; those bookings remain in your history with a cancelled status and
 the membership cancellation reason. Past sessions and bookings already
 cancelled are unchanged.
 
-The **Booking history** card lists each booking with its session date and time.
-Cancelled bookings show **Cancelled** and the reason, including **Membership
-cancelled** for bookings affected by this action. The screen confirms
-cancellation and reports how many future bookings were cancelled. If saving
-fails, the membership and bookings remain unchanged; try again. After
-cancellation, you can purchase another available plan.
+Open **My bookings** from the **Gym User dashboard** to see the updated lists.
+Each booking appears under **Upcoming bookings** or **Past bookings** according
+to its session start time. Cancelled bookings remain visible with **Cancelled**
+and the reason, including **Membership cancelled** for bookings affected by
+this action. The membership screen confirms cancellation and reports how many
+future bookings were cancelled. If saving fails, the membership and bookings
+remain unchanged; try again. After cancellation, you can purchase another
+available plan.
+
+#### View your bookings
+
+On the **Gym User dashboard**, choose **My bookings**. The screen separates
+bookings whose session has not started from past bookings, and shows each
+session's local date and time and its booking status.
+
+Cancelled bookings stay in the appropriate list and show why they were
+cancelled: **Trainer cancelled session**, **Member cancelled booking**,
+**Membership cancelled**, or **Account deactivated**. Choose **Refresh bookings**
+to reload the lists, or **Back to dashboard** to return. If loading fails,
+choose **Refresh bookings** to try again. If your session has ended, sign in
+again.
 
 #### Buy a membership
 
@@ -247,8 +262,8 @@ number of booked Members. Cancelled and past sessions are not shown.
    Trainers who share a display name.
 2. Choose **Refresh** to reload current sessions and booking counts.
 3. Choose **Book session** on an eligible session card. A successful booking is
-   saved and the card changes to **Already booked**. Choose **My membership →
-   Booking history** to see the saved booking.
+   saved and the card changes to **Already booked**. Choose **My bookings** on
+   the dashboard to see the saved booking.
 4. Choose **Back to dashboard** to return.
 
 Booking counts include current bookings and exclude cancelled bookings. A
