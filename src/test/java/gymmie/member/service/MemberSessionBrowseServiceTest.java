@@ -99,7 +99,10 @@ class MemberSessionBrowseServiceTest {
             persistence.bookings().insert(connection, new BookingBuilder().withId(3).withSessionId(later.id())
                     .withMemberId(6).withStatus(BookingStatus.CANCELLED)
                     .withCancellationReason(CancellationReason.MEMBER_CANCELLED_BOOKING).build());
-            persistence.bookings().insert(connection, booking(4, earlier.id(), member.id(), BookingStatus.BOOKED));
+            persistence.bookings().insert(connection, new BookingBuilder().withId(4).withSessionId(earlier.id())
+                    .withMemberId(member.id()).withStatus(BookingStatus.CANCELLED)
+                    .withCancellationReason(CancellationReason.MEMBER_CANCELLED_BOOKING).build());
+            persistence.bookings().insert(connection, booking(5, earlier.id(), 5, BookingStatus.BOOKED));
             return null;
         });
 
@@ -107,9 +110,9 @@ class MemberSessionBrowseServiceTest {
 
         assertEquals(List.of(20L, 10L), results.stream().map(BrowseSession::sessionId).toList());
         assertEquals(new BrowseSession(20, secondTrainer.id(), secondTrainer.displayName(), earlier.startsAt(),
-                30, "Intro session", 4, 1), results.get(0));
+                30, "Intro session", 4, 1, false), results.get(0));
         assertEquals(new BrowseSession(10, trainer.id(), trainer.displayName(), later.startsAt(),
-                75, "Strength and mobility", 8, 2), results.get(1));
+                75, "Strength and mobility", 8, 2, true), results.get(1));
         assertTrue(results.stream().noneMatch(item -> item.sessionId() == past.id()
                 || item.sessionId() == cancelled.id() || item.sessionId() == inactiveTrainerSession.id()));
     }

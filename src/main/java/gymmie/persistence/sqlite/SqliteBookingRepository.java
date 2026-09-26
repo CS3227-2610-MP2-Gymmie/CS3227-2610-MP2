@@ -55,6 +55,12 @@ public final class SqliteBookingRepository implements BookingRepository {
     }
 
     @Override
+    public long nextId(Connection connection) throws SQLException {
+        return SqliteQueries.read(connection, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM booking",
+                row -> row.getLong("next_id")).getFirst();
+    }
+
+    @Override
     public void insert(Connection connection, Booking booking) throws SQLException {
         SqliteQueries.writeOne(connection,
                 "INSERT INTO booking (id, session_id, member_id, booked_at, status, cancellation_reason) "
@@ -74,6 +80,14 @@ public final class SqliteBookingRepository implements BookingRepository {
                 "UPDATE booking SET status = ?, cancellation_reason = ? WHERE id = ? AND member_id = ? "
                         + "AND session_id = ?",
                 booking.status(), booking.cancellationReason(), booking.id(), booking.memberId(), booking.sessionId());
+    }
+
+    @Override
+    public void reactivate(Connection connection, long bookingId, LocalDateTime bookedAt) throws SQLException {
+        SqliteQueries.writeOne(connection,
+                "UPDATE booking SET status = 'BOOKED', cancellation_reason = NULL, booked_at = ? "
+                        + "WHERE id = ? AND status = 'CANCELLED'",
+                bookedAt, bookingId);
     }
 
     private static Booking map(ResultSet row) throws SQLException {

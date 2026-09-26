@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import gymmie.model.Account;
+import gymmie.model.BookingStatus;
 import gymmie.model.Role;
 import gymmie.model.TrainingSession;
 import gymmie.persistence.UnitOfWork;
@@ -47,7 +48,7 @@ public final class MemberSessionBrowseService {
      */
     public List<BrowseSession> upcomingSessions() throws Exception {
         return unitOfWork.inTransaction(connection -> {
-            permissions.requireRole(connection, Role.MEMBER);
+            Account member = permissions.requireRole(connection, Role.MEMBER);
             Map<Long, Account> activeTrainers = accounts.findAllActive(connection).stream()
                     .filter(account -> account.role() == Role.TRAINER)
                     .collect(Collectors.toMap(Account::id, Function.identity()));
@@ -57,7 +58,10 @@ public final class MemberSessionBrowseService {
                 Account trainer = activeTrainers.get(session.trainerId());
                 if (trainer != null) {
                     upcoming.add(toBrowseSession(session, trainer,
-                            bookings.countBookedBySessionId(connection, session.id())));
+                            bookings.countBookedBySessionId(connection, session.id()),
+                            bookings.findByMemberAndSession(connection, member.id(), session.id())
+                                    .filter(booking -> booking.status() == BookingStatus.BOOKED)
+                                    .isPresent()));
                 }
             }
             upcoming.sort(Comparator.comparing(BrowseSession::startsAt)
@@ -67,9 +71,10 @@ public final class MemberSessionBrowseService {
         });
     }
 
-    private static BrowseSession toBrowseSession(TrainingSession session, Account trainer, int bookingCount) {
+    private static BrowseSession toBrowseSession(TrainingSession session, Account trainer, int bookingCount,
+            boolean hasBooking) {
         return new BrowseSession(session.id(), trainer.id(), trainer.displayName(), session.startsAt(),
-                session.durationMinutes(), session.description(), session.capacity(), bookingCount);
+                session.durationMinutes(), session.description(), session.capacity(), bookingCount, hasBooking);
     }
 
     /**
@@ -83,8 +88,10 @@ public final class MemberSessionBrowseService {
      * @param description optional session description.
      * @param capacity maximum number of Members.
      * @param bookingCount current number of booked Members.
+     * @param hasBooking whether the signed-in Member has an active booking for this session.
      */
     public record BrowseSession(long sessionId, long trainerId, String trainerName,
-            LocalDateTime startsAt, int durationMinutes, String description, int capacity, int bookingCount) {
+            LocalDateTime startsAt, int durationMinutes, String description, int capacity, int bookingCount,
+            boolean hasBooking) {
     }
 }

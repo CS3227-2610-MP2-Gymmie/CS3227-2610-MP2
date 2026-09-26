@@ -21,6 +21,8 @@ public final class MemberSessionBrowseController {
     private final AppContext context;
     private final Router router;
     private List<BrowseSession> loadedSessions = List.of();
+    private boolean bookingInProgress;
+    private boolean showBookingConfirmation;
     @FXML
     private VBox sessionScreen;
     @FXML
@@ -66,6 +68,10 @@ public final class MemberSessionBrowseController {
             trainerFilter.setDisable(false);
             refreshButton.setDisable(false);
             showSessions();
+            if (showBookingConfirmation) {
+                showBookingConfirmation = false;
+                sessionStatus.success("Session booked. See My membership → Booking history.");
+            }
         });
         task.setOnFailed(_ -> {
             refreshButton.setDisable(false);
@@ -130,7 +136,48 @@ public final class MemberSessionBrowseController {
                 ? "No description provided." : description);
         descriptionLabel.setWrapText(true);
         card.getChildren().addAll(trainer, start, details, descriptionLabel);
+        Button bookingButton = new Button(session.hasBooking() ? "Already booked" : "Book session");
+        bookingButton.setDisable(session.hasBooking());
+        bookingButton.setAccessibleText(session.hasBooking() ? "Session already booked" : "Book this session");
+        bookingButton.setOnAction(_ -> bookSession(session, bookingButton));
+        card.getChildren().add(bookingButton);
         return card;
+    }
+
+    private void bookSession(BrowseSession session, Button bookingButton) {
+        if (bookingInProgress || bookingButton.isDisabled()) {
+            return;
+        }
+        bookingInProgress = true;
+        sessionCards.setDisable(true);
+        refreshButton.setDisable(true);
+        trainerFilter.setDisable(true);
+        bookingButton.setDisable(true);
+        sessionStatus.info("Booking session…");
+        Task<gymmie.model.Booking> task = new Task<>() {
+            @Override
+            protected gymmie.model.Booking call() throws Exception {
+                return context.getMemberSessionBookingService().book(session.sessionId());
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            bookingInProgress = false;
+            showBookingConfirmation = true;
+            sessionCards.setDisable(false);
+            refreshButton.setDisable(false);
+            trainerFilter.setDisable(false);
+            refreshSessions();
+        });
+        task.setOnFailed(_ -> {
+            bookingInProgress = false;
+            sessionCards.setDisable(false);
+            refreshButton.setDisable(false);
+            trainerFilter.setDisable(false);
+            bookingButton.setDisable(false);
+            sessionStatus.error(task.getException(), "Unable to book this session. Please try again.");
+            returnToLoginIfSessionEnded();
+        });
+        Thread.ofPlatform().daemon().name("gymmie-member-session-booking").start(task);
     }
 
     private void returnToLoginIfSessionEnded() {

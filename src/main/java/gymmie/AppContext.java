@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 
 import gymmie.member.service.MemberBookingHistoryService;
+import gymmie.member.service.MemberSessionBookingService;
 import gymmie.member.service.MemberSessionBrowseService;
 import gymmie.member.service.MembershipCancellationService;
 import gymmie.member.service.MembershipPurchaseService;
@@ -34,6 +35,7 @@ public final class AppContext {
     private final MembershipCancellationService membershipCancellationService;
     private final MemberBookingHistoryService memberBookingHistoryService;
     private final MemberSessionBrowseService memberSessionBrowseService;
+    private final MemberSessionBookingService memberSessionBookingService;
     private final ProfileService profileService;
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
@@ -74,6 +76,8 @@ public final class AppContext {
         memberBookingHistoryService = new MemberBookingHistoryService(persistence.bookings(), persistence.sessions(),
                 persistence.unitOfWork(), permissions);
         memberSessionBrowseService = new MemberSessionBrowseService(persistence.accounts(), persistence.sessions(),
+                persistence.bookings(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
+        memberSessionBookingService = new MemberSessionBookingService(persistence.memberships(), persistence.sessions(),
                 persistence.bookings(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
@@ -139,6 +143,10 @@ public final class AppContext {
     /** Returns the Member-authorized reader for upcoming sessions by Trainer. */
     public MemberSessionBrowseService getMemberSessionBrowseService() {
         return memberSessionBrowseService;
+    }
+
+    public MemberSessionBookingService getMemberSessionBookingService() {
+        return memberSessionBookingService;
     }
 
     public AuthService getAuthService() {

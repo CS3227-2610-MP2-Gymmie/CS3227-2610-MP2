@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,11 +20,14 @@ import gymmie.AppContext;
 import gymmie.Router;
 import gymmie.ViewLoader;
 import gymmie.model.Account;
+import gymmie.model.CancellationReason;
+import gymmie.model.MembershipPlan;
 import gymmie.model.Role;
 import gymmie.service.PasswordHasher;
 import gymmie.testutil.AccountBuilder;
 import gymmie.testutil.BookingBuilder;
 import gymmie.testutil.JavaFxTestSupport;
+import gymmie.testutil.MembershipBuilder;
 import gymmie.testutil.TrainingSessionBuilder;
 import gymmie.ui.DisplayFormatters;
 import javafx.beans.value.ObservableValue;
@@ -114,6 +118,81 @@ class MemberSessionBrowseNavigationTest {
                 VBox card = (VBox) cards.getChildren().getFirst();
                 assertEquals("Amy Coach", ((Label) card.getChildren().get(0)).getText());
                 assertEquals("60 minutes · 1 of 10 Members booked", ((Label) card.getChildren().get(2)).getText());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void bookingPersistsAndMarksTheSessionCardAsAlreadyBooked() throws Exception {
+        AppContext context = contextWithSessions(temporaryDirectory.resolve("book-session.db"));
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(1, "Monthly", 30, 4990, false));
+            context.getPersistence().memberships().insert(connection, new MembershipBuilder().withId(1)
+                    .withMemberId(2).withPlanId(1).withExpiryDate(LocalDate.now().plusDays(3)).build());
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<String> status = onFxThread(() -> {
+                openSessionBrowser(stage, context);
+                return ((Label) stage.getScene().lookup("#sessionStatus")).textProperty();
+            });
+            awaitUi(status, "2 upcoming sessions"::equals);
+            Button book = onFxThread(() -> (Button) ((VBox) ((VBox) stage.getScene().lookup("#sessionCards"))
+                    .getChildren().getFirst()).getChildren().get(4));
+            onFxThread(() -> {
+                book.fire();
+                return null;
+            });
+            awaitUi(status, "Success: Session booked. See My membership → Booking history."::equals);
+            onFxThread(() -> {
+                VBox card = (VBox) ((VBox) stage.getScene().lookup("#sessionCards")).getChildren().getFirst();
+                Button booked = (Button) card.getChildren().get(4);
+                assertEquals("Already booked", booked.getText());
+                assertTrue(booked.isDisabled());
+                return null;
+            });
+            int persistedBookingCount = context.getPersistence().unitOfWork().inTransaction(connection ->
+                    context.getPersistence().bookings().countBookedBySessionId(connection, 1));
+            assertEquals(1, persistedBookingCount);
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void cancelledBookingLeavesBookSessionAvailable() throws Exception {
+        AppContext context = contextWithSessions(temporaryDirectory.resolve("rebook-session.db"));
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().bookings().insert(connection, new BookingBuilder().withId(1)
+                    .withSessionId(1).withMemberId(2).withStatus(gymmie.model.BookingStatus.CANCELLED)
+                    .withCancellationReason(CancellationReason.MEMBER_CANCELLED_BOOKING).build());
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<String> status = onFxThread(() -> {
+                openSessionBrowser(stage, context);
+                return ((Label) stage.getScene().lookup("#sessionStatus")).textProperty();
+            });
+            awaitUi(status, "2 upcoming sessions"::equals);
+            onFxThread(() -> {
+                VBox card = (VBox) ((VBox) stage.getScene().lookup("#sessionCards")).getChildren().getFirst();
+                Button book = (Button) card.getChildren().get(4);
+                assertEquals("Book session", book.getText());
+                assertFalse(book.isDisabled());
                 return null;
             });
         } finally {

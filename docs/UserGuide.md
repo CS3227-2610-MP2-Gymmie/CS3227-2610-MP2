@@ -246,12 +246,21 @@ number of booked Members. Cancelled and past sessions are not shown.
    session cards. Trainer names include an account number to distinguish
    Trainers who share a display name.
 2. Choose **Refresh** to reload current sessions and booking counts.
-3. Choose **Back to dashboard** to return.
+3. Choose **Book session** on an eligible session card. A successful booking is
+   saved and the card changes to **Already booked**. Choose **My membership →
+   Booking history** to see the saved booking.
+4. Choose **Back to dashboard** to return.
 
 Booking counts include current bookings and exclude cancelled bookings. A
 session list with **No upcoming sessions are available.** means there are no
 sessions to browse. If loading fails, choose **Refresh** to try again. Use
 **Tab** and **Shift+Tab** to move through the controls and press **Space** or
-**Enter** to activate them.
+**Enter** to activate them. Booking requires an active membership. The session
+must have available capacity, must not have started, and must start on or before
+the membership expiry date. Gymmie explains when a booking is rejected because
+membership is inactive, the session is full or has started, the session starts
+after membership expiry, or the Member already has an active booking for it.
+If you cancelled a booking, its session card shows **Book session** again. You
+can rebook it while space remains and the other booking requirements are met.
 
 ### Saving the data

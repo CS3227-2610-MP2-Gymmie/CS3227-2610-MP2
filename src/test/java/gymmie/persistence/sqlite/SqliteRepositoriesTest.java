@@ -319,6 +319,30 @@ class SqliteRepositoriesTest {
     }
 
     @Test
+    void reactivatesCancelledBookingWithNewTimeAndClearsItsReason() throws Exception {
+        LocalDateTime rebookedAt = NOW.plusMinutes(5);
+        persistence.unitOfWork().inTransaction(connection -> {
+            persistence.bookings().update(connection,
+                    cancelled(BOOKING, CancellationReason.MEMBER_CANCELLED_BOOKING));
+            persistence.bookings().reactivate(connection, BOOKING.id(), rebookedAt);
+            Booking reactivated = persistence.bookings().findById(connection, BOOKING.id()).orElseThrow();
+            assertEquals(new Booking(BOOKING.id(), BOOKING.sessionId(), BOOKING.memberId(), rebookedAt,
+                    BookingStatus.BOOKED, null), reactivated);
+            return null;
+        });
+    }
+
+    @Test
+    void reactivateRejectsMissingAndNonCancelledBookings() throws Exception {
+        persistence.unitOfWork().inTransaction(connection -> {
+            assertThrows(SQLException.class, () -> persistence.bookings().reactivate(connection, 99, NOW));
+            assertThrows(SQLException.class, () -> persistence.bookings().reactivate(connection, BOOKING.id(), NOW));
+            assertEquals(BOOKING, persistence.bookings().findById(connection, BOOKING.id()).orElseThrow());
+            return null;
+        });
+    }
+
+    @Test
     void rejectsChangesToHistoricalOwnershipAndPurchaseTerms() throws Exception {
         persistence.unitOfWork().inTransaction(connection -> {
             assertThrows(SQLException.class, () -> persistence.accounts().update(connection,
