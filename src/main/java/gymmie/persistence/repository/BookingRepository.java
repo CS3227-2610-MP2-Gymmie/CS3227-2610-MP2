@@ -2,6 +2,7 @@ package gymmie.persistence.repository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,6 +69,15 @@ public interface BookingRepository {
     int countBookedBySessionId(Connection connection, long sessionId) throws SQLException;
 
     /**
+     * Finds the next booking identifier within the caller's transaction.
+     *
+     * @param connection caller-owned connection.
+     * @return next positive booking identifier.
+     * @throws SQLException if reading booking identifiers fails.
+     */
+    long nextId(Connection connection) throws SQLException;
+
+    /**
      * Inserts a booking with a unique Member/session pair, including cancelled booking history.
      *
      * @param connection caller-owned connection.
@@ -86,4 +96,17 @@ public interface BookingRepository {
      * @throws SQLException if the booking is absent, immutable fields change or the update fails.
      */
     void update(Connection connection, Booking booking) throws SQLException;
+
+    /**
+     * Reactivates a cancelled booking with a new booking time.
+     *
+     * <p>This is the only repository operation that changes a booking time. It retains the booking's
+     * identity and Member/session references while clearing its previous cancellation reason.
+     *
+     * @param connection caller-owned connection.
+     * @param bookingId cancelled booking identifier.
+     * @param bookedAt new local booking time.
+     * @throws SQLException if the booking is missing or is not cancelled, or the update fails.
+     */
+    void reactivate(Connection connection, long bookingId, LocalDateTime bookedAt) throws SQLException;
 }

@@ -117,7 +117,7 @@ Writes must target the supplied database and become durable when its caller comm
 | Membership plans | Update the archived flag to archive/restore. `findAllAvailable` excludes archived plans; identifier and administrative lookups include them for history and renewal. `deleteIfUnpurchased` atomically refuses deletion when any membership references the plan, regardless of status. |
 | Memberships | No deletion API. Load complete Member history, including cancelled, expired and future records, before validating the Member aggregate. Updates preserve ownership, plan, start date, and purchase snapshots while allowing expiry/status changes. |
 | Training sessions | Update cancellation state while retaining bookings. `findUpcoming` excludes cancelled sessions and uses a local-time cut-off supplied by the caller. `deleteIfNeverBooked` atomically refuses deletion when any booking exists, including cancelled bookings. |
-| Bookings | No deletion API. Cancellation updates status and reason while preserving Member, session and booking time. History queries include cancelled bookings; the capacity count includes only `BOOKED` reservations and cannot establish whether a session has booking history. |
+| Bookings | No deletion API. Cancellation updates status and reason while preserving Member, session and booking time. `reactivate` accepts only a cancelled row, changes its status to `BOOKED`, clears its cancellation reason, and sets a new booking time. Reactivation is the only repository path that changes `booked_at`; it deliberately overwrites the previous cancellation reason to avoid a schema migration. History queries include cancelled bookings; the capacity count includes only `BOOKED` reservations and cannot establish whether a session has booking history. |
 
 Identifier lookups return `Optional.empty()` for missing records. List queries return immutable snapshots in identifier order and empty lists when there are no matches. Guarded deletion returns `false` without changes when the target is absent or has history. SQL errors propagate to the transaction owner for rollback.
 
@@ -366,8 +366,8 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 1. Member logs in and opens the session catalogue.
 2. Gymmie shows sessions with their Trainer, start time, duration, description, capacity, and current booking count.
 3. Member selects a session and chooses to book it.
-4. Gymmie verifies that the Member has an active membership, the session has available capacity, the session has not started, the Member has no existing booking for it, and the session starts on or before the membership expiry date.
-5. Gymmie creates the booking and persists the change.
+4. Gymmie verifies that the Member has an active membership, the session has available capacity, the session has not started, the Member has no active booking for it, and the session starts on or before the membership expiry date.
+5. Gymmie creates or reactivates the booking and persists the change.
 6. Gymmie shows the booking in the Member's booked sessions.
 
    Use case ends.
@@ -377,7 +377,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 - 4a. The Member has no active membership. Gymmie rejects the booking and explains that an active membership is required. Use case ends.
 - 4b. The session is full. Gymmie rejects the booking. Use case ends.
 - 4c. The session has already started. Gymmie rejects the booking. Use case ends.
-- 4d. The Member already has a booking for the session. Gymmie rejects the duplicate booking. Use case ends.
+- 4d. The Member already has an active booking for the session. Gymmie rejects the duplicate booking. Use case ends.
 - 4e. The session starts after the Member's membership expires. Gymmie rejects the booking. Use case ends.
 - 5a. Persistence fails. Gymmie does not publish a partial booking and reports the failure. Use case resumes at step 3.
 

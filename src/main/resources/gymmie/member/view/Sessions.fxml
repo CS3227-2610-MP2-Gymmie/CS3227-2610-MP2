@@ -11,7 +11,7 @@
         <Button text="_Back to dashboard" onAction="#back" />
         <VBox maxWidth="720" spacing="12" styleClass="card">
             <Label text="Upcoming training sessions" styleClass="heading" />
-            <Label text="Choose a Trainer to narrow the list. Booking counts include current reservations."
+            <Label text="Choose a Trainer to narrow the list. Booked sessions are marked on their cards."
                     wrapText="true" />
             <Label text="_Trainer" mnemonicParsing="true" labelFor="${trainerFilter}" />
             <ComboBox fx:id="trainerFilter" maxWidth="Infinity" accessibleText="Filter sessions by Trainer" />
