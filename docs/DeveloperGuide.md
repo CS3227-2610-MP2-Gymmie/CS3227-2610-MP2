@@ -257,6 +257,14 @@ transaction. Past bookings and bookings belonging to other Members are left
 unchanged. `MemberBookingHistoryService` supplies the Member's full booking
 history, including cancelled bookings and their reasons, to the **My bookings**
 screen, where bookings are separated by whether their sessions have started.
+For each booking, the history service also includes the Trainer's display name,
+session description, and duration for display on that screen.
+
+`MemberBookingCancellationService` cancels only an active booking owned by the
+authenticated Member, and only strictly before its session starts. It records
+the `MEMBER_CANCELLED_BOOKING` reason while retaining the booking time and
+identity. Cancelled bookings are excluded from the active booking count, which
+releases that session's capacity for another Member.
 
 `MemberMembershipController` and its FXML and CSS live under
 `gymmie.member` and `src/main/resources/gymmie/member`. The Gym User dashboard
