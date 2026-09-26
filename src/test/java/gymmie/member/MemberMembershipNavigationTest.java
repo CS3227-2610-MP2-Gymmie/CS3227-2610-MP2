@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,10 +21,14 @@ import gymmie.AppContext;
 import gymmie.Router;
 import gymmie.ViewLoader;
 import gymmie.model.Account;
+import gymmie.model.Booking;
+import gymmie.model.BookingStatus;
+import gymmie.model.CancellationReason;
 import gymmie.model.Membership;
 import gymmie.model.MembershipPlan;
 import gymmie.model.MembershipStatus;
 import gymmie.model.Role;
+import gymmie.model.TrainingSession;
 import gymmie.service.PasswordHasher;
 import gymmie.testutil.JavaFxTestSupport;
 import gymmie.ui.DisplayFormatters;
@@ -31,6 +36,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
@@ -288,6 +295,44 @@ class MemberMembershipNavigationTest {
             assertEquals(1, renewed.planId());
             assertEquals(4990, renewed.snapshotPriceCents());
             assertEquals(30, renewed.snapshotDurationDays());
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void bookingHistoryShowsCancelledStatusAndMembershipReason() throws Exception {
+        AppContext context = contextWithMember(temporaryDirectory.resolve("cancelled-booking-history.db"));
+        LocalDateTime sessionStart = LocalDateTime.now().plusDays(1);
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection,
+                    new Account(3, "trainer", new PasswordHasher().hash("password123"), "Trainer", Role.TRAINER,
+                            true));
+            context.getPersistence().sessions().insert(connection,
+                    new TrainingSession(1, 3, sessionStart, 60, 10, "Workout", false));
+            context.getPersistence().bookings().insert(connection,
+                    new Booking(1, 1, 2, LocalDateTime.now(), BookingStatus.CANCELLED,
+                            CancellationReason.MEMBERSHIP_CANCELLED));
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<String> bookingCount = onFxThread(() -> {
+                openMemberMembershipScreen(stage, context);
+                return ((Label) stage.getScene().lookup("#bookingHistoryStatus")).textProperty();
+            });
+            awaitUi(bookingCount, "1 booking"::equals);
+            onFxThread(() -> {
+                ListView<?> history = (ListView<?>) stage.getScene().lookup("#bookingHistory");
+                ListCell<?> cell = (ListCell<?>) history.lookup(".list-cell");
+                assertTrue(cell.getText().contains("Cancelled"));
+                assertTrue(cell.getText().contains("Reason: Membership cancelled"));
+                return null;
+            });
         } finally {
             onFxThread(() -> {
                 stage.close();

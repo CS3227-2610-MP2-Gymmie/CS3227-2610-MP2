@@ -93,6 +93,20 @@ public record Membership(long id, long memberId, long planId, LocalDate startDat
                 MembershipStatus.ACTIVE, snapshotPriceCents, snapshotDurationDays);
     }
 
+    /**
+     * Cancels this membership immediately while retaining its purchase history.
+     *
+     * @return this membership with cancelled lifecycle state.
+     * @throws ConflictException if this membership is already cancelled.
+     */
+    public Membership cancel() {
+        if (status == MembershipStatus.CANCELLED) {
+            throw new ConflictException("This membership is already cancelled");
+        }
+        return new Membership(id, memberId, planId, startDate, expiryDate, MembershipStatus.CANCELLED,
+                snapshotPriceCents, snapshotDurationDays);
+    }
+
     /** Returns whether this membership is active on the local system date. */
     public boolean isActive() {
         return isActiveOn(LocalDate.now());
