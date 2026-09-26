@@ -1,0 +1,5 @@
+prefix_rule(
+    pattern = ["./gradlew", ["check", "test", "build"]],
+    decision = "allow",
+    justification = "Gradle needs access to ~/.gradle and local sockets outside the sandbox.",
+)
