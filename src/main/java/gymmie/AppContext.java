@@ -3,12 +3,12 @@ package gymmie;
 import java.nio.file.Path;
 import java.time.Clock;
 
+import gymmie.member.service.MembershipPurchaseService;
+import gymmie.member.service.MembershipStatusService;
 import gymmie.persistence.Database;
 import gymmie.persistence.Persistence;
 import gymmie.persistence.SchemaInitializer;
 import gymmie.service.AuthService;
-import gymmie.service.MembershipPurchaseService;
-import gymmie.service.MembershipStatusService;
 import gymmie.service.PasswordHasher;
 import gymmie.service.Permissions;
 import gymmie.service.ProfileService;

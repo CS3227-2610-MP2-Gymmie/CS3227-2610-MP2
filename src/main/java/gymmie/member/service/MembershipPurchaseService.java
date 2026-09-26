@@ -1,4 +1,4 @@
-package gymmie.service;
+package gymmie.member.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -14,6 +14,7 @@ import gymmie.model.exception.ConflictException;
 import gymmie.persistence.UnitOfWork;
 import gymmie.persistence.repository.MembershipPlanRepository;
 import gymmie.persistence.repository.MembershipRepository;
+import gymmie.service.Permissions;
 
 /** Provides an authenticated Member's available plans and atomic membership purchases. */
 public final class MembershipPurchaseService {

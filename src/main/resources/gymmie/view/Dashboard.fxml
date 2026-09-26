@@ -11,24 +11,9 @@
         <Label fx:id="welcome" wrapText="true" />
         <VBox fx:id="actions" spacing="18">
             <Button fx:id="profileButton" text="My _profile" onAction="#editProfile" />
+            <Button fx:id="memberMembershipButton" text="My _membership" onAction="#openMembership"
+                    visible="false" managed="false" />
             <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
-            <VBox fx:id="membershipCard" maxWidth="440" spacing="10" styleClass="card"
-                    visible="false" managed="false">
-                <Label text="Current membership" styleClass="heading" />
-                <StatusLabel fx:id="membershipStatus" />
-                <Label fx:id="membershipPlan" text="Plan: —" wrapText="true" />
-                <Label fx:id="membershipExpiry" text="Expiry date: —" wrapText="true" />
-                <Button fx:id="refreshMembership" text="_Refresh" onAction="#refreshMembership" />
-                <Separator />
-                <Label text="Buy a membership" styleClass="heading" />
-                <Label text="Choose an available plan. Price and duration are saved with your purchase."
-                        wrapText="true" />
-                <ComboBox fx:id="availablePlans" maxWidth="Infinity" accessibleText="Available membership plans" />
-                <Button fx:id="refreshPlans" text="_Refresh plans" onAction="#refreshAvailablePlans" />
-                <Button fx:id="purchaseMembership" text="_Purchase membership" onAction="#purchaseMembership"
-                        disable="true" />
-                <StatusLabel fx:id="purchaseStatus" />
-            </VBox>
             <VBox maxWidth="440" spacing="10" styleClass="card">
                 <Label text="Change password" styleClass="heading" />
                 <Label text="Choose a password of 8–128 characters." wrapText="true" />

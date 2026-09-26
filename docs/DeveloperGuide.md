@@ -238,6 +238,22 @@ editor during requests, and retains edits on save failures. The dashboard offers
 navigation visibility. `TrainerNavigationTest` writes a preview to
 `build/reports/trainer-profile.png` for visual review.
 
+### Member membership services and UI
+
+Member membership services and their tests live in
+`gymmie.member.service` and `src/test/java/gymmie/member/service`. The
+`MembershipStatusService` and `MembershipPurchaseService` enforce the Member
+role using the shared `Permissions` boundary. They use the common membership
+models and repositories; plan and membership records remain shared persistence
+concerns rather than role-specific copies.
+
+`MemberMembershipController` and its FXML and CSS live under
+`gymmie.member` and `src/main/resources/gymmie/member`. The Gym User dashboard
+keeps a Member-only **My membership** entry point, while `Router` opens the
+membership screen. The screen reads current coverage, lists unarchived plans,
+and purchases a plan through the Member services. Visibility only controls
+navigation; service authorization remains authoritative.
+
 ## Appendix: Requirements
 
 ### Product scope

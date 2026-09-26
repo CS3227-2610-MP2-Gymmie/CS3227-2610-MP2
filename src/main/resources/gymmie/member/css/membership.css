@@ -1,0 +1,7 @@
+.membership-page {
+    -fx-spacing: 18px;
+}
+.membership-plan {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}

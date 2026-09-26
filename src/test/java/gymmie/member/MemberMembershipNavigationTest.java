@@ -35,7 +35,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
-/** Opt-in JavaFX integration checks for the Member membership card. */
+/** Opt-in JavaFX integration checks for Member membership navigation and purchases. */
 @EnabledIfSystemProperty(named = "gymmie.uiTests", matches = "true")
 class MemberMembershipNavigationTest {
     @TempDir
@@ -61,9 +61,7 @@ class MemberMembershipNavigationTest {
         Stage stage = onFxThread(Stage::new);
         try {
             ObservableValue<String> state = onFxThread(() -> {
-                new Router(stage, context, new ViewLoader()).showDashboard();
-                stage.show();
-                stage.getScene().getRoot().applyCss();
+                openMemberMembershipScreen(stage, context);
                 return ((Label) stage.getScene().lookup("#membershipStatus")).textProperty();
             });
             awaitUi(state, "Active"::equals);
@@ -124,9 +122,7 @@ class MemberMembershipNavigationTest {
         Stage stage = onFxThread(Stage::new);
         try {
             ObservableValue<String> state = onFxThread(() -> {
-                new Router(stage, context, new ViewLoader()).showDashboard();
-                stage.show();
-                stage.getScene().getRoot().applyCss();
+                openMemberMembershipScreen(stage, context);
                 return ((Label) stage.getScene().lookup("#membershipStatus")).textProperty();
             });
             awaitUi(state, text -> text.startsWith("Inactive"));
@@ -144,7 +140,7 @@ class MemberMembershipNavigationTest {
     }
 
     @Test
-    void membershipCardIsVisibleOnlyToMembers() throws Exception {
+    void membershipEntryPointIsVisibleOnlyToMembers() throws Exception {
         AppContext context = contextWithMember(temporaryDirectory.resolve("role-visibility.db"));
         var hash = new PasswordHasher().hash("password123");
         context.getPersistence().unitOfWork().inTransaction(connection -> {
@@ -162,8 +158,8 @@ class MemberMembershipNavigationTest {
                     stage.show();
                     stage.getScene().getRoot().applyCss();
                     boolean member = context.getUserSession().requireUser().role() == Role.MEMBER;
-                    assertEquals(member, stage.getScene().lookup("#membershipCard").isVisible());
-                    assertEquals(member, stage.getScene().lookup("#membershipCard").isManaged());
+                    assertEquals(member, stage.getScene().lookup("#memberMembershipButton").isVisible());
+                    assertEquals(member, stage.getScene().lookup("#memberMembershipButton").isManaged());
                     return null;
                 });
                 context.getAuthService().logout();
@@ -190,9 +186,7 @@ class MemberMembershipNavigationTest {
         Stage stage = onFxThread(Stage::new);
         try {
             ObservableValue<String> purchaseState = onFxThread(() -> {
-                new Router(stage, context, new ViewLoader()).showDashboard();
-                stage.show();
-                stage.getScene().getRoot().applyCss();
+                openMemberMembershipScreen(stage, context);
                 return ((Label) stage.getScene().lookup("#purchaseStatus")).textProperty();
             });
             awaitUi(purchaseState, text -> !text.equals("Loading available plans…"));
@@ -234,6 +228,15 @@ class MemberMembershipNavigationTest {
             return null;
         });
         return context;
+    }
+
+    private static void openMemberMembershipScreen(Stage stage, AppContext context) throws Exception {
+        new Router(stage, context, new ViewLoader()).showDashboard();
+        stage.show();
+        stage.getScene().getRoot().applyCss();
+        Button membershipButton = (Button) stage.getScene().lookup("#memberMembershipButton");
+        membershipButton.fire();
+        stage.getScene().getRoot().applyCss();
     }
 
     private static void pressKey(Button button, KeyCode code) {

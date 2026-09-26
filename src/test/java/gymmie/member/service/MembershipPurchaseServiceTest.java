@@ -1,4 +1,4 @@
-package gymmie.service;
+package gymmie.member.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,6 +21,10 @@ import gymmie.model.MembershipStatus;
 import gymmie.model.Role;
 import gymmie.model.exception.ConflictException;
 import gymmie.persistence.Persistence;
+import gymmie.service.AuthService;
+import gymmie.service.PasswordHasher;
+import gymmie.service.Permissions;
+import gymmie.service.UserSession;
 import gymmie.service.exception.AuthenticationException;
 import gymmie.service.exception.AuthorizationException;
 import gymmie.testutil.AccountBuilder;
@@ -32,6 +36,7 @@ class MembershipPurchaseServiceTest {
     private InMemoryDatabase fixture;
     private Persistence persistence;
     private UserSession session;
+    private AuthService auth;
     private Account member;
     private MembershipPurchaseService service;
 
@@ -40,6 +45,7 @@ class MembershipPurchaseServiceTest {
         fixture = new InMemoryDatabase();
         persistence = fixture.persistence();
         session = new UserSession();
+        auth = new AuthService(persistence.accounts(), persistence.unitOfWork(), session, new PasswordHasher());
         member = new AccountBuilder().build();
         persistence.unitOfWork().inTransaction(connection -> {
             persistence.accounts().insert(connection, member);
@@ -50,7 +56,7 @@ class MembershipPurchaseServiceTest {
                     new MembershipPlanBuilder().withId(2).withName("Hidden").withArchived(true).build());
             return null;
         });
-        session.establish(member);
+        auth.login(member.username(), AccountBuilder.DEFAULT_PASSWORD);
         service = service();
     }
 
@@ -72,11 +78,11 @@ class MembershipPurchaseServiceTest {
         for (Account unauthorized : persistence.unitOfWork().inTransaction(connection ->
                 List.of(persistence.accounts().findById(connection, 2).orElseThrow(),
                         persistence.accounts().findById(connection, 3).orElseThrow()))) {
-            session.establish(unauthorized);
+            auth.login(unauthorized.username(), AccountBuilder.DEFAULT_PASSWORD);
             assertThrows(AuthorizationException.class, () -> service.availablePlans());
             assertThrows(AuthorizationException.class, () -> service.purchase(1));
         }
-        session.clear();
+        auth.logout();
         assertThrows(AuthenticationException.class, () -> service.availablePlans());
         assertThrows(AuthenticationException.class, () -> service.purchase(1));
         List<Membership> history = persistence.unitOfWork().inTransaction(connection ->
