@@ -49,6 +49,16 @@ public final class SqliteTrainingSessionRepository implements TrainingSessionRep
     }
 
     @Override
+    public TrainingSession create(Connection connection, long trainerId, LocalDateTime startsAt,
+            int durationMinutes, int capacity, String description) throws SQLException {
+        return SqliteQueries.read(connection,
+                "INSERT INTO training_session (trainer_id, starts_at, duration_minutes, capacity, description, "
+                        + "cancelled) VALUES (?, ?, ?, ?, ?, 0) RETURNING *",
+                SqliteTrainingSessionRepository::map, trainerId, startsAt, durationMinutes, capacity,
+                description).getFirst();
+    }
+
+    @Override
     public void insert(Connection connection, TrainingSession session) throws SQLException {
         SqliteQueries.writeOne(connection,
                 "INSERT INTO training_session (id, trainer_id, starts_at, duration_minutes, capacity, "

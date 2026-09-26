@@ -10,6 +10,7 @@
         <Label fx:id="title" styleClass="title" wrapText="true" />
         <Label fx:id="welcome" wrapText="true" />
         <VBox fx:id="actions" spacing="18">
+            <Button fx:id="createSessionButton" text="Create _session" onAction="#createSession" />
             <Button fx:id="profileButton" text="My _profile" onAction="#editProfile" />
             <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
             <VBox fx:id="membershipCard" maxWidth="440" spacing="10" styleClass="card"

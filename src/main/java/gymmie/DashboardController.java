@@ -55,6 +55,8 @@ public final class DashboardController {
     private Button logoutButton;
     @FXML
     private Button profileButton;
+    @FXML
+    private Button createSessionButton;
 
     /** Creates a dashboard using the current session and shared account services. */
     public DashboardController(AppContext context, Router router, String dashboardTitle) {
@@ -72,6 +74,8 @@ public final class DashboardController {
         Role role = context.getUserSession().requireUser().role();
         boolean trainer = role == Role.TRAINER;
         boolean member = role == Role.MEMBER;
+        createSessionButton.setVisible(trainer);
+        createSessionButton.setManaged(trainer);
         profileButton.setVisible(trainer);
         profileButton.setManaged(trainer);
         membershipCard.setVisible(member);
@@ -118,6 +122,15 @@ public final class DashboardController {
             }
         });
         Thread.ofPlatform().daemon().name("gymmie-membership-status").start(task);
+    }
+
+    @FXML
+    private void createSession() {
+        try {
+            router.showCreateSession();
+        } catch (IOException exception) {
+            status.error("Unable to open session creation. Please try again.");
+        }
     }
 
     @FXML

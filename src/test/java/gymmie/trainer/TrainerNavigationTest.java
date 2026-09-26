@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.imageio.ImageIO;
 
@@ -31,6 +33,8 @@ import gymmie.ui.StatusLabel;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.Control;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -39,8 +43,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 /** Opt-in JavaFX integration checks; requires a graphical desktop. */
 @EnabledIfSystemProperty(named = "gymmie.uiTests", matches = "true")
@@ -202,7 +209,7 @@ class TrainerNavigationTest {
                 stage.setHeight(820);
                 stage.getScene().getRoot().applyCss();
                 stage.getScene().getRoot().layout();
-                writeProfilePreview(stage);
+                writePreview(stage, "trainer-profile.png");
                 TextField name = (TextField) stage.getScene().lookup("#displayName");
                 name.setText("Unsaved change");
                 Button reload = (Button) stage.getScene().lookup("#reloadButton");
@@ -226,6 +233,125 @@ class TrainerNavigationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void trainerCreatesSessionUsingButtonOrKeyboard(boolean keyboard) throws Exception {
+        Path databasePath = temporaryDirectory.resolve("create-session.db");
+        AppContext context = new AppContext(databasePath);
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withRole(Role.TRAINER).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, trainer);
+            return null;
+        });
+        context.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        Stage stage = onFxThread(Stage::new);
+        LocalDate date = LocalDate.now().plusDays(1);
+        String start = date + " 14:30";
+        try {
+            ObservableValue<String> feedback = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showDashboard();
+                stage.show();
+                stage.getScene().getRoot().applyCss();
+                Button open = (Button) stage.getScene().lookup("#createSessionButton");
+                assertTrue(open.isVisible());
+                if (keyboard) {
+                    pressKey(open, KeyCode.SPACE);
+                } else {
+                    open.fire();
+                }
+                stage.getScene().getRoot().applyCss();
+                DatePicker startDate = (DatePicker) stage.getScene().lookup("#startDate");
+                TextField startTime = (TextField) stage.getScene().lookup("#startTime");
+                TextField duration = (TextField) stage.getScene().lookup("#duration");
+                TextField capacity = (TextField) stage.getScene().lookup("#capacity");
+                TextArea description = (TextArea) stage.getScene().lookup("#description");
+                Button save = (Button) stage.getScene().lookup("#saveButton");
+                StatusLabel status = (StatusLabel) stage.getScene().lookup("#status");
+                save.fire();
+                assertEquals("Error: Choose a start date from the calendar.", status.getText());
+                selectCalendarDate(startDate, date, keyboard);
+                assertEquals(date, startDate.getValue());
+                for (String invalid : new String[]{"", "24:00", "12:60", "14:30:00"}) {
+                    startTime.setText(invalid);
+                    save.fire();
+                    assertTrue(status.getText().startsWith("Error: Enter a valid start time"));
+                }
+                startTime.setText("14:30");
+                duration.setText("sixty");
+                capacity.setText("10");
+                save.fire();
+                assertEquals("Error: Duration and capacity must be whole numbers.", status.getText());
+                duration.setText("60");
+                description.setText("Strength training");
+                stage.setWidth(700);
+                stage.setHeight(820);
+                stage.getScene().getRoot().applyCss();
+                stage.getScene().getRoot().layout();
+                writePreview(stage, "create-session.png");
+                if (keyboard) {
+                    pressKey(startDate, KeyCode.TAB);
+                    assertEquals(startTime, stage.getScene().getFocusOwner());
+                    pressKey(startTime, KeyCode.TAB);
+                    assertEquals(duration, stage.getScene().getFocusOwner());
+                    pressKey(duration, KeyCode.TAB);
+                    assertEquals(capacity, stage.getScene().getFocusOwner());
+                    pressKey(capacity, KeyCode.TAB);
+                    assertEquals(description, stage.getScene().getFocusOwner());
+                    pressKey(description, KeyCode.TAB);
+                    assertEquals(save, stage.getScene().getFocusOwner());
+                    pressKey(save, KeyCode.SPACE);
+                } else {
+                    save.fire();
+                }
+                assertTrue(stage.getScene().lookup("#form").isDisabled());
+                return status.textProperty();
+            });
+            awaitUi(feedback, text -> text.equals("Success: Session created for " + start + "."));
+            AppContext restarted = new AppContext(databasePath);
+            var saved = restarted.getPersistence().unitOfWork().inTransaction(connection ->
+                    restarted.getPersistence().sessions().findByTrainerId(connection, trainer.id()));
+            assertEquals(1, saved.size());
+            assertEquals(LocalDateTime.of(date, java.time.LocalTime.of(14, 30)), saved.getFirst().startsAt());
+            assertEquals(60, saved.getFirst().durationMinutes());
+            assertEquals(10, saved.getFirst().capacity());
+            assertEquals("Strength training", saved.getFirst().description());
+            onFxThread(() -> {
+                assertEquals(null, ((DatePicker) stage.getScene().lookup("#startDate")).getValue());
+                assertEquals("", ((TextField) stage.getScene().lookup("#startTime")).getText());
+                Button back = (Button) stage.getScene().lookup("#backButton");
+                pressKey(back, KeyCode.SPACE);
+                stage.getScene().getRoot().applyCss();
+                assertEquals("Trainer dashboard", ((Label) stage.getScene().lookup("#title")).getText());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    private static void selectCalendarDate(DatePicker picker, LocalDate date, boolean keyboard) {
+        if (keyboard) {
+            pressKey(picker, KeyCode.F4);
+        } else {
+            picker.show();
+        }
+        assertTrue(picker.isShowing());
+        DateCell cell = Window.getWindows().stream().filter(Window::isShowing)
+                .flatMap(window -> window.getScene().getRoot().lookupAll(".day-cell").stream())
+                .filter(DateCell.class::isInstance).map(DateCell.class::cast)
+                .filter(candidate -> date.equals(candidate.getItem())).findFirst().orElseThrow();
+        if (keyboard) {
+            pressKey(cell, KeyCode.ENTER);
+        } else {
+            cell.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED, 1, 1, 1, 1, MouseButton.PRIMARY,
+                    1, false, false, false, false, false, false, false, false, false, true, null));
+        }
+        assertFalse(picker.isShowing());
+    }
+
     private static void pressKey(Control control, KeyCode code) {
         control.applyCss();
         control.requestFocus();
@@ -233,7 +359,7 @@ class TrainerNavigationTest {
         control.fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", code, false, false, false, false));
     }
 
-    private static void writeProfilePreview(Stage stage) throws Exception {
+    private static void writePreview(Stage stage, String filename) throws Exception {
         ScrollPane scroll = (ScrollPane) stage.getScene().getRoot();
         WritableImage snapshot = scroll.getContent().snapshot(null, null);
         BufferedImage image = new BufferedImage((int) snapshot.getWidth(), (int) snapshot.getHeight(),
@@ -243,7 +369,7 @@ class TrainerNavigationTest {
                 image.setRGB(x, y, snapshot.getPixelReader().getArgb(x, y));
             }
         }
-        Path destination = Path.of("build", "reports", "trainer-profile.png");
+        Path destination = Path.of("build", "reports", filename);
         java.nio.file.Files.createDirectories(destination.getParent());
         ImageIO.write(image, "png", destination.toFile());
     }
