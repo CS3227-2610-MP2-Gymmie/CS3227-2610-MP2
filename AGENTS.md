@@ -3,7 +3,7 @@
 Gymmie is a Java 25 JavaFX desktop application for gym facility management and workout tracking, enforcing strict Role-Based Access Control (RBAC) across three roles:
 - Manager
 - Trainer
-- Gym User
+- Member
 
 ## Tech stack
 
