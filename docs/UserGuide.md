@@ -71,6 +71,23 @@ exactly when another ends. Other Trainers' sessions do not block your schedule.
 Editing preserves existing bookings, and saved details remain after restarting
 Gymmie. Going back without saving discards changes made since the last save.
 
+#### Delete an unused session
+
+On **Trainer dashboard → My upcoming sessions**, choose **Delete session** on
+one of your session cards. Check the session number and start time in the
+confirmation, then choose **OK** to permanently delete it. Choose **Cancel**,
+press **Escape**, or close the dialog to leave everything unchanged.
+
+Use the mouse, or **Tab** / **Shift+Tab** to focus **Delete session** and press
+**Space**. The confirmation buttons also support Tab and Space.
+**Success: Session deleted.** confirms removal; it remains deleted after restarting
+Gymmie. Only an active Trainer can delete their own sessions.
+
+A session can be deleted only if it has never had a booking. Even one cancelled
+booking prevents deletion. An empty roster does not necessarily mean deletion is
+allowed. If booking history exists, an error appears and the session and all
+bookings remain unchanged, retaining them for the cancellation workflow.
+
 #### Create a training session
 
 Log in as a Trainer and choose **Create session** on the **Trainer dashboard**.

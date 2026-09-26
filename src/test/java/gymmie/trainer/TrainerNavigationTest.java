@@ -696,6 +696,83 @@ class TrainerNavigationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void deletesOnlyAfterConfirmationUsingMouseOrKeyboard(boolean keyboard) throws Exception {
+        Path database = temporaryDirectory.resolve("delete-session.db");
+        AppContext context = new AppContext(database);
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withRole(Role.TRAINER).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, trainer);
+            return null;
+        });
+        context.getAuthService().login(trainer.username(), gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        var session = context.getTrainingSessionService().create(LocalDateTime.now().plusDays(2), 60, 10, "Unused");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            var feedback = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showUpcomingSessions();
+                stage.show();
+                stage.getScene().getRoot().applyCss();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(feedback, text -> text.equals("Upcoming sessions loaded."));
+            for (boolean confirm : new boolean[]{false, true}) {
+                onFxThread(() -> {
+                    Button delete = (Button) stage.getScene().lookup("#deleteButton-" + session.id());
+                    assertTrue(delete.isFocusTraversable());
+                    assertEquals("Delete session " + session.id(), delete.getAccessibleText());
+                    javafx.application.Platform.runLater(() -> {
+                        if (keyboard) {
+                            pressKey(delete, KeyCode.SPACE);
+                        } else {
+                            delete.fire();
+                        }
+                    });
+                    return null;
+                });
+                onFxThread(() -> {
+                    var dialog = Window.getWindows().stream().filter(Window::isShowing)
+                            .map(window -> window.getScene().getRoot())
+                            .filter(javafx.scene.control.DialogPane.class::isInstance)
+                            .map(javafx.scene.control.DialogPane.class::cast).findFirst().orElseThrow();
+                    assertTrue(dialog.getContentText().contains("session #" + session.id()));
+                    assertTrue(dialog.getContentText().contains(
+                            gymmie.ui.DisplayFormatters.dateTime(session.startsAt())));
+                    Button choice = (Button) dialog.lookupButton(confirm
+                            ? javafx.scene.control.ButtonType.OK : javafx.scene.control.ButtonType.CANCEL);
+                    if (keyboard) {
+                        pressKey(choice, KeyCode.SPACE);
+                    } else {
+                        choice.fire();
+                    }
+                    return null;
+                });
+                if (!confirm) {
+                    assertEquals(List.of(session), context.getTrainingSessionService().getOwnUpcomingSessions());
+                }
+            }
+            awaitUi(feedback, text -> text.equals("Success: Session deleted."));
+            onFxThread(() -> {
+                assertTrue(stage.getScene().lookup("#deleteButton-" + session.id()) == null);
+                assertFalse(stage.getScene().lookup("#refreshButton").isDisabled());
+                return null;
+            });
+            var restarted = new AppContext(database).getPersistence();
+            boolean deleted = restarted.unitOfWork().inTransaction(connection ->
+                    restarted.sessions().findById(connection, session.id()).isEmpty());
+            assertTrue(deleted);
+        } finally {
+            onFxThread(() -> {
+                for (Window window : List.copyOf(Window.getWindows())) {
+                    window.hide();
+                }
+                stage.close();
+                return null;
+            });
+        }
+    }
+
     private static void selectCalendarDate(DatePicker picker, LocalDate date, boolean keyboard) {
         if (keyboard) {
             pressKey(picker, KeyCode.F4);

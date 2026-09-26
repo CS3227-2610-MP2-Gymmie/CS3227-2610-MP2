@@ -7,7 +7,9 @@ import java.util.List;
 import gymmie.AppContext;
 import gymmie.Router;
 import gymmie.model.TrainingSession;
+import gymmie.ui.DisplayFormatters;
 import gymmie.ui.StatusLabel;
+import gymmie.ui.UiFeedback;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -93,9 +95,47 @@ public final class UpcomingSessionsController {
                 status.error("Unable to open the session editor. Please try again.");
             }
         });
-        card.getChildren().addAll(rosterButton, roster, editButton);
+        Button deleteButton = new Button("Delete session");
+        deleteButton.setId("deleteButton-" + session.id());
+        deleteButton.setAccessibleText("Delete session " + session.id());
+        deleteButton.setOnAction(_ -> deleteSession(session, card));
+        card.getChildren().addAll(rosterButton, roster, editButton, deleteButton);
         card.getStyleClass().add("card");
         return card;
+    }
+
+    private void deleteSession(TrainingSession session, VBox card) {
+        if (!UiFeedback.confirm(backButton.getScene().getWindow(), "Delete session",
+                "Delete session #" + session.id() + " on " + DisplayFormatters.dateTime(session.startsAt())
+                        + "? This cannot be undone. Only sessions with no booking history can be deleted.")) {
+            return;
+        }
+        sessions.setDisable(true);
+        refreshButton.setDisable(true);
+        backButton.setDisable(true);
+        status.info("Deleting session…");
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                context.getTrainingSessionService().delete(session.id());
+                return null;
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            sessions.getChildren().remove(card);
+            sessions.setDisable(false);
+            refreshButton.setDisable(false);
+            backButton.setDisable(false);
+            refreshButton.requestFocus();
+            status.success("Session deleted.");
+        });
+        task.setOnFailed(_ -> {
+            sessions.setDisable(false);
+            refreshButton.setDisable(false);
+            backButton.setDisable(false);
+            status.error(task.getException(), "Unable to delete the session. Please try again.");
+        });
+        Thread.ofPlatform().daemon().name("gymmie-delete-session").start(task);
     }
 
     private void loadRoster(long sessionId, Button button, VBox roster) {

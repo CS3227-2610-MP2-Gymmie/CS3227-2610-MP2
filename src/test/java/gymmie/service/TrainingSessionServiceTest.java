@@ -360,6 +360,71 @@ class TrainingSessionServiceTest {
         });
     }
 
+    @Test
+    void deletesUnusedSessionAcrossRestartWithoutChangingOtherSessions() throws Exception {
+        var unused = service.create(NOW.plusDays(1), 60, 10, "Unused");
+        var retained = service.create(NOW.plusDays(2), 60, 10, "Retained");
+        service.delete(unused.id());
+        var restarted = new AppContext(directory.resolve("sessions.db")).getPersistence();
+        assertEquals(List.of(retained), restarted.unitOfWork().inTransaction(connection ->
+                restarted.sessions().findAll(connection)));
+        assertThrows(AuthorizationException.class, () -> service.delete(unused.id()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void deletionRejectsAnyBookingHistoryWithoutChangingSessionOrBooking(boolean cancelled) throws Exception {
+        var session = service.create(NOW.plusDays(1), 60, 10, "Retained");
+        var builder = new gymmie.testutil.BookingBuilder().withSessionId(session.id()).withMemberId(3);
+        if (cancelled) {
+            builder.withStatus(gymmie.model.BookingStatus.CANCELLED)
+                    .withCancellationReason(gymmie.model.CancellationReason.MEMBER_CANCELLED_BOOKING);
+        }
+        var booking = builder.build();
+        var persistence = context.getPersistence();
+        persistence.unitOfWork().inTransaction(connection -> {
+            persistence.accounts().insert(connection, new AccountBuilder().withId(3).withUsername("member")
+                    .withRole(Role.MEMBER).build());
+            persistence.bookings().insert(connection, booking);
+            return null;
+        });
+        var error = assertThrows(ValidationException.class, () -> service.delete(session.id()));
+        assertTrue(error.getMessage().contains("booking history"));
+        var restarted = new AppContext(directory.resolve("sessions.db")).getPersistence();
+        assertEquals(session, restarted.unitOfWork().inTransaction(connection ->
+                restarted.sessions().findById(connection, session.id()).orElseThrow()));
+        assertEquals(List.of(booking), restarted.unitOfWork().inTransaction(connection ->
+                restarted.bookings().findBySessionId(connection, session.id())));
+    }
+
+    @Test
+    void deletionRequiresActiveAuthenticationCurrentTrainerRoleAndOwnership() throws Exception {
+        var session = service.create(NOW.plusDays(1), 60, 10, "Retained");
+        context.getUserSession().clear();
+        assertThrows(AuthenticationException.class, () -> service.delete(session.id()));
+        for (Role role : Role.values()) {
+            var other = new AccountBuilder().withId(role.ordinal() + 10).withUsername("deleter_" + role)
+                    .withRole(role).build();
+            context.getPersistence().unitOfWork().inTransaction(connection -> {
+                context.getPersistence().accounts().insert(connection, other);
+                return null;
+            });
+            context.getUserSession().establish(other);
+            assertThrows(AuthorizationException.class, () -> service.delete(session.id()));
+            if (role != Role.TRAINER) {
+                context.getUserSession().establish(new AccountBuilder(other).withRole(Role.TRAINER).build());
+                assertThrows(AuthorizationException.class, () -> service.delete(session.id()));
+            }
+        }
+        context.getUserSession().establish(trainer);
+        assertThrows(AuthorizationException.class, () -> service.delete(999));
+        replaceTrainer(new AccountBuilder(trainer).withActive(false).build());
+        assertThrows(AccountDeactivatedException.class, () -> service.delete(session.id()));
+        assertFalse(context.getUserSession().isAuthenticated());
+        assertEquals(session, context.getPersistence().unitOfWork().inTransaction(connection ->
+                context.getPersistence().sessions().findById(connection, session.id()).orElseThrow()));
+    }
+
     private void replaceTrainer(Account replacement) throws Exception {
         context.getPersistence().unitOfWork().inTransaction(connection -> {
             context.getPersistence().accounts().update(connection, replacement);
