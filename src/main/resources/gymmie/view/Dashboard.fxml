@@ -19,6 +19,15 @@
                 <Label fx:id="membershipPlan" text="Plan: —" wrapText="true" />
                 <Label fx:id="membershipExpiry" text="Expiry date: —" wrapText="true" />
                 <Button fx:id="refreshMembership" text="_Refresh" onAction="#refreshMembership" />
+                <Separator />
+                <Label text="Buy a membership" styleClass="heading" />
+                <Label text="Choose an available plan. Price and duration are saved with your purchase."
+                        wrapText="true" />
+                <ComboBox fx:id="availablePlans" maxWidth="Infinity" accessibleText="Available membership plans" />
+                <Button fx:id="refreshPlans" text="_Refresh plans" onAction="#refreshAvailablePlans" />
+                <Button fx:id="purchaseMembership" text="_Purchase membership" onAction="#purchaseMembership"
+                        disable="true" />
+                <StatusLabel fx:id="purchaseStatus" />
             </VBox>
             <VBox maxWidth="440" spacing="10" styleClass="card">
                 <Label text="Change password" styleClass="heading" />

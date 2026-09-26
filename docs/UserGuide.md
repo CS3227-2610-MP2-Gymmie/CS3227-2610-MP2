@@ -85,6 +85,20 @@ memberships do not make you active.
 
 While loading, previous details are cleared. If loading fails, the card shows an
 error; select **Refresh** to try again. If your session has ended, sign in again.
-This view does not support purchasing, renewing, or cancelling a membership.
+#### Buy a membership
+
+On the **Gym User dashboard**, use **Buy a membership**:
+
+1. Choose an available plan. Each option shows its duration and price in SGD.
+   Archived plans are not offered for new purchases.
+2. Select **Purchase membership**. The membership starts today and becomes
+   active immediately. Its purchase price and duration are saved with the
+   membership, so later plan edits do not change this purchase.
+
+A Member can have only one active membership at a time. The purchase button is
+disabled while a current membership is active. If another session purchases a
+membership first, or the selected plan is archived before the purchase finishes,
+the dashboard shows an error. Select **Refresh plans** to reload the current
+offerings, then choose an available plan and try again.
 
 ### Saving the data
