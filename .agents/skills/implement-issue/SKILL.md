@@ -1,16 +1,35 @@
 ---
 name: implement-issue
-description: Implement a scoped repository issue from its requirements through review and verification. Use for direct implementation requests; not for suggestions, issue drafting, or review-only work.
+description: Implement a scoped issue from its requirements through review, verification, delivery, and a short implementation report. Use for direct requests to implement or fix a tracked issue or stated acceptance criteria; not for suggestions, issue drafting, review-only or test-only work, or changes to agent skills and workflow tooling.
 ---
 
 # Implement an Issue
 
-Use this skill when explicitly invoked or when the user asks to implement/fix issue-scoped work, including a request with acceptance criteria or an issue identifier. Do not use it for implementation suggestions, drafting issues from source material, review-only requests, or test-only tasks.
+Follow the user's authorized scope and applicable repository instructions. Raise material conflicts before dependent work; do not assume this skill overrides them. Discover conventions, instructions such as `AGENTS.md`, relevant repository skills, and the repository's build and verification tools by inspecting the current repository. Do not assume a language or toolchain.
 
-Read the bundled [workflow contract](references/workflow-contract.md) before applying the skill. Follow the user's authorized scope and applicable repository and environment instructions; raise material unresolved conflicts instead of assuming this package overrides them.
+Use this loop proportionally: **Understand → Plan → Implement and Test → Review → Fix as needed → Verify → Deliver → Commit when authorized.** Treat issue requirements and user corrections as the source of acceptance criteria. Keep each stage lightweight when the task is small.
 
 ## Workflow
 
-Use the loop proportionally to the issue: **Understand → Plan → Implement and Test → Review → Fix as needed → Verify → Deliver → Commit when authorized.** Discover the repository's applicable conventions, documentation, build tools, and verification commands. Keep planning and reporting as lightweight as the task allows; routine authorized work does not need separate paperwork or approval at each stage. Consult the contract for the observable requirements and authorization boundaries.
+1. **Understand.** Inspect enough applicable instructions, source, tests, and documentation to establish scope from evidence. Resolve routine uncertainty from the repository; identify material ambiguity or conflict and its impact, and pause only work that depends on a decision.
+   - Input: user request and repository state. Output: scoped outcome and acceptance criteria, with unresolved decisions identified.
+2. **Plan.** Record a concise working map from each criterion to intended changes and observable checks; revise it when evidence changes scope, assumptions, dependencies, or expected behavior. Inspect the current branch, revision, and working-tree status before editing; preserve and distinguish unrelated work. If on the repository's default branch, create a task branch following repository conventions before editing. A clean tree or baseline commit is not required.
+   - Input: scope and baseline. Output: proportional criterion-to-change-to-check plan.
+3. **Implement and Test.** Make focused changes within authorized scope. Add or update suitable tests and affected documentation according to repository conventions; when required documentation is missing, add the smallest suitable entry within scope. Preserve test intent; never weaken or bypass tests to obtain a pass.
+   - Input: plan. Output: scoped changes and appropriate tests or documented reasons none apply.
+4. **Review.** Compare the final diff with the request, plan, and relevant invariants. Fix findings and review affected changes again; revise the plan when evidence changes scope or approach. After two materially different failed approaches to the same obstacle, stop speculative retries and state what decision, input, or capability is needed.
+   - Input: diff and plan. Output: reviewed changes, resolved findings, or a clearly statused stopping point.
+5. **Verify.** Run the repository's own checks suited to the criteria against the final relevant code state. Add interface checks when affected behavior warrants them. If a necessary check cannot run, try a suitable in-scope alternative when available. Rerun checks when later edits could affect their result. Report unavailable evidence; never claim an unsupported pass.
+   - Input: reviewed final code state. Output: actual check results associated with criteria and the state checked.
+6. **Deliver.** Summarize outcomes, evidence, assumptions, limitations, and remaining work honestly. Use only these criterion statuses: **completed** when the outcome has evidence; **blocked** when a dependency, environment, or external state prevents progress; **awaiting-decision** when a material choice needs the user's input; and **incomplete** when work or evidence remains without such a blocker.
+   - Input: verification results. Output: concise, evidence-based delivery summary.
+7. **Report.** Write a short implementation report from [assets/report-template.md](assets/report-template.md) to the location specified by the user or repository instructions; otherwise use `evals/implement-issue/reports/issue-<number>-<slug>.md`, where `<number>` is the issue's own number (for example `issue-42-short-title.md`). Summarize the report in chat. If the user later corrects or redirects the work during the session, update its **User corrections** section.
+   - Input: task evidence and template. Output: completed report and a chat summary.
+8. **Commit when authorized.** Follow repository Git conventions and preserve existing work. Stage and commit only when the user authorized it; authorization in the request is sufficient. Include the report in the commit. Push requires separate authorization. Perform external actions only within explicit user authorization.
+   - Input: reviewed and verified changes, the report, and authorization. Output: reported commit/action results, or an uncommitted delivery.
 
-When persistent evidence recording is requested, use the [issue record template](assets/issue-record-template.md) and the user-specified or repository-established location. Keep issue records separate from session logs; do not assume a records directory or create a record when none was requested.
+## Boundaries
+
+- Use for direct implementation or repair of scoped issue work, including requests with acceptance criteria or an issue identifier.
+- Do not use for implementation suggestions, issue drafting, review-only requests, or test-only tasks.
+- Apply repository and environment instructions with the user's request. Surface material conflicts instead of silently choosing precedence.
