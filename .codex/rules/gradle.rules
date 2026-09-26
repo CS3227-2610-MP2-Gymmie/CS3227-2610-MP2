@@ -1,5 +1,17 @@
 prefix_rule(
-    pattern = ["./gradlew", ["check", "test", "build"]],
+    pattern = ["./gradlew"],
     decision = "allow",
-    justification = "Gradle needs access to ~/.gradle and local sockets outside the sandbox.",
+    justification = "Gradle needs ~/.gradle and local sockets outside the sandbox, and every task evaluates build.gradle anyway.",
+)
+
+prefix_rule(
+    pattern = ["gh", "issue", "view"],
+    decision = "allow",
+    justification = "Reading issues needs network access and is read-only.",
+)
+
+prefix_rule(
+    pattern = ["evals/implement-issue/review.sh"],
+    decision = "allow",
+    justification = "Runs a separate read-only Codex reviewer, which cannot start inside the sandbox.",
 )
