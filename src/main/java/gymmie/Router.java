@@ -70,6 +70,7 @@ public final class Router {
     public void showCreateSession() throws IOException {
         show(views.loadResource("/gymmie/trainer/view/CreateSession.fxml",
                 new CreateSessionController(context, this)), "Create session");
+    }
       
     /** Opens the Member's current membership and purchase screen. */
     public void showMemberMembership() throws IOException {
