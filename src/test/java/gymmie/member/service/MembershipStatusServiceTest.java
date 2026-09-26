@@ -1,4 +1,4 @@
-package gymmie.service;
+package gymmie.member.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,6 +19,10 @@ import gymmie.model.MembershipPlan;
 import gymmie.model.MembershipStatus;
 import gymmie.model.Role;
 import gymmie.persistence.Persistence;
+import gymmie.service.AuthService;
+import gymmie.service.PasswordHasher;
+import gymmie.service.Permissions;
+import gymmie.service.UserSession;
 import gymmie.service.exception.AccountDeactivatedException;
 import gymmie.service.exception.AuthenticationException;
 import gymmie.service.exception.AuthorizationException;
@@ -31,6 +35,7 @@ class MembershipStatusServiceTest {
     private InMemoryDatabase fixture;
     private Persistence persistence;
     private UserSession session;
+    private AuthService auth;
     private Account member;
 
     @BeforeEach
@@ -38,13 +43,14 @@ class MembershipStatusServiceTest {
         fixture = new InMemoryDatabase();
         persistence = fixture.persistence();
         session = new UserSession();
+        auth = new AuthService(persistence.accounts(), persistence.unitOfWork(), session, new PasswordHasher());
         member = new AccountBuilder().build();
         persistence.unitOfWork().inTransaction(connection -> {
             persistence.accounts().insert(connection, member);
             persistence.plans().insert(connection, new MembershipPlanBuilder().withArchived(true).build());
             return null;
         });
-        session.establish(member);
+        auth.login(member.username(), AccountBuilder.DEFAULT_PASSWORD);
     }
 
     @AfterEach
@@ -96,13 +102,13 @@ class MembershipStatusServiceTest {
                             5990, 30));
             return null;
         });
-        session.establish(other);
+        auth.login(other.username(), AccountBuilder.DEFAULT_PASSWORD);
         assertEquals("Other plan", service(TODAY).currentMembership().orElseThrow().planName());
     }
 
     @Test
     void rejectsMissingSessionOtherRolesAndPersistedDeactivation() throws Exception {
-        session.clear();
+        auth.logout();
         assertThrows(AuthenticationException.class, () -> service(TODAY).currentMembership());
         for (Role role : List.of(Role.MANAGER, Role.TRAINER)) {
             Account other = new AccountBuilder().withId(role.ordinal() + 10).withUsername(role.name())
@@ -111,10 +117,10 @@ class MembershipStatusServiceTest {
                 persistence.accounts().insert(connection, other);
                 return null;
             });
-            session.establish(other);
+            auth.login(other.username(), AccountBuilder.DEFAULT_PASSWORD);
             assertThrows(AuthorizationException.class, () -> service(TODAY).currentMembership());
         }
-        session.establish(member);
+        auth.login(member.username(), AccountBuilder.DEFAULT_PASSWORD);
         persistence.unitOfWork().inTransaction(connection -> {
             persistence.accounts().update(connection, new AccountBuilder(member).withActive(false).build());
             return null;

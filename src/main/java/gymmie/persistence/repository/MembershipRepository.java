@@ -45,6 +45,15 @@ public interface MembershipRepository {
     List<Membership> findByMemberId(Connection connection, long memberId) throws SQLException;
 
     /**
+     * Finds the next membership identifier within the caller's transaction.
+     *
+     * @param connection caller-owned connection.
+     * @return next positive membership identifier.
+     * @throws SQLException if reading membership identifiers fails.
+     */
+    long nextId(Connection connection) throws SQLException;
+
+    /**
      * Inserts a membership with its purchase-time price and duration snapshots.
      *
      * @param connection caller-owned connection.

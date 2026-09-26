@@ -51,12 +51,27 @@ public record Membership(long id, long memberId, long planId, LocalDate startDat
      * @throws ValidationException if any required value is invalid.
      */
     public static Membership purchase(long id, long memberId, MembershipPlan plan) {
+        return purchase(id, memberId, plan, LocalDate.now());
+    }
+
+    /**
+     * Takes an immutable snapshot for a new purchase on the supplied local date.
+     *
+     * @param id membership identifier.
+     * @param memberId purchasing Member's account identifier.
+     * @param plan offering being purchased.
+     * @param startDate purchase date.
+     * @return a membership with the purchased terms.
+     * @throws ConflictException if the plan is archived.
+     * @throws ValidationException if any required value is invalid.
+     */
+    public static Membership purchase(long id, long memberId, MembershipPlan plan, LocalDate startDate) {
         Constraints.required(plan, "Plan");
+        Constraints.required(startDate, "Start date");
         if (plan.archived()) {
             throw new ConflictException("An archived plan cannot be purchased");
         }
-        LocalDate today = LocalDate.now();
-        return new Membership(id, memberId, plan.id(), today, today.plusDays(plan.durationDays()),
+        return new Membership(id, memberId, plan.id(), startDate, startDate.plusDays(plan.durationDays()),
                 MembershipStatus.ACTIVE, plan.priceCents(), plan.durationDays());
     }
 

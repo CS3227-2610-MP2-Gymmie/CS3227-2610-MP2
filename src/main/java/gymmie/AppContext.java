@@ -3,11 +3,12 @@ package gymmie;
 import java.nio.file.Path;
 import java.time.Clock;
 
+import gymmie.member.service.MembershipPurchaseService;
+import gymmie.member.service.MembershipStatusService;
 import gymmie.persistence.Database;
 import gymmie.persistence.Persistence;
 import gymmie.persistence.SchemaInitializer;
 import gymmie.service.AuthService;
-import gymmie.service.MembershipStatusService;
 import gymmie.service.PasswordHasher;
 import gymmie.service.Permissions;
 import gymmie.service.ProfileService;
@@ -23,6 +24,7 @@ public final class AppContext {
     private final AuthService authService;
     private final Permissions permissions;
     private final MembershipStatusService membershipStatusService;
+    private final MembershipPurchaseService membershipPurchaseService;
     private final ProfileService profileService;
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
@@ -51,6 +53,8 @@ public final class AppContext {
         new Seeder(persistence.accounts(), persistence.unitOfWork(), hasher).seed();
         permissions = new Permissions(persistence.accounts(), userSession);
         membershipStatusService = new MembershipStatusService(persistence.memberships(), persistence.plans(),
+                persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
+        membershipPurchaseService = new MembershipPurchaseService(persistence.plans(), persistence.memberships(),
                 persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
@@ -84,6 +88,11 @@ public final class AppContext {
     /** Returns the protected read service for current membership coverage. */
     public MembershipStatusService getMembershipStatusService() {
         return membershipStatusService;
+    }
+
+    /** Returns the protected service for purchasing available membership plans. */
+    public MembershipPurchaseService getMembershipPurchaseService() {
+        return membershipPurchaseService;
     }
 
     public AuthService getAuthService() {

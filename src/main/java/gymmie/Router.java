@@ -2,6 +2,7 @@ package gymmie;
 
 import java.io.IOException;
 
+import gymmie.member.MemberMembershipController;
 import gymmie.model.Role;
 import gymmie.service.UserSession;
 import gymmie.trainer.CreateSessionController;
@@ -69,6 +70,11 @@ public final class Router {
     public void showCreateSession() throws IOException {
         show(views.loadResource("/gymmie/trainer/view/CreateSession.fxml",
                 new CreateSessionController(context, this)), "Create session");
+      
+    /** Opens the Member's current membership and purchase screen. */
+    public void showMemberMembership() throws IOException {
+        show(views.loadResource("/gymmie/member/view/Membership.fxml",
+                new MemberMembershipController(context, this)), "My membership");
     }
 
     /** Returns the user-facing dashboard title for each supported account role. */
