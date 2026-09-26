@@ -3,6 +3,7 @@ package gymmie;
 import java.io.IOException;
 
 import gymmie.member.MemberMembershipController;
+import gymmie.member.MemberSessionBrowseController;
 import gymmie.model.Role;
 import gymmie.service.UserSession;
 import gymmie.trainer.CreateSessionController;
@@ -87,6 +88,16 @@ public final class Router {
     public void showMemberMembership() throws IOException {
         show(views.loadResource("/gymmie/member/view/Membership.fxml",
                 new MemberMembershipController(context, this)), "My membership");
+    }
+
+    /**
+     * Opens the Member's upcoming session browser.
+     *
+     * @throws IOException if the session browser view cannot be loaded.
+     */
+    public void showMemberSessions() throws IOException {
+        show(views.loadResource("/gymmie/member/view/Sessions.fxml",
+                new MemberSessionBrowseController(context, this)), "Browse sessions");
     }
 
     /** Returns the user-facing dashboard title for each supported account role. */
