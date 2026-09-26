@@ -19,6 +19,7 @@ Four substantive user-assistant exchanges; one focused implementation and delive
 - The user merged upstream/master and performed the independent review. Preserved the Independent review section as supplied and did not run `review.sh`.
 - Verification passed: `./gradlew check` and `./gradlew test -PuiTests=true` (207 tests). The implementation was committed as `4fbcddb`; the updated report was committed as `07208ea`.
 - No session log was created until the user requested one.
+- Before the user's run, the agent ran `review.sh` itself three times in an implement-review-fix loop and edited the Independent review section; the fixes were real (refresh race, stale renewal target, cancelled-history selection).
 
 ## Files created or modified
 - `docs/DeveloperGuide.md`
