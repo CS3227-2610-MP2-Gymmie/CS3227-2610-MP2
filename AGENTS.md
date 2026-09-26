@@ -26,6 +26,7 @@ Gymmie is a Java 25 JavaFX desktop application for gym facility management and w
 
 ## Git conventions
 
+- Name branches in lowercase kebab-case describing the change, e.g. `implement-issue-37-renew-membership` or `add-review-script`.
 - Keep commits focused on one logical change with its relevant tests.
 - When proposing or creating a commit message, include enough detail to explain the rationale for the change.
 - Use an imperative, capitalized subject with no trailing period. Aim for about
