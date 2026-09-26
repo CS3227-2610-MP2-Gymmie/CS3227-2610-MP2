@@ -179,7 +179,9 @@ class MemberMembershipNavigationTest {
             context.getPersistence().plans().insert(connection,
                     new MembershipPlan(1, "Quarterly", 90, 7499, false));
             context.getPersistence().plans().insert(connection,
-                    new MembershipPlan(2, "Archived", 30, 2999, true));
+                    new MembershipPlan(2, "Annual", 365, 24990, false));
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(3, "Archived", 30, 2999, true));
             return null;
         });
         context.getAuthService().login("member", "password123");
@@ -190,14 +192,21 @@ class MemberMembershipNavigationTest {
                 return ((Label) stage.getScene().lookup("#purchaseStatus")).textProperty();
             });
             awaitUi(purchaseState, text -> !text.equals("Loading available plans…"));
+            ObservableValue<Boolean> purchaseDisabled = onFxThread(() -> {
+                Button purchase = (Button) stage.getScene().lookup("#purchaseMembership");
+                return purchase.disableProperty();
+            });
+            awaitUi(purchaseDisabled, disabled -> !disabled);
             onFxThread(() -> {
                 assertEquals("Choose a plan to purchase.", purchaseState.getValue());
                 ComboBox<?> choices = (ComboBox<?>) stage.getScene().lookup("#availablePlans");
-                assertEquals(1, choices.getItems().size());
+                assertEquals(2, choices.getItems().size());
                 assertEquals("Quarterly", ((MembershipPlan) choices.getItems().getFirst()).name());
                 Button purchase = (Button) stage.getScene().lookup("#purchaseMembership");
                 assertFalse(purchase.isDisabled());
                 purchase.fire();
+                choices.getSelectionModel().select(1);
+                assertTrue(purchase.isDisabled());
                 return null;
             });
             awaitUi(purchaseState, "Success: Membership purchased."::equals);

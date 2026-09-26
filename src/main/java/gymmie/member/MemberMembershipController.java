@@ -25,6 +25,7 @@ public final class MemberMembershipController {
     private final Router router;
     private boolean hasActiveMembership;
     private boolean membershipStatusLoaded;
+    private boolean purchaseInProgress;
     @FXML
     private VBox membershipScreen;
     @FXML
@@ -153,10 +154,11 @@ public final class MemberMembershipController {
     @FXML
     private void purchaseMembership() {
         MembershipPlan selectedPlan = availablePlans.getValue();
-        if (purchaseMembership.isDisabled() || selectedPlan == null) {
+        if (purchaseInProgress || purchaseMembership.isDisabled() || selectedPlan == null) {
             return;
         }
-        purchaseMembership.setDisable(true);
+        purchaseInProgress = true;
+        updatePurchaseAvailability();
         purchaseStatus.info("Purchasing membership…");
         Task<Membership> task = new Task<>() {
             @Override
@@ -168,13 +170,15 @@ public final class MemberMembershipController {
             Membership purchased = task.getValue();
             hasActiveMembership = true;
             membershipStatusLoaded = true;
-            purchaseMembership.setDisable(true);
+            purchaseInProgress = false;
+            updatePurchaseAvailability();
             purchaseStatus.success("Membership purchased.");
             membershipPlan.setText("Plan: " + selectedPlan.name());
             membershipExpiry.setText("Expiry date: " + DisplayFormatters.date(purchased.expiryDate()));
             membershipStatus.info("Active");
         });
         task.setOnFailed(_ -> {
+            purchaseInProgress = false;
             purchaseStatus.error(task.getException(), "Unable to purchase this plan. Please try again.");
             updatePurchaseAvailability();
             returnToLoginIfSessionEnded();
@@ -186,7 +190,7 @@ public final class MemberMembershipController {
         if (purchaseMembership == null) {
             return;
         }
-        purchaseMembership.setDisable(!membershipStatusLoaded || hasActiveMembership
+        purchaseMembership.setDisable(purchaseInProgress || !membershipStatusLoaded || hasActiveMembership
                 || availablePlans.getValue() == null);
     }
 
