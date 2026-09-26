@@ -83,7 +83,17 @@ public final class UpcomingSessionsController {
         VBox roster = new VBox(8);
         roster.setId("roster-" + session.id());
         rosterButton.setOnAction(_ -> loadRoster(session.id(), rosterButton, roster));
-        card.getChildren().addAll(rosterButton, roster);
+        Button editButton = new Button("Edit session");
+        editButton.setId("editButton-" + session.id());
+        editButton.setAccessibleText("Edit session " + session.id());
+        editButton.setOnAction(_ -> {
+            try {
+                router.showEditSession(session);
+            } catch (IOException exception) {
+                status.error("Unable to open the session editor. Please try again.");
+            }
+        });
+        card.getChildren().addAll(rosterButton, roster, editButton);
         card.getStyleClass().add("card");
         return card;
     }

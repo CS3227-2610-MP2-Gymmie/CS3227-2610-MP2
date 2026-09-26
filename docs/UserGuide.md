@@ -45,6 +45,32 @@ Previous names are cleared while loading; if an error appears, activate the
 button again to retry. Only an active, signed-in Trainer can access rosters for
 their own sessions. Refreshing the session list closes all open rosters.
 
+#### Edit your training session
+
+On **Trainer dashboard → My upcoming sessions**, choose **Edit session** on the
+session's card. The form opens with its saved details.
+
+1. Correct the start date, local start time (**HH:mm**), duration, capacity, or description.
+2. Choose **Save changes**. **Success: Session changes saved.** confirms the edit.
+3. Choose **Back to upcoming sessions** to see the updated card.
+
+Use the mouse, or **Tab** / **Shift+Tab** to reach **Edit session** and press
+**Space**. The form supports the same calendar and keyboard controls as creation;
+**Tab** from the description reaches **Save changes**. Press **Space** to save,
+or **Enter** in the time, duration, or capacity field.
+
+The start must be in the future, duration must be **15–240 minutes**, and capacity
+must be **1–50** and at least the number of current bookings. Cancelled bookings
+do not count toward this minimum. Only an active Trainer can edit their own
+sessions; cancelled sessions cannot be edited. Validation errors retain your
+entries so you can correct and retry. Your session must not overlap another of
+your uncancelled sessions, including one already in progress. Both the start time
+and duration determine overlap. Back-to-back sessions are allowed: one may start
+exactly when another ends. Other Trainers' sessions do not block your schedule.
+
+Editing preserves existing bookings, and saved details remain after restarting
+Gymmie. Going back without saving discards changes made since the last save.
+
 #### Create a training session
 
 Log in as a Trainer and choose **Create session** on the **Trainer dashboard**.
@@ -70,6 +96,10 @@ also available with the mouse.
 Missing dates, invalid times, past or current start times, and values outside
 the numeric limits show an error. Correct the inputs and retry; failed submissions keep your inputs
 and do not create a session. Creation requires an active, signed-in Trainer.
+Creation also rejects a time range that overlaps another of your uncancelled
+sessions, including a session already in progress. Back-to-back sessions are
+allowed, and other Trainers' sessions do not block your schedule. An overlap
+error identifies the conflicting session; change the start time or duration and retry.
 Saved sessions remain after restarting Gymmie. Returning to the dashboard before
 submitting discards unsaved inputs.
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import gymmie.member.MemberMembershipController;
 import gymmie.model.Role;
+import gymmie.model.TrainingSession;
 import gymmie.service.UserSession;
 import gymmie.trainer.CreateSessionController;
 import gymmie.trainer.TrainerProfileController;
@@ -71,6 +72,17 @@ public final class Router {
     public void showCreateSession() throws IOException {
         show(views.loadResource("/gymmie/trainer/view/CreateSession.fxml",
                 new CreateSessionController(context, this)), "Create session");
+    }
+
+    /**
+     * Opens the session editor; saving rechecks authorization and current booking capacity.
+     *
+     * @param session session selected from the Trainer's upcoming list.
+     * @throws IOException if the view cannot be loaded.
+     */
+    public void showEditSession(TrainingSession session) throws IOException {
+        show(views.loadResource("/gymmie/trainer/view/CreateSession.fxml",
+                new CreateSessionController(context, this, session)), "Edit session");
     }
 
     /**
