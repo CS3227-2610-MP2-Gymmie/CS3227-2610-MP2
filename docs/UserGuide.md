@@ -107,9 +107,16 @@ name, and its expiry date.
 **Active** means the membership covers today; the expiry date is included. An
 archived plan still appears by name while its membership covers today.
 
-If you have no membership covering today, the card shows **Inactive — no current
-membership.** Plan and expiry date show a dash. Expired, cancelled, and future
-memberships do not make you active.
+If your latest membership has expired, the screen shows its plan and expiry date
+with **Expired** status. Select **Renew current plan** to extend that membership.
+Renewal keeps the same plan, including when the plan is archived, and adds its
+saved duration from the later of today or the current expiry date. You cannot
+switch plans as part of a renewal.
+
+If there is no started, non-cancelled membership, the card shows **Inactive — no
+current membership.** Plan and expiry date show a dash. A cancelled or future
+membership does not make you active or available to renew. An expired membership
+does not make you active, but remains available to renew.
 
 While loading, previous details are cleared. If loading fails, the card shows an
 error; select **Refresh** to try again. If your session has ended, sign in again.

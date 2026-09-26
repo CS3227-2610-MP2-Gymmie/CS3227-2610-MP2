@@ -15,6 +15,9 @@
             <Label fx:id="membershipPlan" text="Plan: —" styleClass="membership-plan" wrapText="true" />
             <Label fx:id="membershipExpiry" text="Expiry date: —" wrapText="true" />
             <Button fx:id="refreshMembership" text="_Refresh" onAction="#refreshMembership" />
+            <Button fx:id="renewMembership" text="_Renew current plan" onAction="#renewMembership"
+                    disable="true" />
+            <StatusLabel fx:id="renewalStatus" />
         </VBox>
         <VBox maxWidth="560" spacing="10" styleClass="card">
             <Label text="Buy a membership" styleClass="heading" />

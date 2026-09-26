@@ -52,11 +52,38 @@ public final class MembershipStatusService {
     }
 
     /**
+     * Finds current coverage or the latest started membership available to renew.
+     *
+     * @return latest non-cancelled membership details, or empty when none can be renewed.
+     * @throws Exception if authorization or storage access fails.
+     */
+    public Optional<RenewableMembership> renewableMembership() throws Exception {
+        return unitOfWork.inTransaction(connection -> {
+            Account account = permissions.requireRole(connection, Role.MEMBER);
+            LocalDate today = LocalDate.now(clock);
+            Member member = new Member(account, memberships.findByMemberId(connection, account.id()));
+            Optional<Membership> latest = MembershipRenewalSelection.findTarget(member, today);
+            if (latest.isEmpty()) {
+                return Optional.empty();
+            }
+            Membership membership = latest.orElseThrow();
+            String planName = plans.findById(connection, membership.planId()).orElseThrow().name();
+            return Optional.of(new RenewableMembership(membership.id(), planName, membership.expiryDate(),
+                    membership.isActiveOn(today)));
+        });
+    }
+
+    /**
      * Read-only details of the membership covering today.
      *
      * @param planName current catalogue name, including archived plans.
      * @param expiryDate last covered local date.
      */
     public record CurrentMembership(String planName, LocalDate expiryDate) {
+    }
+
+    /** Read-only details of the latest started membership and whether it covers today. */
+    public record RenewableMembership(long membershipId, String planName, LocalDate expiryDate,
+            boolean activeToday) {
     }
 }

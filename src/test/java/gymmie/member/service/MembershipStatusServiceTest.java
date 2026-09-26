@@ -1,6 +1,7 @@
 package gymmie.member.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,6 +81,27 @@ class MembershipStatusServiceTest {
         insert(membership(2, TODAY, TODAY.plusDays(30), MembershipStatus.CANCELLED));
         insert(membership(3, TODAY.plusDays(1), TODAY.plusDays(31), MembershipStatus.ACTIVE));
         assertTrue(service(TODAY).currentMembership().isEmpty());
+    }
+
+    @Test
+    void renewableMembershipShowsExpiredArchivedPlanAndSkipsFutureMembership() throws Exception {
+        insert(membership(1, TODAY.plusDays(1), TODAY.plusDays(31), MembershipStatus.ACTIVE));
+        assertTrue(service(TODAY).renewableMembership().isEmpty());
+        insert(membership(2, TODAY.minusDays(40), TODAY.minusDays(10), MembershipStatus.EXPIRED));
+        persistence.unitOfWork().inTransaction(connection -> {
+            persistence.plans().insert(connection, new MembershipPlan(2, "Cancelled plan", 30, 5990, false));
+            persistence.memberships().insert(connection,
+                    new Membership(3, member.id(), 2, TODAY.minusDays(5), TODAY.plusDays(25),
+                            MembershipStatus.CANCELLED, 5990, 30));
+            return null;
+        });
+
+        var renewable = service(TODAY).renewableMembership().orElseThrow();
+
+        assertEquals(2, renewable.membershipId());
+        assertEquals("Monthly", renewable.planName());
+        assertEquals(TODAY.minusDays(10), renewable.expiryDate());
+        assertFalse(renewable.activeToday());
     }
 
     @Test

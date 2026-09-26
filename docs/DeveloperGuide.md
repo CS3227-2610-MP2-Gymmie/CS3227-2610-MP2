@@ -93,7 +93,7 @@ The `gymmie.model` package uses Java records and composition. `Account` represen
 
 - Record constructors enforce field constraints, non-null required fields, and positive identifiers. Callers allocate identifiers before construction. Username matching uses an ASCII-only, locale-independent key while preserving the original spelling. Display-name and password lengths count Unicode code points, without trimming or normalizing the supplied values.
 - `PasswordHash.fromPassword` validates the 8–128-character password and creates a PBKDF2-HMAC-SHA256 hash with 600,000 iterations, a random 16-byte salt, and a 32-byte output. `Account` holds this value rather than plaintext. Persist `hash()` and `salt()` in the existing account columns; their Base64 contents are validated on rehydration and redacted from `toString()`. The current format has fixed algorithm parameters; changing them will require a versioned credential format or migration.
-- `MembershipPlan` holds integer cents and duration days. `Membership.purchase` copies those values into the membership snapshot; subsequent catalogue changes do not affect it. New purchases reject archived plans. The expiry date is the purchase date plus the purchased duration, matching the renewal rule of adding days to the later of today and the existing expiry date. Coverage includes the expiry date.
+- `MembershipPlan` holds integer cents and duration days. `Membership.purchase` copies those values into the membership snapshot; subsequent catalogue changes do not affect it. New purchases reject archived plans. The expiry date is the purchase date plus the purchased duration. `Membership.renew` preserves the plan and snapshots, and adds the saved duration to the later of today and the existing expiry date. Coverage includes the expiry date.
 - `Membership.isActiveOn` derives eligibility from lifecycle state and the start/expiry dates. An `ACTIVE` database record can therefore be inactive after expiry without rewriting history. `Member.activeMembership`, `planId`, and `status` derive current membership information from those records. Account activation remains a separate login concern.
 - `Member` defensively copies its history and rejects foreign ownership, duplicate membership IDs, and overlapping date ranges among `ACTIVE` records, including future overlaps and a shared expiry day. Non-overlapping periods and cancelled history are allowed. Repositories must load the complete history and services must rebuild the aggregate when replacing or adding memberships; a partial history cannot establish this invariant across the database.
 - `TrainingSession` permits historical start times for loading history. `hasStartedAt` includes the exact start time. The no-argument time methods use `LocalDate.now()` or `LocalDateTime.now()`, hence the system's local time zone. Explicit date/time variants allow deterministic boundary tests.
@@ -242,17 +242,22 @@ navigation visibility. `TrainerNavigationTest` writes a preview to
 
 Member membership services and their tests live in
 `gymmie.member.service` and `src/test/java/gymmie/member/service`. The
-`MembershipStatusService` and `MembershipPurchaseService` enforce the Member
-role using the shared `Permissions` boundary. They use the common membership
+`MembershipStatusService`, `MembershipPurchaseService`, and
+`MembershipRenewalService` enforce the Member role using the shared
+`Permissions` boundary. Renewal extends current coverage when it exists, or
+otherwise the latest started non-cancelled membership, including an archived
+plan. It uses the membership repository's expiry update while retaining the
+original plan and purchase snapshots. These services use the common membership
 models and repositories; plan and membership records remain shared persistence
 concerns rather than role-specific copies.
 
 `MemberMembershipController` and its FXML and CSS live under
 `gymmie.member` and `src/main/resources/gymmie/member`. The Gym User dashboard
 keeps a Member-only **My membership** entry point, while `Router` opens the
-membership screen. The screen reads current coverage, lists unarchived plans,
-and purchases a plan through the Member services. Visibility only controls
-navigation; service authorization remains authoritative.
+membership screen. The screen shows the latest started membership, renews that
+plan, lists unarchived plans, and purchases a plan through the Member services.
+Visibility only controls navigation; service authorization remains
+authoritative.
 
 ## Appendix: Requirements
 

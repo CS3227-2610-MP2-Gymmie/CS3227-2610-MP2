@@ -105,7 +105,7 @@ class MemberMembershipNavigationTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void emptyAndExpiredHistoryShowInactiveWithoutStaleDetails(boolean expiredHistory) throws Exception {
+    void emptyHistoryIsInactiveAndExpiredHistoryCanBeRenewed(boolean expiredHistory) throws Exception {
         LocalDate today = LocalDate.now();
         AppContext context = contextWithMember(temporaryDirectory.resolve("inactive-" + expiredHistory + ".db"));
         if (expiredHistory) {
@@ -125,10 +125,19 @@ class MemberMembershipNavigationTest {
                 openMemberMembershipScreen(stage, context);
                 return ((Label) stage.getScene().lookup("#membershipStatus")).textProperty();
             });
-            awaitUi(state, text -> text.startsWith("Inactive"));
+            awaitUi(state, text -> expiredHistory ? text.equals("Expired") : text.startsWith("Inactive"));
             onFxThread(() -> {
-                assertEquals("Plan: —", ((Label) stage.getScene().lookup("#membershipPlan")).getText());
-                assertEquals("Expiry date: —", ((Label) stage.getScene().lookup("#membershipExpiry")).getText());
+                if (expiredHistory) {
+                    Label plan = (Label) stage.getScene().lookup("#membershipPlan");
+                    Label expiry = (Label) stage.getScene().lookup("#membershipExpiry");
+                    assertEquals("Plan: Past plan", plan.getText());
+                    assertEquals("Expiry date: " + DisplayFormatters.date(today.minusDays(1)), expiry.getText());
+                    assertFalse(((Button) stage.getScene().lookup("#renewMembership")).isDisabled());
+                } else {
+                    assertEquals("Plan: —", ((Label) stage.getScene().lookup("#membershipPlan")).getText());
+                    assertEquals("Expiry date: —", ((Label) stage.getScene().lookup("#membershipExpiry")).getText());
+                    assertTrue(((Button) stage.getScene().lookup("#renewMembership")).isDisabled());
+                }
                 return null;
             });
         } finally {
@@ -220,6 +229,211 @@ class MemberMembershipNavigationTest {
             assertEquals(1, saved.planId());
             assertEquals(7499, saved.snapshotPriceCents());
             assertEquals(90, saved.snapshotDurationDays());
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void memberCanRenewCurrentMembershipFromItsArchivedPlan() throws Exception {
+        LocalDate today = LocalDate.now();
+        LocalDate expiry = today.minusDays(1);
+        AppContext context = contextWithMember(temporaryDirectory.resolve("renew-membership.db"));
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(1, "Archived monthly", 90, 9900, true));
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(2, "Available monthly", 30, 4990, false));
+            context.getPersistence().memberships().insert(connection,
+                    new Membership(1, 2, 1, today.minusDays(31), expiry, MembershipStatus.ACTIVE, 4990, 30));
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<Boolean> renewalDisabled = onFxThread(() -> {
+                openMemberMembershipScreen(stage, context);
+                return ((Button) stage.getScene().lookup("#renewMembership")).disableProperty();
+            });
+            awaitUi(renewalDisabled, disabled -> !disabled);
+            ObservableValue<Boolean> purchaseDisabled = onFxThread(() -> {
+                Button purchase = (Button) stage.getScene().lookup("#purchaseMembership");
+                return purchase.disableProperty();
+            });
+            awaitUi(purchaseDisabled, disabled -> !disabled);
+            ObservableValue<String> renewalStatus = onFxThread(() -> ((Label) stage.getScene()
+                    .lookup("#renewalStatus")).textProperty());
+            onFxThread(() -> {
+                Label plan = (Label) stage.getScene().lookup("#membershipPlan");
+                Button renew = (Button) stage.getScene().lookup("#renewMembership");
+                Button purchase = (Button) stage.getScene().lookup("#purchaseMembership");
+                Button refresh = (Button) stage.getScene().lookup("#refreshMembership");
+                assertEquals("Plan: Archived monthly", plan.getText());
+                renew.fire();
+                assertTrue(purchase.isDisabled());
+                assertTrue(refresh.isDisabled());
+                return null;
+            });
+            awaitUi(renewalStatus, "Success: Membership renewed."::equals);
+            ObservableValue<String> purchaseStatus = onFxThread(() -> ((Label) stage.getScene()
+                    .lookup("#purchaseStatus")).textProperty());
+            awaitUi(purchaseStatus, "You already have an active membership."::equals);
+
+            Membership renewed = context.getPersistence().unitOfWork().inTransaction(connection ->
+                    context.getPersistence().memberships().findById(connection, 1).orElseThrow());
+            assertEquals(today.plusDays(30), renewed.expiryDate());
+            assertEquals(1, renewed.planId());
+            assertEquals(4990, renewed.snapshotPriceCents());
+            assertEquals(30, renewed.snapshotDurationDays());
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void renewalFailureShowsFeedbackAndRestoresActions() throws Exception {
+        LocalDate today = LocalDate.now();
+        AppContext context = contextWithMember(temporaryDirectory.resolve("renewal-failure.db"));
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(1, "Past plan", 30, 4990, false));
+            context.getPersistence().memberships().insert(connection,
+                    new Membership(1, 2, 1, today.minusDays(31), today.minusDays(1),
+                            MembershipStatus.ACTIVE, 4990, 30));
+            try (var statement = connection.createStatement()) {
+                statement.execute("CREATE TRIGGER fail_membership_renewal BEFORE UPDATE ON membership "
+                        + "BEGIN SELECT RAISE(ABORT, 'forced renewal failure'); END");
+            }
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<Boolean> renewalDisabled = onFxThread(() -> {
+                openMemberMembershipScreen(stage, context);
+                return ((Button) stage.getScene().lookup("#renewMembership")).disableProperty();
+            });
+            awaitUi(renewalDisabled, disabled -> !disabled);
+            ObservableValue<String> renewalStatus = onFxThread(() -> ((Label) stage.getScene()
+                    .lookup("#renewalStatus")).textProperty());
+            onFxThread(() -> {
+                Button renew = (Button) stage.getScene().lookup("#renewMembership");
+                Button refresh = (Button) stage.getScene().lookup("#refreshMembership");
+                renew.fire();
+                assertTrue(refresh.isDisabled());
+                return null;
+            });
+            awaitUi(renewalStatus, text -> text.startsWith("Error:"));
+            awaitUi(renewalDisabled, disabled -> !disabled);
+            onFxThread(() -> {
+                assertFalse(((Button) stage.getScene().lookup("#refreshMembership")).isDisabled());
+                assertFalse(((Button) stage.getScene().lookup("#purchaseMembership")).isDisabled());
+                return null;
+            });
+            Membership unchanged = context.getPersistence().unitOfWork().inTransaction(connection ->
+                    context.getPersistence().memberships().findById(connection, 1).orElseThrow());
+            assertEquals(today.minusDays(1), unchanged.expiryDate());
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void failedRefreshClearsPreviouslyLoadedMembershipAndDisablesRenewal() throws Exception {
+        LocalDate today = LocalDate.now();
+        AppContext context = contextWithMember(temporaryDirectory.resolve("refresh-failure.db"));
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(1, "Past plan", 30, 4990, false));
+            context.getPersistence().memberships().insert(connection,
+                    new Membership(1, 2, 1, today.minusDays(31), today.minusDays(1),
+                            MembershipStatus.ACTIVE, 4990, 30));
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<Boolean> renewalDisabled = onFxThread(() -> {
+                openMemberMembershipScreen(stage, context);
+                return ((Button) stage.getScene().lookup("#renewMembership")).disableProperty();
+            });
+            awaitUi(renewalDisabled, disabled -> !disabled);
+            ObservableValue<String> membershipStatus = onFxThread(() -> ((Label) stage.getScene()
+                    .lookup("#membershipStatus")).textProperty());
+            context.getPersistence().unitOfWork().inTransaction(connection -> {
+                try (var statement = connection.createStatement()) {
+                    statement.execute("DROP TABLE membership");
+                }
+                return null;
+            });
+            onFxThread(() -> {
+                Button refresh = (Button) stage.getScene().lookup("#refreshMembership");
+                Button renew = (Button) stage.getScene().lookup("#renewMembership");
+                refresh.fire();
+                assertTrue(renew.isDisabled());
+                return null;
+            });
+            awaitUi(membershipStatus, text -> text.startsWith("Error:"));
+            onFxThread(() -> {
+                assertEquals("Plan: —", ((Label) stage.getScene().lookup("#membershipPlan")).getText());
+                assertEquals("Expiry date: —", ((Label) stage.getScene().lookup("#membershipExpiry")).getText());
+                assertTrue(((Button) stage.getScene().lookup("#renewMembership")).isDisabled());
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void purchaseInProgressDisablesRenewalAction() throws Exception {
+        LocalDate today = LocalDate.now();
+        AppContext context = contextWithMember(temporaryDirectory.resolve("purchase-disables-renewal.db"));
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(1, "Current plan", 30, 4990, false));
+            context.getPersistence().plans().insert(connection,
+                    new MembershipPlan(2, "Other plan", 90, 9900, false));
+            context.getPersistence().memberships().insert(connection,
+                    new Membership(1, 2, 1, today.minusDays(31), today.minusDays(1), MembershipStatus.ACTIVE,
+                            4990, 30));
+            return null;
+        });
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<String> purchaseStatus = onFxThread(() -> {
+                openMemberMembershipScreen(stage, context);
+                return ((Label) stage.getScene().lookup("#purchaseStatus")).textProperty();
+            });
+            awaitUi(purchaseStatus, "Choose a plan to purchase."::equals);
+            ObservableValue<Boolean> purchaseDisabled = onFxThread(() -> {
+                Button purchase = (Button) stage.getScene().lookup("#purchaseMembership");
+                return purchase.disableProperty();
+            });
+            awaitUi(purchaseDisabled, disabled -> !disabled);
+            onFxThread(() -> {
+                Button purchase = (Button) stage.getScene().lookup("#purchaseMembership");
+                Button renew = (Button) stage.getScene().lookup("#renewMembership");
+                Button refresh = (Button) stage.getScene().lookup("#refreshMembership");
+                purchase.fire();
+                assertTrue(renew.isDisabled());
+                assertTrue(refresh.isDisabled());
+                return null;
+            });
+            awaitUi(purchaseStatus, "Success: Membership purchased."::equals);
         } finally {
             onFxThread(() -> {
                 stage.close();

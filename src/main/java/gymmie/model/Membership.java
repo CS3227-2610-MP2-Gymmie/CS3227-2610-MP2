@@ -75,6 +75,24 @@ public record Membership(long id, long memberId, long planId, LocalDate startDat
                 MembershipStatus.ACTIVE, plan.priceCents(), plan.durationDays());
     }
 
+    /**
+     * Renews this membership using its saved duration, preserving any remaining coverage.
+     *
+     * @param today local renewal date.
+     * @return renewed membership with the same plan and purchase terms.
+     * @throws ConflictException if this membership was cancelled.
+     * @throws ValidationException if today is null.
+     */
+    public Membership renew(LocalDate today) {
+        Constraints.required(today, "Renewal date");
+        if (status == MembershipStatus.CANCELLED) {
+            throw new ConflictException("A cancelled membership cannot be renewed");
+        }
+        LocalDate renewalStart = expiryDate.isAfter(today) ? expiryDate : today;
+        return new Membership(id, memberId, planId, startDate, renewalStart.plusDays(snapshotDurationDays),
+                MembershipStatus.ACTIVE, snapshotPriceCents, snapshotDurationDays);
+    }
+
     /** Returns whether this membership is active on the local system date. */
     public boolean isActive() {
         return isActiveOn(LocalDate.now());

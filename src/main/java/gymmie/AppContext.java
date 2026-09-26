@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 
 import gymmie.member.service.MembershipPurchaseService;
+import gymmie.member.service.MembershipRenewalService;
 import gymmie.member.service.MembershipStatusService;
 import gymmie.persistence.Database;
 import gymmie.persistence.Persistence;
@@ -25,6 +26,7 @@ public final class AppContext {
     private final Permissions permissions;
     private final MembershipStatusService membershipStatusService;
     private final MembershipPurchaseService membershipPurchaseService;
+    private final MembershipRenewalService membershipRenewalService;
     private final ProfileService profileService;
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
@@ -56,6 +58,8 @@ public final class AppContext {
                 persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         membershipPurchaseService = new MembershipPurchaseService(persistence.plans(), persistence.memberships(),
                 persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
+        membershipRenewalService = new MembershipRenewalService(persistence.memberships(), persistence.unitOfWork(),
+                permissions, Clock.systemDefaultZone());
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
         trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.unitOfWork(),
@@ -93,6 +97,11 @@ public final class AppContext {
     /** Returns the protected service for purchasing available membership plans. */
     public MembershipPurchaseService getMembershipPurchaseService() {
         return membershipPurchaseService;
+    }
+
+    /** Returns the protected service for renewing a Member's existing plan. */
+    public MembershipRenewalService getMembershipRenewalService() {
+        return membershipRenewalService;
     }
 
     public AuthService getAuthService() {
