@@ -45,6 +45,7 @@
 
 ## Independent review
 
+[Filled by a separate read-only reviewer. Do not write this section yourself.]
 
 ## User corrections
 
