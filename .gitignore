@@ -3,3 +3,5 @@ build/
 .idea/
 data/
 .vscode/
+/evals/**/__pycache__/
+/evals/**/*.py[cod]

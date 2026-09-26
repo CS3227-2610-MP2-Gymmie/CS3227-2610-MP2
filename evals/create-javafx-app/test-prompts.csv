@@ -1,0 +1,5 @@
+id,category,expected_trigger,prompt
+test-01,explicit,true,"Use the $create-javafx-app skill to create a JavaFX app named Gymmie"
+test-02,implicit,true,"Set up a new JavaFX desktop app called Gymmie"
+test-03,contextual,true,"Create a small desktop app called Gymmie using Gradle, with its interface defined in FXML and styled with CSS."
+test-04,negative,false,"Add a settings screen to my existing JavaFX app, Gymmie"
