@@ -3,6 +3,7 @@ package gymmie;
 import java.nio.file.Path;
 import java.time.Clock;
 
+import gymmie.member.service.MemberBookingCancellationService;
 import gymmie.member.service.MemberBookingHistoryService;
 import gymmie.member.service.MemberSessionBookingService;
 import gymmie.member.service.MemberSessionBrowseService;
@@ -34,6 +35,7 @@ public final class AppContext {
     private final MembershipRenewalService membershipRenewalService;
     private final MembershipCancellationService membershipCancellationService;
     private final MemberBookingHistoryService memberBookingHistoryService;
+    private final MemberBookingCancellationService memberBookingCancellationService;
     private final MemberSessionBrowseService memberSessionBrowseService;
     private final MemberSessionBookingService memberSessionBookingService;
     private final ProfileService profileService;
@@ -74,7 +76,9 @@ public final class AppContext {
                 persistence.bookings(), persistence.sessions(), persistence.unitOfWork(), permissions,
                 Clock.systemDefaultZone());
         memberBookingHistoryService = new MemberBookingHistoryService(persistence.bookings(), persistence.sessions(),
-                persistence.unitOfWork(), permissions);
+                persistence.accounts(), persistence.unitOfWork(), permissions);
+        memberBookingCancellationService = new MemberBookingCancellationService(persistence.bookings(),
+                persistence.sessions(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         memberSessionBrowseService = new MemberSessionBrowseService(persistence.accounts(), persistence.sessions(),
                 persistence.bookings(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         memberSessionBookingService = new MemberSessionBookingService(persistence.memberships(), persistence.sessions(),
@@ -138,6 +142,11 @@ public final class AppContext {
     /** Returns the Member-authorized booking-history reader. */
     public MemberBookingHistoryService getMemberBookingHistoryService() {
         return memberBookingHistoryService;
+    }
+
+    /** Returns the Member-authorized upcoming booking cancellation service. */
+    public MemberBookingCancellationService getMemberBookingCancellationService() {
+        return memberBookingCancellationService;
     }
 
     /** Returns the Member-authorized reader for upcoming sessions by Trainer. */
