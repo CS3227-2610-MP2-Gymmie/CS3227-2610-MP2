@@ -43,6 +43,15 @@ public interface MembershipPlanRepository {
     List<MembershipPlan> findAllAvailable(Connection connection) throws SQLException;
 
     /**
+     * Finds the next plan identifier within the caller's transaction.
+     *
+     * @param connection caller-owned connection.
+     * @return next positive plan identifier.
+     * @throws SQLException if reading plan identifiers fails.
+     */
+    long nextId(Connection connection) throws SQLException;
+
+    /**
      * Inserts a plan with integer-cent pricing.
      *
      * @param connection caller-owned connection.

@@ -37,6 +37,12 @@ public final class SqliteMembershipPlanRepository implements MembershipPlanRepos
     }
 
     @Override
+    public long nextId(Connection connection) throws SQLException {
+        return SqliteQueries.read(connection, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM membership_plan",
+                row -> row.getLong("next_id")).getFirst();
+    }
+
+    @Override
     public void insert(Connection connection, MembershipPlan plan) throws SQLException {
         SqliteQueries.writeOne(connection,
                 "INSERT INTO membership_plan (id, name, duration_days, price_cents, archived) VALUES (?, "

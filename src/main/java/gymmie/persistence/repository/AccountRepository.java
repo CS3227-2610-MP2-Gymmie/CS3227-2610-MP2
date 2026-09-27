@@ -56,6 +56,15 @@ public interface AccountRepository {
     List<Account> findAllActive(Connection connection) throws SQLException;
 
     /**
+     * Finds the next account identifier within the caller's transaction.
+     *
+     * @param connection caller-owned connection.
+     * @return next positive account identifier.
+     * @throws SQLException if reading account identifiers fails.
+     */
+    long nextId(Connection connection) throws SQLException;
+
+    /**
      * Inserts an account, enforcing globally unique, case-insensitive usernames across all roles.
      *
      * @param connection caller-owned connection.

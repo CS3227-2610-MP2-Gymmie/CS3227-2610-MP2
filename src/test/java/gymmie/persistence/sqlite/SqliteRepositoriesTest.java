@@ -433,6 +433,49 @@ class SqliteRepositoriesTest {
         }
     }
 
+    @Test
+    void nextIdReturnsNextSequentialIdentifierAcrossRepositories() throws Exception {
+        persistence.unitOfWork().inTransaction(connection -> {
+            assertEquals(4, persistence.accounts().nextId(connection));
+            assertEquals(2, persistence.plans().nextId(connection));
+            assertEquals(2, persistence.memberships().nextId(connection));
+            assertEquals(5, persistence.bookings().nextId(connection));
+            return null;
+        });
+    }
+
+    @Test
+    void nextIdIncrementsWithNewInsertsAcrossRepositories() throws Exception {
+        persistence.unitOfWork().inTransaction(connection -> {
+            assertEquals(4, persistence.accounts().nextId(connection));
+            assertEquals(2, persistence.plans().nextId(connection));
+
+            long accountId = persistence.accounts().nextId(connection);
+            persistence.accounts().insert(connection, new Account(accountId, "new_user", PASSWORD,
+                    "New User", Role.MEMBER, true));
+            assertEquals(5, persistence.accounts().nextId(connection));
+
+            long planId = persistence.plans().nextId(connection);
+            persistence.plans().insert(connection, new MembershipPlan(planId, "New Plan", 60, 5000, false));
+            assertEquals(3, persistence.plans().nextId(connection));
+            return null;
+        });
+    }
+
+    @Test
+    void nextIdReturnsOneWhenRepositoryIsEmpty() throws Exception {
+        Database emptyDatabase = new Database(temporaryDirectory.resolve("data/empty.db"));
+        Persistence emptyPersistence = new Persistence(emptyDatabase);
+        emptyPersistence.initialize();
+        emptyPersistence.unitOfWork().inTransaction(connection -> {
+            assertEquals(1, emptyPersistence.accounts().nextId(connection));
+            assertEquals(1, emptyPersistence.plans().nextId(connection));
+            assertEquals(1, emptyPersistence.memberships().nextId(connection));
+            assertEquals(1, emptyPersistence.bookings().nextId(connection));
+            return null;
+        });
+    }
+
     private Persistence reopen() throws SQLException {
         Persistence reopened = new Persistence(new Database(databasePath));
         reopened.initialize();
