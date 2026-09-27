@@ -2,6 +2,7 @@ package gymmie;
 
 import java.io.IOException;
 
+import gymmie.manager.ManagerAccountsController;
 import gymmie.manager.ManagerPlansController;
 import gymmie.member.MemberBookingsController;
 import gymmie.member.MemberMembershipController;
@@ -65,6 +66,16 @@ public final class Router {
     public void showManagerPlans() throws IOException {
         show(views.loadResource("/gymmie/manager/view/Plans.fxml",
                 new ManagerPlansController(context, this)), "Membership plans");
+    }
+
+    /**
+     * Opens the Manager's account provisioning and management screen.
+     *
+     * @throws IOException if the view cannot be loaded.
+     */
+    public void showManagerAccounts() throws IOException {
+        show(views.loadResource("/gymmie/manager/view/Accounts.fxml",
+                new ManagerAccountsController(context, this)), "Manage accounts");
     }
 
     /**

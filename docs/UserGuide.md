@@ -49,6 +49,44 @@ Log in as a Manager and choose **Manage membership plans** on the **Manager dash
 3. If the plan has existing purchase history, Gymmie preserves member history and
    automatically archives the plan instead of deleting it.
 
+#### Provision and manage accounts
+
+Log in as a Manager and choose **Manage accounts** on the **Manager dashboard**.
+
+##### View all accounts
+1. View all system accounts in the list. Each card displays the account's display name,
+   username prefixed with `@`, role badge (`TRAINER`, `MEMBER`, or `MANAGER`), and
+   an **ACTIVE** or **DEACTIVATED** status badge.
+2. Deactivated accounts are visually distinguished with a tinted card background and a
+   red status badge.
+3. Choose **Refresh** to reload the account list from storage.
+4. Choose **Back to dashboard** to return to the Manager dashboard.
+
+##### Provision a new account
+1. In the **Provision new account** card, enter:
+   - **Username**: A unique ASCII login name of 3–30 letters, digits, hyphens or underscores (e.g., `trainer_john`).
+   - **Password**: A password of 8–128 characters.
+   - **Display name**: A display name of 1–100 characters (e.g., `John Doe`).
+   - **Role**: Select `TRAINER` or `MEMBER`.
+2. Choose **Provision account** or press **Enter** in any form field.
+3. A success confirmation confirms creation, and the new account appears in the list.
+
+##### Edit an account's display name
+1. Find any account in the list and choose its **Edit** button.
+2. The form updates to **Edit account: <username>** with the username and role locked, and the
+   display name loaded for editing.
+3. Update the display name and choose **Save changes** (or **Cancel edit** to discard).
+
+##### Deactivate or reactivate an account
+1. To disable an active Trainer or Member account, choose **Deactivate** on the account's card.
+   - The account status changes to **DEACTIVATED**.
+   - If the account is a Member with future session bookings, all upcoming bookings are
+     automatically cancelled in the same operation with the reason recorded as `Account deactivated`.
+   - The seeded Manager account cannot be deactivated.
+2. To restore access to a deactivated account, choose **Reactivate** on its card.
+   - The account status updates back to **ACTIVE**.
+   - Previously cancelled bookings are not re-created upon reactivation.
+
 ### Trainer
 
 #### View your upcoming sessions
