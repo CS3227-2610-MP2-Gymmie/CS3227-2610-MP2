@@ -16,7 +16,7 @@ import gymmie.persistence.repository.TrainingSessionRepository;
  */
 public final class SqliteTrainingSessionRepository implements TrainingSessionRepository {
     private static final String SELECT =
-            "SELECT id, trainer_id, starts_at, duration_minutes, capacity, description, cancelled "
+            "SELECT id, trainer_id, starts_at, duration_minutes, capacity, description, cancelled, cancellation_reason "
                     + "FROM training_session";
 
     @Override
@@ -62,18 +62,18 @@ public final class SqliteTrainingSessionRepository implements TrainingSessionRep
     public void insert(Connection connection, TrainingSession session) throws SQLException {
         SqliteQueries.writeOne(connection,
                 "INSERT INTO training_session (id, trainer_id, starts_at, duration_minutes, capacity, "
-                        + "description, cancelled) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        + "description, cancelled, cancellation_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 session.id(), session.trainerId(), session.startsAt(), session.durationMinutes(),
-                session.capacity(), session.description(), session.cancelled());
+                session.capacity(), session.description(), session.cancelled(), session.cancellationReason());
     }
 
     @Override
     public void update(Connection connection, TrainingSession session) throws SQLException {
         SqliteQueries.writeOne(connection,
                 "UPDATE training_session SET starts_at = ?, duration_minutes = ?, capacity = ?, "
-                        + "description = ?, cancelled = ? WHERE id = ? AND trainer_id = ?",
+                        + "description = ?, cancelled = ?, cancellation_reason = ? WHERE id = ? AND trainer_id = ?",
                 session.startsAt(), session.durationMinutes(), session.capacity(), session.description(),
-                session.cancelled(), session.id(), session.trainerId());
+                session.cancelled(), session.cancellationReason(), session.id(), session.trainerId());
     }
 
     @Override
@@ -87,6 +87,7 @@ public final class SqliteTrainingSessionRepository implements TrainingSessionRep
     private static TrainingSession map(ResultSet row) throws SQLException {
         return new TrainingSession(row.getLong("id"), row.getLong("trainer_id"),
                 LocalDateTime.parse(row.getString("starts_at")), row.getInt("duration_minutes"),
-                row.getInt("capacity"), row.getString("description"), row.getBoolean("cancelled"));
+                row.getInt("capacity"), row.getString("description"), row.getBoolean("cancelled"),
+                row.getString("cancellation_reason"));
     }
 }

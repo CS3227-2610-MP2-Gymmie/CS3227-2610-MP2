@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public final class SchemaInitializer {
     /** The schema version created by the current schema resource. */
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int CURRENT_SCHEMA_VERSION = 3;
 
     private static final String SCHEMA_RESOURCE = "/gymmie/db/schema.sql";
 
@@ -62,6 +62,9 @@ public final class SchemaInitializer {
             }
             if (version < 2) {
                 applySchema(connection, "/gymmie/trainer/db/trainer-profile.sql");
+            }
+            if (version < 3) {
+                applySchema(connection, "/gymmie/trainer/db/session-cancellation.sql");
                 setCurrentUserVersion(connection);
             }
             if (ownsTransaction) {

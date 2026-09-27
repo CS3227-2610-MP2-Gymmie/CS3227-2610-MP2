@@ -18,6 +18,7 @@ public final class TrainingSessionBuilder {
     private int capacity = 10;
     private String description = "Test session";
     private boolean cancelled = false;
+    private String cancellationReason;
 
     /** Creates a builder with valid defaults. */
     public TrainingSessionBuilder() {}
@@ -35,6 +36,7 @@ public final class TrainingSessionBuilder {
         capacity = source.capacity();
         description = source.description();
         cancelled = source.cancelled();
+        cancellationReason = source.cancellationReason();
     }
 
     /**
@@ -120,6 +122,7 @@ public final class TrainingSessionBuilder {
      * @return the fixture record.
      */
     public TrainingSession build() {
-        return new TrainingSession(id, trainerId, startsAt, durationMinutes, capacity, description, cancelled);
+        return new TrainingSession(id, trainerId, startsAt, durationMinutes, capacity, description, cancelled,
+                cancellationReason);
     }
 }

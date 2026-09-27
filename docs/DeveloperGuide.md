@@ -274,6 +274,24 @@ plan, lists unarchived plans, and purchases a plan through the Member services.
 Visibility only controls navigation; service authorization remains
 authoritative.
 
+### Trainer session cancellation persistence
+
+Schema version 3 adds nullable `training_session.cancellation_reason`. Existing
+sessions, including legacy cancelled sessions, retain their fields and load with
+no written explanation. New Trainer cancellations require a nonblank explanation
+in `SessionCancellationService`, which saves the stripped text on the session.
+Current bookings receive `TRAINER_CANCELLED_SESSION`; previously cancelled
+bookings keep their original status and reason. Member history joins the saved
+explanation only for bookings affected by Trainer cancellation.
+
+The confirmation preview reads session details and current booking identities in
+one transaction. Cancellation rechecks persisted Trainer authorization, ownership,
+the exact local-time start boundary, and the preview inside the write transaction.
+A changed session or booking list requires a fresh confirmation. Session updates
+and every affected booking update share the same connection and roll back together
+on a persistence error. The GUI reports a safe failure message without SQL details.
+
+
 ## Appendix: Requirements
 
 ### Product scope
@@ -442,7 +460,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 
 1. Trainer opens their own upcoming sessions.
 2. Gymmie shows the session and its current bookings.
-3. Trainer chooses to cancel the session and confirms the action.
+3. Trainer states a reason for cancelling the session and confirms the action.
 4. Gymmie marks the session as cancelled and cancels all bookings for it.
 5. Gymmie persists the session and booking changes as one transaction.
 6. Gymmie shows the affected Members that their bookings remain visible with a cancelled status and a reason identifying the Trainer's session cancellation.

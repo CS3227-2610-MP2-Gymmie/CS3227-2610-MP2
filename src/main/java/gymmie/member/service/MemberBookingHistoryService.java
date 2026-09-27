@@ -53,7 +53,9 @@ public final class MemberBookingHistoryService {
                         .displayName();
                 history.add(new MemberBooking(booking.id(), session.startsAt(), trainerName,
                         session.description(), session.durationMinutes(), booking.status(),
-                        booking.cancellationReason()));
+                        booking.cancellationReason(),
+                        booking.cancellationReason() == CancellationReason.TRAINER_CANCELLED_SESSION
+                                ? session.cancellationReason() : null));
             }
             return List.copyOf(history);
         });
@@ -62,6 +64,6 @@ public final class MemberBookingHistoryService {
     /** Read-only details needed to display a Member's booking history. */
     public record MemberBooking(long bookingId, LocalDateTime startsAt, String trainerName, String description,
             int durationMinutes, BookingStatus status,
-            CancellationReason cancellationReason) {
+            CancellationReason cancellationReason, String trainerCancellationReason) {
     }
 }

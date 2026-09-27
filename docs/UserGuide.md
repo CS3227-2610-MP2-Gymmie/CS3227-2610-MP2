@@ -150,6 +150,38 @@ exactly when another ends. Other Trainers' sessions do not block your schedule.
 Editing preserves existing bookings, and saved details remain after restarting
 Gymmie. Going back without saving discards changes made since the last save.
 
+#### Cancel your session and its bookings
+
+On **Trainer dashboard → My upcoming sessions**, choose **Cancel session** on
+the session card.
+
+1. Review the session details and current bookings in the dialog. The list shows
+   booking numbers and Member display names; scroll to see longer lists.
+2. Enter a **Reason for cancellation**. A blank reason cannot be confirmed.
+   Affected Members will see this explanation with **Trainer cancelled session**.
+3. Choose **Confirm cancellation**. The session and all current bookings are
+   cancelled together. The session disappears from your upcoming list and a
+   success message reports how many bookings were cancelled.
+
+Choose **Cancel**, press **Escape**, or close the dialog to leave the session
+and bookings unchanged. Use the mouse or **Tab** / **Shift+Tab** to reach
+**Cancel session**, then **Space** to open it. In the reason field, **Tab**
+moves to **Cancel**; another **Tab** reaches **Confirm cancellation**. Press
+**Space** to activate the focused button.
+
+Only an active Trainer can cancel their own session, and only before its start
+time on your computer's local clock. Cancellation is rejected at the exact start
+time, including if that time passes while the confirmation is open. If the
+session or its bookings change while you review them, no cancellation is saved;
+open **Cancel session** again to review the latest details and confirm again.
+
+Already-cancelled bookings retain their original reasons. All booking records
+remain in Members' **My bookings** history. The cancellation and written reason
+remain after restarting Gymmie. If saving fails, neither the session nor any
+booking changes are saved; an error appears and you can retry. A session with
+no current bookings may also be cancelled; deletion is available only when it
+has never had a booking.
+
 #### Delete an unused session
 
 On **Trainer dashboard → My upcoming sessions**, choose **Delete session** on
