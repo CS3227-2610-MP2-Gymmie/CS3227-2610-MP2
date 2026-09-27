@@ -3,6 +3,7 @@ package gymmie;
 import java.nio.file.Path;
 import java.time.Clock;
 
+import gymmie.manager.service.AccountProvisioningService;
 import gymmie.manager.service.MembershipPlanService;
 import gymmie.member.service.MemberBookingCancellationService;
 import gymmie.member.service.MemberBookingHistoryService;
@@ -44,6 +45,7 @@ public final class AppContext {
     private final TrainingSessionService trainingSessionService;
     private final SessionRosterService sessionRosterService;
     private final MembershipPlanService membershipPlanService;
+    private final AccountProvisioningService accountProvisioningService;
 
     /**
      * Initializes the application's default local database and services.
@@ -94,6 +96,8 @@ public final class AppContext {
         trainerProfileService = new TrainerProfileService(persistence.accounts(), persistence.trainerProfiles(),
                 persistence.unitOfWork(), userSession, authService);
         membershipPlanService = new MembershipPlanService(persistence.plans(), persistence.unitOfWork(), permissions);
+        accountProvisioningService = new AccountProvisioningService(persistence.accounts(), persistence.bookings(),
+                persistence.sessions(), persistence.unitOfWork(), permissions, hasher, Clock.systemDefaultZone());
     }
 
     public Persistence getPersistence() {
@@ -168,6 +172,11 @@ public final class AppContext {
     /** Returns the Manager-authorized membership plan management service. */
     public MembershipPlanService getMembershipPlanService() {
         return membershipPlanService;
+    }
+
+    /** Returns the Manager-authorized account provisioning and management service. */
+    public AccountProvisioningService getAccountProvisioningService() {
+        return accountProvisioningService;
     }
 
     /** Returns the authorization boundary for protected application services as they are added. */
