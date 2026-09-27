@@ -46,8 +46,8 @@ public final class SqliteAccountRepository implements AccountRepository {
 
     @Override
     public long nextId(Connection connection) throws SQLException {
-            return SqliteQueries.read(connection, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM account",
-                            row -> row.getLong("next_id")).getFirst();
+        return SqliteQueries.read(connection, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM account",
+                row -> row.getLong("next_id")).getFirst();
     }
 
     @Override
