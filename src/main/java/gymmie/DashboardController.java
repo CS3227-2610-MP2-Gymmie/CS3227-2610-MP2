@@ -31,6 +31,8 @@ public final class DashboardController {
     @FXML
     private Button managePlansButton;
     @FXML
+    private Button manageAccountsButton;
+    @FXML
     private VBox actions;
     @FXML
     private PasswordField currentPassword;
@@ -75,6 +77,8 @@ public final class DashboardController {
         boolean member = role == Role.MEMBER;
         managePlansButton.setVisible(manager);
         managePlansButton.setManaged(manager);
+        manageAccountsButton.setVisible(manager);
+        manageAccountsButton.setManaged(manager);
         upcomingSessionsButton.setVisible(trainer);
         upcomingSessionsButton.setManaged(trainer);
         createSessionButton.setVisible(trainer);
@@ -98,6 +102,15 @@ public final class DashboardController {
             router.showManagerPlans();
         } catch (IOException exception) {
             status.error("Unable to open membership plans. Please try again.");
+        }
+    }
+
+    @FXML
+    private void openManageAccounts() {
+        try {
+            router.showManagerAccounts();
+        } catch (IOException exception) {
+            status.error("Unable to open account management. Please try again.");
         }
     }
 

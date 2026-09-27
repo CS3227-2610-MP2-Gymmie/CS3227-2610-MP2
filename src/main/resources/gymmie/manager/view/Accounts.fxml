@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import gymmie.ui.StatusLabel?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/accounts.css"
+        fx:controller="gymmie.manager.ManagerAccountsController">
+    <VBox spacing="18" styleClass="page accounts-page">
+        <Label text="GYMMIE" styleClass="brand" />
+        <Label text="Account management" styleClass="title" wrapText="true" />
+        <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
+        <Button fx:id="refreshButton" text="_Refresh" onAction="#refresh" />
+        <StatusLabel fx:id="status" />
+
+        <VBox maxWidth="560" spacing="10" styleClass="card">
+            <Label fx:id="formHeading" text="Provision new account" styleClass="heading" />
+            <Label text="_Username (3–30 characters)" mnemonicParsing="true" labelFor="${accountUsername}" />
+            <TextField fx:id="accountUsername" promptText="e.g. john_trainer" onAction="#saveAccount" />
+            <Label fx:id="passwordLabel" text="_Password (8–128 characters)" mnemonicParsing="true" labelFor="${accountPassword}" />
+            <PasswordField fx:id="accountPassword" onAction="#saveAccount" />
+            <Label text="_Display name (1–100 characters)" mnemonicParsing="true" labelFor="${accountDisplayName}" />
+            <TextField fx:id="accountDisplayName" promptText="e.g. John Doe" onAction="#saveAccount" />
+            <Label fx:id="roleLabel" text="_Role" mnemonicParsing="true" labelFor="${accountRole}" />
+            <ComboBox fx:id="accountRole" maxWidth="Infinity" />
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button fx:id="saveAccountButton" text="_Provision account" onAction="#saveAccount" />
+                <Button fx:id="cancelEditButton" text="_Cancel edit" onAction="#cancelEdit"
+                        visible="false" managed="false" />
+            </HBox>
+        </VBox>
+
+        <Label text="All accounts" styleClass="heading" />
+        <VBox fx:id="accountList" spacing="12" maxWidth="560" />
+    </VBox>
+</ScrollPane>

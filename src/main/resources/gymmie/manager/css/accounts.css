@@ -1,0 +1,31 @@
+.accounts-page {
+    -fx-spacing: 18px;
+}
+.account-card-deactivated {
+    -fx-background-color: #f2eee6;
+    -fx-opacity: 0.9;
+}
+.badge-active {
+    -fx-background-color: #d1e7dd;
+    -fx-text-fill: #0f5132;
+    -fx-padding: 3px 8px;
+    -fx-background-radius: 4px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+.badge-deactivated {
+    -fx-background-color: #f8d7da;
+    -fx-text-fill: #842029;
+    -fx-padding: 3px 8px;
+    -fx-background-radius: 4px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+.badge-role {
+    -fx-background-color: #e2e3e5;
+    -fx-text-fill: #41464b;
+    -fx-padding: 3px 8px;
+    -fx-background-radius: 4px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
