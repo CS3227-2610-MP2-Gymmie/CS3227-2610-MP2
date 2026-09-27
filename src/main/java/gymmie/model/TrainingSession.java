@@ -17,9 +17,10 @@ import gymmie.model.exception.ValidationException;
  * @param capacity capacity from 1 to 50 Members.
  * @param description optional description; null is preserved for database round trips.
  * @param cancelled whether the session was cancelled.
+ * @param cancellationReason Trainer explanation, or null for sessions cancelled before reasons were recorded.
  */
 public record TrainingSession(long id, long trainerId, LocalDateTime startsAt, int durationMinutes,
-        int capacity, String description, boolean cancelled) {
+        int capacity, String description, boolean cancelled, String cancellationReason) {
     /**
      * Validates the session's fields.
      *
@@ -31,6 +32,12 @@ public record TrainingSession(long id, long trainerId, LocalDateTime startsAt, i
         Constraints.required(startsAt, "Session start");
         Constraints.range(durationMinutes, 15, 240, "Session duration");
         Constraints.range(capacity, 1, 50, "Session capacity");
+    }
+
+    /** Creates a session without a recorded cancellation explanation, including legacy history. */
+    public TrainingSession(long id, long trainerId, LocalDateTime startsAt, int durationMinutes,
+            int capacity, String description, boolean cancelled) {
+        this(id, trainerId, startsAt, durationMinutes, capacity, description, cancelled, null);
     }
 
     /** Returns whether the session has started according to the local system clock. */

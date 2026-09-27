@@ -166,7 +166,9 @@ public final class MemberBookingsController {
                 setGraphic(null);
             } else if (booking.status() == BookingStatus.CANCELLED) {
                 setBookingGraphic(booking,
-                        "Cancelled · Reason: " + cancellationReasonText(booking.cancellationReason()), false);
+                        "Cancelled · Reason: " + cancellationReasonText(booking.cancellationReason())
+                                + (booking.trainerCancellationReason() == null ? ""
+                                        : " — " + booking.trainerCancellationReason()), false);
             } else {
                 setBookingGraphic(booking, "Booked", upcoming);
             }

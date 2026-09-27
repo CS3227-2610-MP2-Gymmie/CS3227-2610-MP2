@@ -22,6 +22,7 @@ import gymmie.service.Permissions;
 import gymmie.service.ProfileService;
 import gymmie.service.Seeder;
 import gymmie.service.UserSession;
+import gymmie.trainer.service.SessionCancellationService;
 import gymmie.trainer.service.SessionRosterService;
 import gymmie.trainer.service.TrainerProfileService;
 import gymmie.trainer.service.TrainingSessionService;
@@ -44,6 +45,7 @@ public final class AppContext {
     private final TrainerProfileService trainerProfileService;
     private final TrainingSessionService trainingSessionService;
     private final SessionRosterService sessionRosterService;
+    private final SessionCancellationService sessionCancellationService;
     private final MembershipPlanService membershipPlanService;
     private final AccountProvisioningService accountProvisioningService;
 
@@ -91,6 +93,8 @@ public final class AppContext {
         profileService = new ProfileService(persistence.accounts(), persistence.unitOfWork(), userSession, authService);
         trainingSessionService = new TrainingSessionService(persistence.sessions(), persistence.bookings(),
                 persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
+        sessionCancellationService = new SessionCancellationService(persistence.sessions(), persistence.bookings(),
+                persistence.accounts(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         sessionRosterService = new SessionRosterService(persistence.sessions(), persistence.bookings(),
                 persistence.accounts(), persistence.unitOfWork(), permissions);
         trainerProfileService = new TrainerProfileService(persistence.accounts(), persistence.trainerProfiles(),
@@ -115,6 +119,11 @@ public final class AppContext {
     /** Returns the Trainer-authorized session creation service. */
     public TrainingSessionService getTrainingSessionService() {
         return trainingSessionService;
+    }
+
+    /** Returns the Trainer-authorized atomic session cancellation service. */
+    public SessionCancellationService getSessionCancellationService() {
+        return sessionCancellationService;
     }
 
     /** Returns the Trainer-authorized display-name roster service. */

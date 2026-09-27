@@ -7,6 +7,7 @@ import java.util.List;
 import gymmie.AppContext;
 import gymmie.Router;
 import gymmie.model.TrainingSession;
+import gymmie.trainer.service.SessionCancellationService.Preview;
 import gymmie.ui.DisplayFormatters;
 import gymmie.ui.StatusLabel;
 import gymmie.ui.UiFeedback;
@@ -99,9 +100,67 @@ public final class UpcomingSessionsController {
         deleteButton.setId("deleteButton-" + session.id());
         deleteButton.setAccessibleText("Delete session " + session.id());
         deleteButton.setOnAction(_ -> deleteSession(session, card));
-        card.getChildren().addAll(rosterButton, roster, editButton, deleteButton);
+        Button cancelButton = new Button("Cancel session");
+        cancelButton.setId("cancelButton-" + session.id());
+        cancelButton.setAccessibleText("Cancel session " + session.id());
+        cancelButton.setOnAction(_ -> reviewCancellation(session.id(), card));
+        card.getChildren().addAll(rosterButton, roster, editButton, deleteButton, cancelButton);
         card.getStyleClass().add("card");
         return card;
+    }
+
+    private void setCancellationBusy(boolean busy) {
+        sessions.setDisable(busy);
+        refreshButton.setDisable(busy);
+        backButton.setDisable(busy);
+    }
+
+    private void reviewCancellation(long sessionId, VBox card) {
+        setCancellationBusy(true);
+        status.info("Loading cancellation details…");
+        Task<Preview> task = new Task<>() {
+            @Override
+            protected Preview call() throws Exception {
+                return context.getSessionCancellationService().preview(sessionId);
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            var preview = task.getValue();
+            var reason = SessionCancellationDialog.confirm(backButton.getScene().getWindow(), preview);
+            if (reason.isEmpty()) {
+                setCancellationBusy(false);
+                status.info("Cancellation declined. No changes made.");
+                return;
+            }
+            cancelSession(preview, reason.orElseThrow(), card);
+        });
+        task.setOnFailed(_ -> {
+            setCancellationBusy(false);
+            status.error(task.getException(), "Unable to load cancellation details. Please try again.");
+        });
+        Thread.ofPlatform().daemon().name("gymmie-review-session-cancellation").start(task);
+    }
+
+    private void cancelSession(Preview preview,
+            String reason, VBox card) {
+        status.info("Cancelling session…");
+        Task<Integer> task = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                return context.getSessionCancellationService().cancel(preview, reason);
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            sessions.getChildren().remove(card);
+            setCancellationBusy(false);
+            refreshButton.requestFocus();
+            status.success("Session cancelled. Bookings cancelled: " + task.getValue() + ".");
+        });
+        task.setOnFailed(_ -> {
+            setCancellationBusy(false);
+            status.error(task.getException(), "Unable to save cancellation. No changes were saved. Please try again.");
+        });
+        Thread.ofPlatform().daemon().name("gymmie-cancel-session").start(task);
     }
 
     private void deleteSession(TrainingSession session, VBox card) {

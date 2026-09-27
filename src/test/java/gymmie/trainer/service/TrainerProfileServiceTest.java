@@ -130,6 +130,7 @@ class TrainerProfileServiceTest {
     void migratesVersionOneDatabaseWithoutChangingAccounts() throws Exception {
         execute("DROP TABLE trainer_specialization");
         execute("DROP TABLE trainer_profile");
+        execute("ALTER TABLE training_session DROP COLUMN cancellation_reason");
         execute("PRAGMA user_version = 1");
         AppContext upgraded = new AppContext(directory.resolve("profiles.db"));
         upgraded.getAuthService().login(trainer.username(), "password123");
