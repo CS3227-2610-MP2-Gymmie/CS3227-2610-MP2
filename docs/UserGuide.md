@@ -8,6 +8,47 @@
 
 ### Manager
 
+#### Manage membership plans
+
+Log in as a Manager and choose **Manage membership plans** on the **Manager dashboard**.
+
+##### View all plans
+1. View all configured membership plans in the list. Each card displays the plan's
+   name, duration in days, price in SGD, and a badge indicating whether it is
+   **ACTIVE** or **ARCHIVED**.
+2. Archived plans are visually distinguished with a tinted card background and a red status badge.
+3. Choose **Refresh** to reload the plan list from storage.
+4. Choose **Back to dashboard** to return to the Manager dashboard.
+
+##### Create a new plan
+1. In the **Create new plan** card, enter:
+   - **Plan name**: A non-blank, unique name for the plan (e.g., `Standard Monthly`).
+   - **Duration in days**: An integer between 1 and 365 days (e.g., `30`).
+   - **Price**: The price in SGD cents or dollars (e.g., `4990` or `49.90` for SGD 49.90).
+2. Choose **Create plan** or press **Enter** in any form field.
+3. A success confirmation confirms creation, and the new plan appears in the plan list.
+
+##### Edit an existing plan
+1. Find an active plan in the list and choose its **Edit** button.
+2. The form updates to **Edit plan: <name>** with the plan's current values loaded.
+3. Correct the name, duration, or price, and choose **Save changes** (or **Cancel edit**
+   to discard changes).
+4. Archived plans cannot be edited.
+
+##### Archive or restore a plan
+1. To disable new member purchases of a plan while retaining all existing member
+   purchase snapshots, choose **Archive** on an active plan's card. The plan status
+   updates to **ARCHIVED**.
+2. To re-enable purchases of an archived plan, choose **Restore** on the archived
+   plan's card. The status updates back to **ACTIVE**.
+
+##### Delete an unpurchased plan
+1. Choose **Delete** on a plan's card.
+2. If the plan has never been purchased by any member, it is permanently deleted from
+   the catalogue.
+3. If the plan has existing purchase history, Gymmie preserves member history and
+   automatically archives the plan instead of deleting it.
+
 ### Trainer
 
 #### View your upcoming sessions

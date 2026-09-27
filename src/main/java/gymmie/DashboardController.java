@@ -29,6 +29,8 @@ public final class DashboardController {
     @FXML
     private Button browseSessionsButton;
     @FXML
+    private Button managePlansButton;
+    @FXML
     private VBox actions;
     @FXML
     private PasswordField currentPassword;
@@ -68,8 +70,11 @@ public final class DashboardController {
         PasswordReveal.install(confirmPassword, confirmPasswordReveal);
 
         Role role = context.getUserSession().requireUser().role();
+        boolean manager = role == Role.MANAGER;
         boolean trainer = role == Role.TRAINER;
         boolean member = role == Role.MEMBER;
+        managePlansButton.setVisible(manager);
+        managePlansButton.setManaged(manager);
         upcomingSessionsButton.setVisible(trainer);
         upcomingSessionsButton.setManaged(trainer);
         createSessionButton.setVisible(trainer);
@@ -85,6 +90,15 @@ public final class DashboardController {
         title.setText(dashboardTitle);
         welcome.setText("Welcome, " + context.getUserSession().requireUser().displayName());
         Platform.runLater(logoutButton::requestFocus);
+    }
+
+    @FXML
+    private void openManagePlans() {
+        try {
+            router.showManagerPlans();
+        } catch (IOException exception) {
+            status.error("Unable to open membership plans. Please try again.");
+        }
     }
 
     @FXML
