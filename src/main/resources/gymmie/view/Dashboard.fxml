@@ -20,6 +20,8 @@
                     visible="false" managed="false" />
             <Button fx:id="memberBookingsButton" text="My _bookings" onAction="#openMemberBookings"
                     visible="false" managed="false" />
+            <Button fx:id="managePlansButton" text="_Manage membership plans" onAction="#openManagePlans"
+                    visible="false" managed="false" />
             <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
             <VBox maxWidth="440" spacing="10" styleClass="card">
                 <Label text="Change password" styleClass="heading" />

@@ -2,6 +2,7 @@ package gymmie;
 
 import java.io.IOException;
 
+import gymmie.manager.ManagerPlansController;
 import gymmie.member.MemberBookingsController;
 import gymmie.member.MemberMembershipController;
 import gymmie.member.MemberSessionBrowseController;
@@ -54,6 +55,16 @@ public final class Router {
         UserSession.Principal user = context.getUserSession().requireUser();
         String title = dashboardTitle(user.role());
         show(views.load("Dashboard", new DashboardController(context, this, title)), title);
+    }
+
+    /**
+     * Opens the Manager's membership plan management screen.
+     *
+     * @throws IOException if the view cannot be loaded.
+     */
+    public void showManagerPlans() throws IOException {
+        show(views.loadResource("/gymmie/manager/view/Plans.fxml",
+                new ManagerPlansController(context, this)), "Membership plans");
     }
 
     /**
