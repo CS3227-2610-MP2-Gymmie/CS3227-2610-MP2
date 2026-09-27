@@ -45,6 +45,12 @@ public final class SqliteAccountRepository implements AccountRepository {
     }
 
     @Override
+    public long nextId(Connection connection) throws SQLException {
+            return SqliteQueries.read(connection, "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM account",
+                            row -> row.getLong("next_id")).getFirst();
+    }
+
+    @Override
     public void insert(Connection connection, Account account) throws SQLException {
         SqliteQueries.writeOne(connection,
                 "INSERT INTO account (id, username, password_hash, salt, display_name, role, active) "
