@@ -76,13 +76,13 @@ Log in as a Manager and choose **Manage membership plans** on the **Manager dash
 1. In the **Create new plan** card, enter:
    - **Plan name**: A non-blank, unique name for the plan (e.g., `Standard Monthly`).
    - **Duration in days**: An integer between 1 and 365 days (e.g., `30`).
-   - **Price**: The price in SGD cents or dollars (e.g., `4990` or `49.90` for SGD 49.90).
+   - **Price**: The price in SGD dollars with at most 2 decimal places (e.g., `50` or `49.90` for SGD 49.90).
 2. Choose **Create plan** or press **Enter** in any form field.
 3. A success confirmation confirms creation, and the new plan appears in the plan list.
 
 ##### Edit an existing plan
 1. Find an active plan in the list and choose its **Edit** button.
-2. The form updates to **Edit plan: <name>** with the plan's current values loaded.
+2. The form updates to **Edit plan: <name>** with the plan's current values loaded (price displayed in SGD dollars, e.g., `49.90`).
 3. Correct the name, duration, or price, and choose **Save changes** (or **Cancel edit**
    to discard changes).
 4. Archived plans cannot be edited.

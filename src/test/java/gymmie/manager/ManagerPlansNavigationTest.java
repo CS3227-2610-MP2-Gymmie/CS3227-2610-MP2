@@ -156,6 +156,7 @@ class ManagerPlansNavigationTest {
                 TextField nameField = (TextField) stage.getScene().lookup("#planName");
                 TextField durationField = (TextField) stage.getScene().lookup("#planDuration");
                 TextField priceField = (TextField) stage.getScene().lookup("#planPrice");
+                assertEquals("e.g. 50 or 49.90", priceField.getPromptText());
                 Button saveButton = (Button) stage.getScene().lookup("#savePlanButton");
 
                 nameField.setText("Platinum Pass");
@@ -210,11 +211,11 @@ class ManagerPlansNavigationTest {
                 TextField priceField = (TextField) stage.getScene().lookup("#planPrice");
                 assertEquals("Initial Plan", nameField.getText());
                 assertEquals("30", durationField.getText());
-                assertEquals("3000", priceField.getText());
+                assertEquals("30.00", priceField.getText());
 
                 nameField.setText("Updated Plan");
                 durationField.setText("60");
-                priceField.setText("6000");
+                priceField.setText("60.00");
 
                 Button saveButton = (Button) stage.getScene().lookup("#savePlanButton");
                 saveButton.fire();
