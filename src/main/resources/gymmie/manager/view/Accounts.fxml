@@ -16,7 +16,10 @@
             <Label text="_Username (3–30 characters)" mnemonicParsing="true" labelFor="${accountUsername}" wrapText="true" minWidth="0" />
             <TextField fx:id="accountUsername" promptText="e.g. john_trainer" onAction="#saveAccount" />
             <Label fx:id="passwordLabel" text="_Password (8–128 characters)" mnemonicParsing="true" labelFor="${accountPassword}" wrapText="true" minWidth="0" />
-            <PasswordField fx:id="accountPassword" onAction="#saveAccount" />
+            <HBox fx:id="passwordBox" spacing="10" alignment="CENTER_LEFT">
+                <PasswordField fx:id="accountPassword" onAction="#saveAccount" />
+                <Button fx:id="accountPasswordReveal" text="Show" styleClass="button, reveal-button" />
+            </HBox>
             <Label text="_Display name (1–100 characters)" mnemonicParsing="true" labelFor="${accountDisplayName}" wrapText="true" minWidth="0" />
             <TextField fx:id="accountDisplayName" promptText="e.g. John Doe" onAction="#saveAccount" />
             <Label fx:id="roleLabel" text="_Role" mnemonicParsing="true" labelFor="${accountRole}" wrapText="true" minWidth="0" />
