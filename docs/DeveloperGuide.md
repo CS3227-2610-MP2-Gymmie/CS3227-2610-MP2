@@ -558,11 +558,11 @@ sequenceDiagram
     participant DB as JDBC / SQLite
 
     Member->>UI: Choose Book
-    UI->>UI: Disable booking controls; show progress
+    UI->>UI: Disable booking controls, show progress
     UI->>Task: Start worker
     Task->>Service: book(sessionId)
     Service->>UoW: inTransaction(callback)
-    UoW->>DB: Open connection; disable auto-commit
+    UoW->>DB: Open connection, disable auto-commit
     UoW->>Service: Execute callback(connection)
     Service->>Auth: requireRole(connection, MEMBER)
     Auth->>Repos: Reload authenticated account
@@ -571,18 +571,18 @@ sequenceDiagram
     Service->>Repos: Load complete membership history and session
     Repos->>DB: Read memberships and session
     Service->>Service: Check membership, session start and expiry coverage
-    Service->>Repos: Find existing booking; count BOOKED reservations
+    Service->>Repos: Find existing booking, count BOOKED reservations
     Repos->>DB: Read booking state and capacity usage
     Service->>Service: Reject duplicate or full session
     alt Existing cancelled booking
         Service->>Repos: reactivate(connection, bookingId, now)
         Repos->>DB: Set BOOKED, clear reason, replace booking time
     else No previous booking
-        Service->>Repos: nextId(connection); insert(connection, booking)
+        Service->>Repos: nextId(connection), insert(connection, booking)
         Repos->>DB: Allocate ID and insert BOOKED record
     end
     Service-->>UoW: Return Booking from callback
-    UoW->>DB: Commit; restore auto-commit; close connection
+    UoW->>DB: Commit, restore auto-commit, close connection
     UoW-->>Service: Committed Booking
     Service-->>Task: Booking
     Task-->>UI: onSucceeded on JavaFX thread
@@ -619,11 +619,11 @@ sequenceDiagram
     participant DB as JDBC / SQLite
 
     Member->>UI: Confirm membership cancellation
-    UI->>Task: Disable actions; start cancellation worker
+    UI->>Task: Disable actions, start cancellation worker
     Task->>Service: cancel(displayedMembershipId)
     Service->>Service: Capture local date and time from Clock
     Service->>UoW: inTransaction(callback)
-    UoW->>DB: Open connection; disable auto-commit
+    UoW->>DB: Open connection, disable auto-commit
     UoW->>Service: Execute callback(connection)
     Service->>Auth: requireRole(connection, MEMBER)
     Auth->>Repos: Reload authenticated account
@@ -650,18 +650,18 @@ sequenceDiagram
     alt All updates succeed
         Service-->>UoW: Return number of cancelled bookings
         UoW->>DB: Commit transaction
-        UoW->>DB: Restore auto-commit; close connection
+        UoW->>DB: Restore auto-commit, close connection
         UoW-->>Service: Committed count
         Service-->>Task: Count
         Task-->>UI: onSucceeded on JavaFX thread
         UI-->>Member: Show cancellation result and refresh membership options
     else A booking update fails after earlier writes
-        Note over Repos,DB: Failure occurs during the loop; remaining updates stop
+        Note over Repos,DB: Failure occurs during the loop, remaining updates stop
         DB-->>Repos: SQLException
         Repos-->>Service: Propagate failure
         Service-->>UoW: Callback throws
         UoW->>DB: Roll back membership and all earlier booking changes
-        UoW->>DB: Restore auto-commit; close connection
+        UoW->>DB: Restore auto-commit, close connection
         UoW-->>Service: Rethrow failure
         Service-->>Task: Exception
         Task-->>UI: onFailed on JavaFX thread
