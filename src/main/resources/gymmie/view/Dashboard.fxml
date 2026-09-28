@@ -4,41 +4,50 @@
 <?import javafx.scene.layout.*?>
 <ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
         stylesheets="@../css/gymmie.css"
-        fitToWidth="true" fitToHeight="true" fx:controller="gymmie.DashboardController">
+        fitToWidth="true" minWidth="0" fitToHeight="true" fx:controller="gymmie.DashboardController">
     <VBox spacing="18" styleClass="page">
-        <Label text="GYMMIE" styleClass="brand" />
-        <Label fx:id="title" styleClass="title" wrapText="true" />
-        <Label fx:id="welcome" wrapText="true" />
+        <Label fx:id="title" styleClass="title" wrapText="true" minWidth="0" />
+        <Label fx:id="welcome" wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" />
         <VBox fx:id="actions" spacing="18">
-            <Button fx:id="upcomingSessionsButton" text="My _upcoming sessions"
-                    onAction="#openUpcomingSessions" />
-            <Button fx:id="createSessionButton" text="Create _session" onAction="#createSession" />
-            <Button fx:id="profileButton" text="My _profile" onAction="#editProfile" />
-            <Button fx:id="memberMembershipButton" text="My _membership" onAction="#openMembership"
-                    visible="false" managed="false" />
-            <Button fx:id="browseSessionsButton" text="_Browse sessions" onAction="#openMemberSessions"
-                    visible="false" managed="false" />
-            <Button fx:id="memberBookingsButton" text="My _bookings" onAction="#openMemberBookings"
-                    visible="false" managed="false" />
-            <Button fx:id="managePlansButton" text="_Manage membership plans" onAction="#openManagePlans"
-                    visible="false" managed="false" />
-            <Button fx:id="manageAccountsButton" text="Manage _accounts" onAction="#openManageAccounts"
-                    visible="false" managed="false" />
-            <Button fx:id="logoutButton" text="_Log out" onAction="#logout" />
-            <VBox maxWidth="440" spacing="10" styleClass="card">
-                <Label text="Change password" styleClass="heading" />
-                <Label text="Choose a password of 8–128 characters." wrapText="true" />
-                <Label text="_Current password" mnemonicParsing="true" labelFor="${currentPassword}" />
+            <VBox spacing="10" styleClass="card" maxWidth="720">
+                <Label text="My profile" styleClass="heading" wrapText="true" minWidth="0" />
+                <Label fx:id="profileDetails" wrapText="true" minWidth="0"
+                        minHeight="-Infinity" maxWidth="Infinity" />
+                <VBox fx:id="trainerDetails" spacing="10" visible="false" managed="false">
+                    <Label text="Synopsis" styleClass="heading" />
+                    <Label fx:id="trainerSynopsis" wrapText="true" minWidth="0"
+                            minHeight="-Infinity" maxWidth="Infinity" />
+                    <Label text="Training specializations" styleClass="heading" />
+                    <Label fx:id="trainerSpecializations" wrapText="true" minWidth="0"
+                            minHeight="-Infinity" maxWidth="Infinity" />
+                    <StatusLabel fx:id="trainerDetailsStatus" minHeight="-Infinity" />
+                </VBox>
+                <Label text="Your username and role are managed by your gym." styleClass="helper" wrapText="true" minWidth="0" />
+                <Button fx:id="profileButton" text="Edit my _profile" onAction="#editProfile" />
+            </VBox>
+            <VBox fx:id="displayNameSection" maxWidth="720" spacing="10" styleClass="card">
+                <Label text="Change display name" styleClass="heading" wrapText="true" minWidth="0" />
+                <Label text="Choose a name of 1–100 characters. This is the name others see."
+                        styleClass="helper" wrapText="true" minWidth="0" />
+                <Label text="_Display name" mnemonicParsing="true" labelFor="${ownDisplayName}" />
+                <TextField fx:id="ownDisplayName" onAction="#changeDisplayName" />
+                <Button id="saveDisplayNameButton" text="Save display _name" onAction="#changeDisplayName" />
+                <StatusLabel fx:id="displayNameStatus" minHeight="-Infinity" />
+            </VBox>
+            <VBox maxWidth="720" spacing="10" styleClass="card">
+                <Label text="Change password" styleClass="heading" wrapText="true" minWidth="0" />
+                <Label text="Choose a password of 8–128 characters." styleClass="helper" wrapText="true" minWidth="0" />
+                <Label text="_Current password" mnemonicParsing="true" labelFor="${currentPassword}" wrapText="true" minWidth="0" />
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <PasswordField fx:id="currentPassword" />
                     <Button fx:id="currentPasswordReveal" text="Show" styleClass="button, reveal-button" />
                 </HBox>
-                <Label text="_New password" mnemonicParsing="true" labelFor="${newPassword}" />
+                <Label text="_New password" mnemonicParsing="true" labelFor="${newPassword}" wrapText="true" minWidth="0" />
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <PasswordField fx:id="newPassword" />
                     <Button fx:id="newPasswordReveal" text="Show" styleClass="button, reveal-button" />
                 </HBox>
-                <Label text="Con_firm new password" mnemonicParsing="true" labelFor="${confirmPassword}" />
+                <Label text="Con_firm new password" mnemonicParsing="true" labelFor="${confirmPassword}" wrapText="true" minWidth="0" />
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <PasswordField fx:id="confirmPassword" onAction="#changePassword" />
                     <Button fx:id="confirmPasswordReveal" text="Show" styleClass="button, reveal-button" />

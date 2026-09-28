@@ -3,17 +3,16 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/membership.css"
+        fitToWidth="true" minWidth="0" stylesheets="@../../css/gymmie.css,@../css/membership.css"
         fx:controller="gymmie.member.MemberSessionBrowseController">
-    <VBox fx:id="sessionScreen" spacing="18" styleClass="page membership-page">
-        <Label text="GYMMIE" styleClass="brand" />
-        <Label text="Browse sessions" styleClass="title" wrapText="true" />
+    <VBox fx:id="sessionScreen" spacing="18" styleClass="page, membership-page">
+        <Label text="Browse sessions" styleClass="title" wrapText="true" minWidth="0" />
         <Button text="_Back to dashboard" onAction="#back" />
         <VBox maxWidth="720" spacing="12" styleClass="card">
-            <Label text="Upcoming training sessions" styleClass="heading" />
-            <Label text="Choose a Trainer to narrow the list. Booked sessions are marked on their cards."
-                    wrapText="true" />
-            <Label text="_Trainer" mnemonicParsing="true" labelFor="${trainerFilter}" />
+            <Label text="Upcoming training sessions" styleClass="heading" wrapText="true" minWidth="0" />
+            <Label text="Choose a Trainer to narrow the list. Booked sessions are marked on their cards." styleClass="helper"
+                   wrapText="true" minWidth="0" />
+            <Label text="_Trainer" mnemonicParsing="true" labelFor="${trainerFilter}" wrapText="true" minWidth="0" />
             <ComboBox fx:id="trainerFilter" maxWidth="Infinity" accessibleText="Filter sessions by Trainer" />
             <Button fx:id="refreshButton" text="_Refresh" onAction="#refreshSessions" />
             <StatusLabel fx:id="sessionStatus" />

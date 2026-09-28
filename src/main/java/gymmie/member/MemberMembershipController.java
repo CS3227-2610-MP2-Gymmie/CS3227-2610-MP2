@@ -13,6 +13,7 @@ import gymmie.ui.DisplayFormatters;
 import gymmie.ui.StatusLabel;
 import gymmie.ui.UiFeedback;
 import javafx.concurrent.Task;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -58,8 +59,6 @@ public final class MemberMembershipController {
     private StatusLabel purchaseStatus;
     @FXML
     private Button refreshPlans;
-    @FXML
-    private Button backButton;
 
     /** Creates the Member membership screen with shared application services and navigation. */
     public MemberMembershipController(AppContext context, Router router) {
@@ -69,6 +68,16 @@ public final class MemberMembershipController {
 
     @FXML
     private void initialize() {
+        renewalStatus.managedProperty().bind(renewalStatus.textProperty().isNotEmpty());
+        renewalStatus.visibleProperty().bind(renewalStatus.managedProperty());
+        cancellationStatus.managedProperty().bind(cancellationStatus.textProperty().isNotEmpty());
+        cancellationStatus.visibleProperty().bind(cancellationStatus.managedProperty());
+        membershipStatus.textProperty().addListener((_, _, text) -> {
+            membershipStatus.pseudoClassStateChanged(PseudoClass.getPseudoClass("active-membership"),
+                    text.equals("Active"));
+            membershipStatus.pseudoClassStateChanged(PseudoClass.getPseudoClass("inactive-membership"),
+                    text.equals("Expired") || text.equals("Cancelled") || text.startsWith("Inactive"));
+        });
         configurePlanChoices();
         refreshMembership();
         loadAvailablePlans();

@@ -183,6 +183,9 @@ public final class MemberBookingsController {
                             ? "No description provided" : booking.description()));
             details.setWrapText(true);
             VBox content = new VBox(6, details);
+            content.setMinWidth(0);
+            content.prefWidthProperty().bind(widthProperty().subtract(24));
+            content.maxWidthProperty().bind(widthProperty().subtract(24));
             if (canCancel) {
                 Button cancelButton = new Button("Cancel booking");
                 cancelButton.setAccessibleText("Cancel booking #" + booking.bookingId());

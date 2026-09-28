@@ -18,7 +18,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 /**
@@ -273,13 +273,18 @@ public final class ManagerAccountsController {
             card.getStyleClass().add("account-card-deactivated");
         }
 
-        HBox header = new HBox(12);
+        FlowPane header = new FlowPane(12, 8);
         header.setAlignment(Pos.CENTER_LEFT);
 
         Label nameLabel = new Label(account.displayName());
+        nameLabel.setWrapText(true);
+        nameLabel.maxWidthProperty().bind(card.widthProperty().subtract(48));
         nameLabel.getStyleClass().add("heading");
 
         Label usernameLabel = new Label("@" + account.username());
+
+        usernameLabel.setWrapText(true);
+        usernameLabel.maxWidthProperty().bind(card.widthProperty().subtract(48));
 
         Label roleBadge = new Label(account.role().name());
         roleBadge.getStyleClass().add("badge-role");
@@ -289,13 +294,13 @@ public final class ManagerAccountsController {
 
         header.getChildren().addAll(nameLabel, usernameLabel, roleBadge, statusBadge);
 
-        HBox actions = actionsBox(account);
+        FlowPane actions = actionsBox(account);
         card.getChildren().addAll(header, actions);
         return card;
     }
 
-    private HBox actionsBox(Account account) {
-        HBox actions = new HBox(10);
+    private FlowPane actionsBox(Account account) {
+        FlowPane actions = new FlowPane(10, 10);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         Button editBtn = new Button("Edit");

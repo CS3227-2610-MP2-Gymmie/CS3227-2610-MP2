@@ -17,7 +17,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 /**
@@ -219,10 +219,12 @@ public final class ManagerPlansController {
             card.getStyleClass().add("plan-card-archived");
         }
 
-        HBox header = new HBox(12);
+        FlowPane header = new FlowPane(12, 8);
         header.setAlignment(Pos.CENTER_LEFT);
 
         Label nameLabel = new Label(plan.name());
+        nameLabel.setWrapText(true);
+        nameLabel.maxWidthProperty().bind(card.widthProperty().subtract(48));
         nameLabel.getStyleClass().add("heading");
 
         Label badgeLabel = new Label(plan.archived() ? "ARCHIVED" : "ACTIVE");
@@ -233,7 +235,7 @@ public final class ManagerPlansController {
         Label detailsLabel = new Label(plan.durationDays() + " days · "
                 + DisplayFormatters.price(plan.priceCents()));
 
-        HBox actions = new HBox(10);
+        FlowPane actions = new FlowPane(10, 10);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         if (!plan.archived()) {

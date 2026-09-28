@@ -85,6 +85,10 @@ class SessionCancellationNavigationTest {
                 return null;
             });
             awaitUi(feedback, text -> text.equals("Cancellation declined. No changes made."));
+            onFxThread(() -> {
+                assertFalse(stage.getScene().lookup("#sideTabs").isDisabled());
+                return null;
+            });
             assertEquals(List.of(original), context.getTrainingSessionService().getOwnUpcomingSessions());
             assertEquals(BookingStatus.BOOKED, bookingStatus(context));
             DialogPane accepted = openDialog(stage, keyboard);
@@ -132,6 +136,8 @@ class SessionCancellationNavigationTest {
         AppContext context = fixture();
         context.getPersistence().unitOfWork().inTransaction(connection -> {
             try (var statement = connection.createStatement()) {
+                // Test-only SQL uses the temporary database created by this fixture.
+                //noinspection SqlNoDataSourceInspection
                 statement.execute("CREATE TRIGGER fail_booking BEFORE UPDATE ON booking "
                         + "BEGIN SELECT RAISE(ABORT, 'private persistence detail'); END");
             }
@@ -152,6 +158,7 @@ class SessionCancellationNavigationTest {
             assertEquals(BookingStatus.BOOKED, bookingStatus(context));
             onFxThread(() -> {
                 assertFalse(stage.getScene().lookup("#cancelButton-1").isDisabled());
+                assertFalse(stage.getScene().lookup("#sideTabs").isDisabled());
                 assertFalse(feedback.getValue().contains("private persistence detail"));
                 return null;
             });
@@ -185,6 +192,21 @@ class SessionCancellationNavigationTest {
             return ((Label) stage.getScene().lookup("#status")).textProperty();
         });
         awaitUi(feedback, "Upcoming sessions loaded."::equals);
+        onFxThread(() -> {
+            var root = stage.getScene().getRoot();
+            for (int width : new int[]{520, 840, 1440}) {
+                root.resize(width, 760);
+                root.applyCss();
+                root.layout();
+                var sessions = (javafx.scene.layout.VBox) root.lookup("#sessions");
+                for (var card : sessions.getChildren()) {
+                    for (var label : card.lookupAll(".label")) {
+                        assertTrue(label.getBoundsInParent().getMaxX() <= card.getLayoutBounds().getWidth());
+                    }
+                }
+            }
+            return null;
+        });
         return feedback;
     }
 
@@ -211,6 +233,14 @@ class SessionCancellationNavigationTest {
                     key(cancel, KeyCode.SPACE);
                 } else {
                     click(cancel);
+                }
+                var page = stage.getScene().getRoot();
+                assertTrue(page.lookup("#sideTabs").isDisabled());
+                for (String id : new String[]{"homeButton", "createSessionButton", "logoutButton"}) {
+                    Button navigation = (Button) page.lookup("#" + id);
+                    assertTrue(navigation.isDisabled());
+                    navigation.fire();
+                    assertEquals(page, stage.getScene().getRoot());
                 }
                 return null;
             });

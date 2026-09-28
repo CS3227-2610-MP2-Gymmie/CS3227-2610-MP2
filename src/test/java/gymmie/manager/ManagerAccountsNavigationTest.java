@@ -27,7 +27,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -91,7 +91,8 @@ class ManagerAccountsNavigationTest {
         context.getPersistence().unitOfWork().inTransaction(connection -> {
             context.getPersistence().accounts().insert(connection,
                     new Account(2, "trainer_mike", PasswordHash.fromPassword("password123"),
-                            "Mike Trainer", Role.TRAINER, true));
+                            "Trainer with a very long display name that needs to wrap within the account card",
+                            Role.TRAINER, true));
             context.getPersistence().accounts().insert(connection,
                     new Account(3, "member_sarah", PasswordHash.fromPassword("password123"),
                             "Sarah Member", Role.MEMBER, false));
@@ -115,6 +116,20 @@ class ManagerAccountsNavigationTest {
 
                 VBox activeCard = (VBox) accountList.getChildren().get(1);
                 assertFalse(activeCard.getStyleClass().contains("account-card-deactivated"));
+                for (int width : new int[]{520, 840, 1440}) {
+                    var root = stage.getScene().getRoot();
+                    root.resize(width, 760);
+                    root.applyCss();
+                    root.layout();
+                    FlowPane header = (FlowPane) activeCard.getChildren().getFirst();
+                    for (var item : header.getChildren()) {
+                        assertTrue(item.getBoundsInParent().getMaxX() <= header.getWidth() + 1);
+                    }
+                    FlowPane actions = actionsBox(activeCard);
+                    for (var action : actions.getChildren()) {
+                        assertTrue(action.getBoundsInParent().getMaxX() <= actions.getWidth() + 1);
+                    }
+                }
 
                 VBox deactivatedCard = (VBox) accountList.getChildren().get(2);
                 assertTrue(deactivatedCard.getStyleClass().contains("account-card-deactivated"));
@@ -195,7 +210,7 @@ class ManagerAccountsNavigationTest {
             onFxThread(() -> {
                 VBox accountList = (VBox) stage.getScene().lookup("#accountList");
                 VBox card = (VBox) accountList.getChildren().get(1);
-                Button editBtn = (Button) actionsBox(card).getChildren().get(0);
+                Button editBtn = (Button) actionsBox(card).getChildren().getFirst();
                 assertEquals("Edit", editBtn.getText());
                 editBtn.fire();
 
@@ -282,8 +297,8 @@ class ManagerAccountsNavigationTest {
         }
     }
 
-    private static HBox actionsBox(VBox card) {
-        return (HBox) card.getChildren().get(1);
+    private static FlowPane actionsBox(VBox card) {
+        return (FlowPane) card.getChildren().get(1);
     }
 
     private static AppContext createContext(Path path) throws Exception {

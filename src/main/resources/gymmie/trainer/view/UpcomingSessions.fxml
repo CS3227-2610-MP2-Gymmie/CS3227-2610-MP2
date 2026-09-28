@@ -3,14 +3,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-        fitToWidth="true" stylesheets="@../../css/gymmie.css"
+        fitToWidth="true" minWidth="0" stylesheets="@../../css/gymmie.css"
         fx:controller="gymmie.trainer.UpcomingSessionsController">
     <VBox spacing="18" styleClass="page">
-        <Label text="GYMMIE" styleClass="brand" />
-        <Label text="My upcoming sessions" styleClass="title" wrapText="true" />
+        <Label text="My upcoming sessions" styleClass="title" wrapText="true" minWidth="0" />
         <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
-        <Label text="Your next sessions, earliest first. Times use your computer's local time zone."
-                wrapText="true" />
+        <Label text="Your next sessions, earliest first. Times use your computer's local time zone." styleClass="helper"
+               wrapText="true" minWidth="0" />
         <Button fx:id="refreshButton" text="_Refresh" onAction="#refresh" />
         <StatusLabel fx:id="status" />
         <VBox fx:id="sessions" spacing="14" />

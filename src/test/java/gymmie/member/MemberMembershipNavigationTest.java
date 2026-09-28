@@ -4,6 +4,7 @@ import static gymmie.testutil.JavaFxTestSupport.awaitUi;
 import static gymmie.testutil.JavaFxTestSupport.onFxThread;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -69,6 +70,18 @@ class MemberMembershipNavigationTest {
                 String planText = ((Label) stage.getScene().lookup("#membershipPlan")).getText();
                 String expiryText = ((Label) stage.getScene().lookup("#membershipExpiry")).getText();
                 assertEquals("Plan: Archived monthly", planText);
+                stage.getScene().getRoot().applyCss();
+                stage.getScene().getRoot().layout();
+                Label badge = (Label) stage.getScene().lookup("#membershipStatus");
+                assertEquals(javafx.scene.paint.Color.web("#d1e7dd"),
+                        badge.getBackground().getFills().getFirst().getFill());
+                assertEquals(javafx.scene.paint.Color.web("#0f5132"), badge.getTextFill());
+                assertTrue(badge.getHeight() < 40);
+                Button renew = (Button) stage.getScene().lookup("#renewMembership");
+                Button cancel = (Button) stage.getScene().lookup("#cancelMembership");
+                assertEquals(10, cancel.getLayoutY() - renew.getLayoutY() - renew.getHeight(), 1);
+                assertFalse(stage.getScene().lookup("#renewalStatus").isManaged());
+                assertFalse(stage.getScene().lookup("#cancellationStatus").isManaged());
                 assertEquals("Expiry date: " + DisplayFormatters.date(today), expiryText);
                 Button refresh = (Button) stage.getScene().lookup("#refreshMembership");
                 assertTrue(refresh.isFocusTraversable());
@@ -83,6 +96,11 @@ class MemberMembershipNavigationTest {
             });
             awaitUi(state, text -> text.startsWith("Inactive"));
             onFxThread(() -> {
+                stage.getScene().getRoot().applyCss();
+                Label badge = (Label) stage.getScene().lookup("#membershipStatus");
+                assertEquals(javafx.scene.paint.Color.web("#f8d7da"),
+                        badge.getBackground().getFills().getFirst().getFill());
+                assertEquals(javafx.scene.paint.Color.web("#842029"), badge.getTextFill());
                 assertEquals("Plan: —", ((Label) stage.getScene().lookup("#membershipPlan")).getText());
                 assertEquals("Expiry date: —", ((Label) stage.getScene().lookup("#membershipExpiry")).getText());
                 context.getPersistence().unitOfWork().inTransaction(connection -> {
@@ -91,7 +109,7 @@ class MemberMembershipNavigationTest {
                                     4990, 30));
                     return null;
                 });
-                pressKey((Button) stage.getScene().lookup("#refreshMembership"), KeyCode.SPACE);
+                pressSpace((Button) stage.getScene().lookup("#refreshMembership"));
                 return null;
             });
             awaitUi(state, "Active"::equals);
@@ -132,11 +150,11 @@ class MemberMembershipNavigationTest {
                     Label expiry = (Label) stage.getScene().lookup("#membershipExpiry");
                     assertEquals("Plan: Past plan", plan.getText());
                     assertEquals("Expiry date: " + DisplayFormatters.date(today.minusDays(1)), expiry.getText());
-                    assertFalse(((Button) stage.getScene().lookup("#renewMembership")).isDisabled());
+                    assertFalse(stage.getScene().lookup("#renewMembership").isDisabled());
                 } else {
                     assertEquals("Plan: —", ((Label) stage.getScene().lookup("#membershipPlan")).getText());
                     assertEquals("Expiry date: —", ((Label) stage.getScene().lookup("#membershipExpiry")).getText());
-                    assertTrue(((Button) stage.getScene().lookup("#renewMembership")).isDisabled());
+                    assertTrue(stage.getScene().lookup("#renewMembership").isDisabled());
                 }
                 return null;
             });
@@ -167,8 +185,9 @@ class MemberMembershipNavigationTest {
                     stage.show();
                     stage.getScene().getRoot().applyCss();
                     boolean member = context.getUserSession().requireUser().role() == Role.MEMBER;
-                    assertEquals(member, stage.getScene().lookup("#memberMembershipButton").isVisible());
-                    assertEquals(member, stage.getScene().lookup("#memberMembershipButton").isManaged());
+                    var membershipTab = stage.getScene().lookup("#memberMembershipButton");
+                    assertEquals(member, membershipTab != null && membershipTab.isVisible());
+                    assertEquals(member, membershipTab != null && membershipTab.isManaged());
                     return null;
                 });
                 context.getAuthService().logout();
@@ -256,7 +275,7 @@ class MemberMembershipNavigationTest {
         try {
             ObservableValue<Boolean> renewalDisabled = onFxThread(() -> {
                 openMemberMembershipScreen(stage, context);
-                return ((Button) stage.getScene().lookup("#renewMembership")).disableProperty();
+                return stage.getScene().lookup("#renewMembership").disableProperty();
             });
             awaitUi(renewalDisabled, disabled -> !disabled);
             ObservableValue<Boolean> purchaseDisabled = onFxThread(() -> {
@@ -278,6 +297,17 @@ class MemberMembershipNavigationTest {
                 return null;
             });
             awaitUi(renewalStatus, "Success: Membership renewed."::equals);
+            onFxThread(() -> {
+                var root = stage.getScene().getRoot();
+                root.applyCss();
+                root.layout();
+                var message = root.lookup("#renewalStatus");
+                var cancel = root.lookup("#cancelMembership");
+                assertTrue(message.isManaged());
+                assertTrue(message.isVisible());
+                assertTrue(message.getBoundsInParent().getMinY() >= cancel.getBoundsInParent().getMaxY());
+                return null;
+            });
             ObservableValue<String> purchaseStatus = onFxThread(() -> ((Label) stage.getScene()
                     .lookup("#purchaseStatus")).textProperty());
             awaitUi(purchaseStatus, "You already have an active membership."::equals);
@@ -304,8 +334,8 @@ class MemberMembershipNavigationTest {
         try {
             onFxThread(() -> {
                 openMemberMembershipScreen(stage, context);
-                assertEquals(null, stage.getScene().lookup("#bookingHistory"));
-                assertEquals(null, stage.getScene().lookup("#bookingHistoryStatus"));
+                assertNull(stage.getScene().lookup("#bookingHistory"));
+                assertNull(stage.getScene().lookup("#bookingHistoryStatus"));
                 return null;
             });
         } finally {
@@ -327,6 +357,8 @@ class MemberMembershipNavigationTest {
                     new Membership(1, 2, 1, today.minusDays(31), today.minusDays(1),
                             MembershipStatus.ACTIVE, 4990, 30));
             try (var statement = connection.createStatement()) {
+                // Test-only SQL uses the temporary database created by this fixture.
+                //noinspection SqlNoDataSourceInspection
                 statement.execute("CREATE TRIGGER fail_membership_renewal BEFORE UPDATE ON membership "
                         + "BEGIN SELECT RAISE(ABORT, 'forced renewal failure'); END");
             }
@@ -337,7 +369,7 @@ class MemberMembershipNavigationTest {
         try {
             ObservableValue<Boolean> renewalDisabled = onFxThread(() -> {
                 openMemberMembershipScreen(stage, context);
-                return ((Button) stage.getScene().lookup("#renewMembership")).disableProperty();
+                return stage.getScene().lookup("#renewMembership").disableProperty();
             });
             awaitUi(renewalDisabled, disabled -> !disabled);
             ObservableValue<String> renewalStatus = onFxThread(() -> ((Label) stage.getScene()
@@ -352,8 +384,8 @@ class MemberMembershipNavigationTest {
             awaitUi(renewalStatus, text -> text.startsWith("Error:"));
             awaitUi(renewalDisabled, disabled -> !disabled);
             onFxThread(() -> {
-                assertFalse(((Button) stage.getScene().lookup("#refreshMembership")).isDisabled());
-                assertFalse(((Button) stage.getScene().lookup("#purchaseMembership")).isDisabled());
+                assertFalse(stage.getScene().lookup("#refreshMembership").isDisabled());
+                assertFalse(stage.getScene().lookup("#purchaseMembership").isDisabled());
                 return null;
             });
             Membership unchanged = context.getPersistence().unitOfWork().inTransaction(connection ->
@@ -384,13 +416,15 @@ class MemberMembershipNavigationTest {
         try {
             ObservableValue<Boolean> renewalDisabled = onFxThread(() -> {
                 openMemberMembershipScreen(stage, context);
-                return ((Button) stage.getScene().lookup("#renewMembership")).disableProperty();
+                return stage.getScene().lookup("#renewMembership").disableProperty();
             });
             awaitUi(renewalDisabled, disabled -> !disabled);
             ObservableValue<String> membershipStatus = onFxThread(() -> ((Label) stage.getScene()
                     .lookup("#membershipStatus")).textProperty());
             context.getPersistence().unitOfWork().inTransaction(connection -> {
                 try (var statement = connection.createStatement()) {
+                    // Test-only SQL uses the temporary database created by this fixture.
+                    //noinspection SqlNoDataSourceInspection
                     statement.execute("DROP TABLE membership");
                 }
                 return null;
@@ -406,7 +440,7 @@ class MemberMembershipNavigationTest {
             onFxThread(() -> {
                 assertEquals("Plan: —", ((Label) stage.getScene().lookup("#membershipPlan")).getText());
                 assertEquals("Expiry date: —", ((Label) stage.getScene().lookup("#membershipExpiry")).getText());
-                assertTrue(((Button) stage.getScene().lookup("#renewMembership")).isDisabled());
+                assertTrue(stage.getScene().lookup("#renewMembership").isDisabled());
                 return null;
             });
         } finally {
@@ -482,10 +516,10 @@ class MemberMembershipNavigationTest {
         stage.getScene().getRoot().applyCss();
     }
 
-    private static void pressKey(Button button, KeyCode code) {
+    private static void pressSpace(Button button) {
         button.applyCss();
         button.requestFocus();
-        button.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, false, false));
-        button.fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", code, false, false, false, false));
+        button.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.SPACE, false, false, false, false));
+        button.fireEvent(new KeyEvent(KeyEvent.KEY_RELEASED, "", "", KeyCode.SPACE, false, false, false, false));
     }
 }

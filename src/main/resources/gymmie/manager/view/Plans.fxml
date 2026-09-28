@@ -3,31 +3,30 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/plans.css"
+        fitToWidth="true" minWidth="0" stylesheets="@../../css/gymmie.css,@../css/plans.css"
         fx:controller="gymmie.manager.ManagerPlansController">
-    <VBox spacing="18" styleClass="page plans-page">
-        <Label text="GYMMIE" styleClass="brand" />
-        <Label text="Membership plans" styleClass="title" wrapText="true" />
+    <VBox spacing="18" styleClass="page, plans-page">
+        <Label text="Membership plans" styleClass="title" wrapText="true" minWidth="0" />
         <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
         <Button fx:id="refreshButton" text="_Refresh" onAction="#refresh" />
         <StatusLabel fx:id="status" />
 
-        <VBox maxWidth="560" spacing="10" styleClass="card">
-            <Label fx:id="formHeading" text="Create new plan" styleClass="heading" />
-            <Label text="_Plan name" mnemonicParsing="true" labelFor="${planName}" />
+        <VBox maxWidth="900" spacing="10" styleClass="card">
+            <Label fx:id="formHeading" text="Create new plan" styleClass="heading" wrapText="true" minWidth="0" />
+            <Label text="_Plan name" mnemonicParsing="true" labelFor="${planName}" wrapText="true" minWidth="0" />
             <TextField fx:id="planName" promptText="e.g. Standard Monthly" onAction="#savePlan" />
-            <Label text="_Duration in days (1–365)" mnemonicParsing="true" labelFor="${planDuration}" />
+            <Label text="_Duration in days (1–365)" mnemonicParsing="true" labelFor="${planDuration}" wrapText="true" minWidth="0" />
             <TextField fx:id="planDuration" promptText="e.g. 30" onAction="#savePlan" />
-            <Label text="P_rice in SGD cents (e.g. 4990 = SGD 49.90)" mnemonicParsing="true" labelFor="${planPrice}" />
+            <Label text="P_rice in SGD cents (e.g. 4990 = SGD 49.90)" mnemonicParsing="true" labelFor="${planPrice}" wrapText="true" minWidth="0" />
             <TextField fx:id="planPrice" promptText="e.g. 4990 or 49.90" onAction="#savePlan" />
-            <HBox spacing="10" alignment="CENTER_LEFT">
+            <FlowPane hgap="10" vgap="10">
                 <Button fx:id="savePlanButton" text="_Create plan" onAction="#savePlan" />
                 <Button fx:id="cancelEditButton" text="_Cancel edit" onAction="#cancelEdit"
                         visible="false" managed="false" />
-            </HBox>
+            </FlowPane>
         </VBox>
 
-        <Label text="All membership plans" styleClass="heading" />
-        <VBox fx:id="planList" spacing="12" maxWidth="560" />
+        <Label text="All membership plans" styleClass="heading" wrapText="true" minWidth="0" />
+        <VBox fx:id="planList" spacing="12" maxWidth="900" />
     </VBox>
 </ScrollPane>
