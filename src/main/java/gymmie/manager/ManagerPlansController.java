@@ -194,7 +194,7 @@ public final class ManagerPlansController {
         formHeading.setText("Edit plan: " + plan.name());
         planName.setText(plan.name());
         planDuration.setText(String.valueOf(plan.durationDays()));
-        planPrice.setText(String.valueOf(plan.priceCents()));
+        planPrice.setText(DisplayFormatters.dollars(plan.priceCents()));
         savePlanButton.setText("_Save changes");
         cancelEditButton.setVisible(true);
         cancelEditButton.setManaged(true);
@@ -308,17 +308,30 @@ public final class ManagerPlansController {
         Thread.ofPlatform().daemon().name("gymmie-delete-plan").start(task);
     }
 
-    private static int parsePriceCents(String input) throws ValidationException {
+    /**
+     * Parses an SGD dollar input string into integer cents.
+     *
+     * @param input user-entered price in SGD dollars.
+     * @return equivalent price in integer cents.
+     * @throws ValidationException if the input is blank, negative, non-numeric, or
+     *                             has more than 2 decimal places.
+     */
+    static int parsePriceCents(String input) throws ValidationException {
         if (input == null || input.isBlank()) {
             throw new ValidationException("Plan price must not be blank.");
         }
         String clean = input.strip().replace("SGD", "").replace("$", "").strip();
         try {
-            if (clean.contains(".")) {
-                BigDecimal decimal = new BigDecimal(clean);
-                return decimal.movePointRight(2).intValueExact();
+            if (clean.contains("e") || clean.contains("E")) {
+                throw new ValidationException("Plan price must be a valid non-negative number.");
             }
-            return Integer.parseInt(clean);
+            BigDecimal decimal = new BigDecimal(clean);
+            if (decimal.signum() < 0 || decimal.scale() > 2) {
+                throw new ValidationException("Plan price must be a valid non-negative number.");
+            }
+            return decimal.movePointRight(2).intValueExact();
+        } catch (ValidationException exception) {
+            throw exception;
         } catch (Exception exception) {
             throw new ValidationException("Plan price must be a valid non-negative number.");
         }

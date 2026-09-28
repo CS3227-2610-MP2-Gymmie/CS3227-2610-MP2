@@ -17,7 +17,18 @@ public final class DisplayFormatters {
 
     /** Returns an SGD price with exactly two decimal places, without floating-point conversion. */
     public static String price(long cents) {
-        return "SGD " + BigDecimal.valueOf(cents, 2).toPlainString();
+        return "SGD " + dollars(cents);
+    }
+
+    /**
+     * Returns an amount in dollars with exactly two decimal places, omitting the
+     * currency prefix.
+     *
+     * @param cents stored cents to format.
+     * @return dollar string with two decimal places.
+     */
+    public static String dollars(long cents) {
+        return BigDecimal.valueOf(cents, 2).toPlainString();
     }
 
     /** Returns a local date such as 25 Sep 2026; no timezone conversion is performed. */
