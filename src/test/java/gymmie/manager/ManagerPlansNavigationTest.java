@@ -26,7 +26,7 @@ import gymmie.ui.StatusLabel;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -88,7 +88,8 @@ class ManagerPlansNavigationTest {
         AppContext context = createContext(temporaryDirectory.resolve("plans-list.db"));
         context.getPersistence().unitOfWork().inTransaction(connection -> {
             context.getPersistence().plans().insert(connection,
-                    new MembershipPlan(1, "Bronze Monthly", 30, 4990, false));
+                    new MembershipPlan(1, "Bronze Monthly membership with a long name for checking the catalogue",
+                            30, 4990, false));
             context.getPersistence().plans().insert(connection,
                     new MembershipPlan(2, "Silver Annual", 365, 49900, true));
             return null;
@@ -108,8 +109,22 @@ class ManagerPlansNavigationTest {
                 VBox planList = (VBox) stage.getScene().lookup("#planList");
                 assertEquals(2, planList.getChildren().size());
 
-                VBox activeCard = (VBox) planList.getChildren().get(0);
+                VBox activeCard = (VBox) planList.getChildren().getFirst();
                 assertFalse(activeCard.getStyleClass().contains("plan-card-archived"));
+                for (int width : new int[]{520, 840, 1440}) {
+                    var root = stage.getScene().getRoot();
+                    root.resize(width, 760);
+                    root.applyCss();
+                    root.layout();
+                    FlowPane header = (FlowPane) activeCard.getChildren().getFirst();
+                    for (var item : header.getChildren()) {
+                        assertTrue(item.getBoundsInParent().getMaxX() <= header.getWidth() + 1);
+                    }
+                    FlowPane actions = actionsBox(activeCard);
+                    for (var action : actions.getChildren()) {
+                        assertTrue(action.getBoundsInParent().getMaxX() <= actions.getWidth() + 1);
+                    }
+                }
 
                 VBox archivedCard = (VBox) planList.getChildren().get(1);
                 assertTrue(archivedCard.getStyleClass().contains("plan-card-archived"));
@@ -186,7 +201,7 @@ class ManagerPlansNavigationTest {
             onFxThread(() -> {
                 VBox planList = (VBox) stage.getScene().lookup("#planList");
                 VBox card = (VBox) planList.getChildren().getFirst();
-                Button editBtn = (Button) actionsBox(card).getChildren().get(0);
+                Button editBtn = (Button) actionsBox(card).getChildren().getFirst();
                 assertEquals("Edit", editBtn.getText());
                 editBtn.fire();
 
@@ -250,7 +265,7 @@ class ManagerPlansNavigationTest {
             // Archive plan 1
             onFxThread(() -> {
                 VBox planList = (VBox) stage.getScene().lookup("#planList");
-                VBox card1 = (VBox) planList.getChildren().get(0);
+                VBox card1 = (VBox) planList.getChildren().getFirst();
                 Button archiveBtn = (Button) actionsBox(card1).getChildren().get(1);
                 archiveBtn.fire();
                 return null;
@@ -260,8 +275,8 @@ class ManagerPlansNavigationTest {
             // Restore plan 1
             onFxThread(() -> {
                 VBox planList = (VBox) stage.getScene().lookup("#planList");
-                VBox card1 = (VBox) planList.getChildren().get(0);
-                Button restoreBtn = (Button) actionsBox(card1).getChildren().get(0);
+                VBox card1 = (VBox) planList.getChildren().getFirst();
+                Button restoreBtn = (Button) actionsBox(card1).getChildren().getFirst();
                 assertEquals("Restore", restoreBtn.getText());
                 restoreBtn.fire();
                 return null;
@@ -290,7 +305,7 @@ class ManagerPlansNavigationTest {
         return new AppContext(databasePath);
     }
 
-    private static HBox actionsBox(VBox card) {
-        return (HBox) card.getChildren().get(2);
+    private static FlowPane actionsBox(VBox card) {
+        return (FlowPane) card.getChildren().get(2);
     }
 }

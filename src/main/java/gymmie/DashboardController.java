@@ -3,14 +3,15 @@ package gymmie;
 import java.io.IOException;
 
 import gymmie.model.Role;
+import gymmie.trainer.service.TrainerProfileService.TrainerView;
 import gymmie.ui.StatusLabel;
 import gymmie.ui.UiFeedback;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 /** Displays the authenticated role and exposes the delivered account operations. */
@@ -23,17 +24,23 @@ public final class DashboardController {
     @FXML
     private Label welcome;
     @FXML
-    private Button memberMembershipButton;
+    private Label profileDetails;
     @FXML
-    private Button memberBookingsButton;
+    private TextField ownDisplayName;
     @FXML
-    private Button browseSessionsButton;
+    private VBox displayNameSection;
     @FXML
-    private Button managePlansButton;
-    @FXML
-    private Button manageAccountsButton;
+    private StatusLabel displayNameStatus;
     @FXML
     private VBox actions;
+    @FXML
+    private VBox trainerDetails;
+    @FXML
+    private Label trainerSynopsis;
+    @FXML
+    private Label trainerSpecializations;
+    @FXML
+    private StatusLabel trainerDetailsStatus;
     @FXML
     private PasswordField currentPassword;
     @FXML
@@ -49,14 +56,7 @@ public final class DashboardController {
     @FXML
     private StatusLabel status;
     @FXML
-    private Button logoutButton;
-    @FXML
     private Button profileButton;
-    @FXML
-    private Button createSessionButton;
-
-    @FXML
-    private Button upcomingSessionsButton;
 
     /** Creates a dashboard using the current session and shared account services. */
     public DashboardController(AppContext context, Router router, String dashboardTitle) {
@@ -72,91 +72,82 @@ public final class DashboardController {
         PasswordReveal.install(confirmPassword, confirmPasswordReveal);
 
         Role role = context.getUserSession().requireUser().role();
-        boolean manager = role == Role.MANAGER;
         boolean trainer = role == Role.TRAINER;
-        boolean member = role == Role.MEMBER;
-        managePlansButton.setVisible(manager);
-        managePlansButton.setManaged(manager);
-        manageAccountsButton.setVisible(manager);
-        manageAccountsButton.setManaged(manager);
-        upcomingSessionsButton.setVisible(trainer);
-        upcomingSessionsButton.setManaged(trainer);
-        createSessionButton.setVisible(trainer);
-        createSessionButton.setManaged(trainer);
+        displayNameSection.setVisible(!trainer);
+        displayNameSection.setManaged(!trainer);
         profileButton.setVisible(trainer);
         profileButton.setManaged(trainer);
-        memberMembershipButton.setVisible(member);
-        memberMembershipButton.setManaged(member);
-        memberBookingsButton.setVisible(member);
-        memberBookingsButton.setManaged(member);
-        browseSessionsButton.setVisible(member);
-        browseSessionsButton.setManaged(member);
+        refreshIdentity();
+        displayNameStatus.managedProperty().bind(displayNameStatus.textProperty().isNotEmpty());
+        displayNameStatus.visibleProperty().bind(displayNameStatus.managedProperty());
+        trainerDetails.setVisible(trainer);
+        trainerDetails.setManaged(trainer);
+        trainerDetailsStatus.managedProperty().bind(trainerDetailsStatus.textProperty().isNotEmpty());
+        trainerDetailsStatus.visibleProperty().bind(trainerDetailsStatus.managedProperty());
+        if (trainer) {
+            loadTrainerDetails();
+        }
         title.setText(dashboardTitle);
-        welcome.setText("Welcome, " + context.getUserSession().requireUser().displayName());
-        Platform.runLater(logoutButton::requestFocus);
+    }
+
+    private void refreshIdentity() {
+        var user = context.getUserSession().requireUser();
+        profileDetails.setText(user.displayName() + "\n@" + user.username() + "\n" + user.role());
+        welcome.setText("Welcome, " + user.displayName());
+        ownDisplayName.setText(user.displayName());
     }
 
     @FXML
-    private void openManagePlans() {
-        try {
-            router.showManagerPlans();
-        } catch (IOException exception) {
-            status.error("Unable to open membership plans. Please try again.");
+    private void changeDisplayName() {
+        if (actions.isDisabled()) {
+            return;
         }
+        String replacement = ownDisplayName.getText();
+        actions.setDisable(true);
+        displayNameStatus.info("Updating display name…");
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                context.getProfileService().changeOwnDisplayName(replacement);
+                return null;
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            actions.setDisable(false);
+            refreshIdentity();
+            displayNameStatus.success("Display name changed.");
+            ownDisplayName.requestFocus();
+        });
+        task.setOnFailed(_ -> {
+            actions.setDisable(false);
+            if (!context.getUserSession().isAuthenticated()) {
+                logout();
+                return;
+            }
+            displayNameStatus.error(task.getException(), "Unable to change your display name. Please try again.");
+            ownDisplayName.requestFocus();
+        });
+        Thread.ofPlatform().daemon().name("gymmie-display-name-change").start(task);
     }
 
-    @FXML
-    private void openManageAccounts() {
-        try {
-            router.showManagerAccounts();
-        } catch (IOException exception) {
-            status.error("Unable to open account management. Please try again.");
-        }
-    }
-
-    @FXML
-    private void openMembership() {
-        try {
-            router.showMemberMembership();
-        } catch (IOException exception) {
-            status.error("Unable to open your membership. Please try again.");
-        }
-    }
-
-    @FXML
-    private void openMemberSessions() {
-        try {
-            router.showMemberSessions();
-        } catch (IOException exception) {
-            status.error("Unable to open session browsing. Please try again.");
-        }
-    }
-
-    @FXML
-    private void openMemberBookings() {
-        try {
-            router.showMemberBookings();
-        } catch (IOException exception) {
-            status.error("Unable to open your bookings. Please try again.");
-        }
-    }
-
-    @FXML
-    private void openUpcomingSessions() {
-        try {
-            router.showUpcomingSessions();
-        } catch (IOException exception) {
-            status.error("Unable to open upcoming sessions. Please try again.");
-        }
-    }
-
-    @FXML
-    private void createSession() {
-        try {
-            router.showCreateSession();
-        } catch (IOException exception) {
-            status.error("Unable to open session creation. Please try again.");
-        }
+    private void loadTrainerDetails() {
+        trainerDetailsStatus.info("Loading trainer details…");
+        Task<TrainerView> task = new Task<>() {
+            @Override
+            protected TrainerView call() throws Exception {
+                return context.getTrainerProfileService().getOwnTrainerProfile();
+            }
+        };
+        task.setOnSucceeded(_ -> {
+            TrainerView profile = task.getValue();
+            trainerSynopsis.setText(profile.synopsis().isBlank() ? "No synopsis added." : profile.synopsis());
+            trainerSpecializations.setText(profile.specializations().isEmpty()
+                    ? "No specializations added." : String.join("\n", profile.specializations()));
+            trainerDetailsStatus.info("");
+        });
+        task.setOnFailed(_ -> trainerDetailsStatus.error(task.getException(),
+                "Unable to load trainer details. Reopen Home to try again."));
+        Thread.ofPlatform().daemon().name("gymmie-trainer-summary").start(task);
     }
 
     @FXML

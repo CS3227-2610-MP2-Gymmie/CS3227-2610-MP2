@@ -155,8 +155,11 @@ public final class Router {
     }
 
     private void show(Parent root, String title) {
+        if (context.getUserSession().isAuthenticated()) {
+            root = new DashboardNavigation(this, title).wrap(root, context.getUserSession().requireUser().role());
+        }
         if (stage.getScene() == null) {
-            Scene scene = new Scene(root, 840, 680);
+            Scene scene = new Scene(root, 1100, 760);
             stage.setScene(scene);
         } else {
             stage.getScene().setRoot(root);

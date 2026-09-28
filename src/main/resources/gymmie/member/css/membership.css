@@ -9,3 +9,23 @@
     -fx-font-size: 17px;
     -fx-font-weight: bold;
 }
+
+/* Custom JavaFX states set by MemberMembershipController. */
+/*noinspection CssInvalidPseudoSelector*/
+.membership-state:active-membership,
+.membership-state:inactive-membership {
+    -fx-padding: 3px 8px;
+    -fx-background-radius: 4px;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+/*noinspection CssInvalidPseudoSelector*/
+.membership-state:active-membership {
+    -fx-background-color: #d1e7dd;
+    -fx-text-fill: #0f5132;
+}
+/*noinspection CssInvalidPseudoSelector*/
+.membership-state:inactive-membership {
+    -fx-background-color: #f8d7da;
+    -fx-text-fill: #842029;
+}

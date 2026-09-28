@@ -36,7 +36,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
@@ -71,7 +70,7 @@ class MemberBookingsNavigationTest {
             awaitUi(status, "5 bookings"::equals);
             CompletableFuture<Void> bookingListUpdated = new CompletableFuture<>();
             ListChangeListener<MemberBooking> bookingChangeListener = _ -> bookingListUpdated.complete(null);
-            Booking originalBooking = bookingById(context, 5);
+            Booking originalBooking = bookingUnderTest(context);
             onFxThread(() -> {
                 @SuppressWarnings("unchecked")
                 ListView<MemberBooking> upcoming = (ListView<MemberBooking>) stage.getScene()
@@ -85,7 +84,17 @@ class MemberBookingsNavigationTest {
                 assertTrue(upcoming.getItems().stream().allMatch(item -> startsAt(item).isAfter(LocalDateTime.now())));
                 assertTrue(past.getItems().stream().allMatch(item -> startsAt(item).isBefore(LocalDateTime.now())));
 
-                ScrollPane screen = (ScrollPane) stage.getScene().getRoot();
+                var root = stage.getScene().getRoot();
+                for (int width : new int[]{520, 840, 1440}) {
+                    root.resize(width, 760);
+                    root.applyCss();
+                    root.layout();
+                    for (var label : upcoming.lookupAll(".list-cell .label")) {
+                        assertTrue(label.getBoundsInParent().getMaxX()
+                                <= label.getParent().getLayoutBounds().getWidth());
+                    }
+                }
+                ScrollPane screen = (ScrollPane) stage.getScene().lookup("#pageScroll");
                 screen.setVvalue(1);
                 Parent content = (Parent) screen.getContent();
                 content.applyCss();
@@ -102,12 +111,12 @@ class MemberBookingsNavigationTest {
                 assertTrue(upcomingText.stream().anyMatch(text -> text.contains("Reason: Account deactivated")));
 
                 Button cancel = (Button) stage.getScene().lookup("#upcomingBookings .list-cell .button");
-                assertTrue(cancel.getText().equals("Cancel booking"));
-                Platform.runLater(() -> clickConfirmationButton("Cancel booking", ButtonType.CANCEL));
+                assertEquals("Cancel booking", cancel.getText());
+                Platform.runLater(() -> clickConfirmationButton(ButtonType.CANCEL));
                 cancel.fire();
                 return null;
             });
-            assertEquals(originalBooking, bookingById(context, 5));
+            assertEquals(originalBooking, bookingUnderTest(context));
 
             onFxThread(() -> {
                 @SuppressWarnings("unchecked")
@@ -115,7 +124,7 @@ class MemberBookingsNavigationTest {
                         .lookup("#upcomingBookings");
                 upcoming.getItems().addListener(bookingChangeListener);
                 Button cancel = (Button) stage.getScene().lookup("#upcomingBookings .list-cell .button");
-                Platform.runLater(() -> clickConfirmationButton("Cancel booking", ButtonType.OK));
+                Platform.runLater(() -> clickConfirmationButton(ButtonType.OK));
                 cancel.fire();
                 return null;
             });
@@ -176,7 +185,7 @@ class MemberBookingsNavigationTest {
 
     private static List<String> rowLabels(ListView<?> list) {
         return list.lookupAll(".list-cell").stream()
-                .flatMap(node -> ((ListCell<?>) node).lookupAll(".label").stream())
+                .flatMap(node -> node.lookupAll(".label").stream())
                 .map(node -> ((Label) node).getText())
                 .toList();
     }
@@ -186,18 +195,18 @@ class MemberBookingsNavigationTest {
                 && text.contains("Description: Workout");
     }
 
-    private static void clickConfirmationButton(String title, ButtonType type) {
+    private static void clickConfirmationButton(ButtonType type) {
         Window dialog = Window.getWindows().stream()
                 .filter(Window::isShowing)
-                .filter(window -> window instanceof Stage stage && title.equals(stage.getTitle()))
+                .filter(window -> window instanceof Stage stage && "Cancel booking".equals(stage.getTitle()))
                 .findFirst().orElseThrow();
         DialogPane dialogPane = (DialogPane) dialog.getScene().getRoot();
         Button confirmation = (Button) dialogPane.lookupButton(type);
         confirmation.fire();
     }
 
-    private static Booking bookingById(AppContext context, long bookingId) throws Exception {
+    private static Booking bookingUnderTest(AppContext context) throws Exception {
         return context.getPersistence().unitOfWork().inTransaction(connection ->
-                context.getPersistence().bookings().findById(connection, bookingId).orElseThrow());
+                context.getPersistence().bookings().findById(connection, 5).orElseThrow());
     }
 }

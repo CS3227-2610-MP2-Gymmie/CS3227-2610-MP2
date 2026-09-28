@@ -15,11 +15,11 @@
     -fx-faint-focus-color: transparent;
 }
 .page {
-    -fx-padding: 32px;
+    -fx-padding: 24px;
     -fx-background-color: -gymmie-background;
 }
 .card {
-    -fx-padding: 24px;
+    -fx-padding: 20px;
     -fx-background-color: white;
     -fx-background-radius: 12px;
     -fx-border-color: -gymmie-border;
@@ -66,7 +66,10 @@
     -fx-padding: 9px;
 }
 .status { -fx-text-fill: -gymmie-text; }
+/* Custom JavaFX states set by StatusLabel. */
+/*noinspection CssInvalidPseudoSelector*/
 .status:error { -fx-text-fill: -gymmie-error; }
+/*noinspection CssInvalidPseudoSelector*/
 .status:success { -fx-text-fill: -gymmie-success; }
 .button:disabled { -fx-opacity: 0.55; }
 .dialog-pane { -fx-background-color: -gymmie-background; }
@@ -84,4 +87,48 @@
 .reveal-button {
     -fx-font-size: 13px;
     -fx-padding: 10px 12px;
+}
+
+/* Keep secondary instructions distinct from labels and entered values. */
+.helper { -fx-text-fill: #526478; }
+.text-input { -fx-prompt-text-fill: #596979; }
+.label { -fx-wrap-text: true; }
+.scroll-pane { -fx-padding: 0; -fx-background-insets: 0; }
+.side-tabs {
+    -fx-padding: 24px 14px;
+    -fx-background-color: #e7ece6;
+}
+.navigation-rail, .navigation-rail > .viewport { -fx-background-color: #e7ece6; }
+.sidebar-brand {
+    -fx-text-fill: -gymmie-primary;
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 8px 20px 8px;
+}
+.navigation-tab {
+    -fx-alignment: center-left;
+    -fx-padding: 12px;
+    -fx-background-color: transparent;
+    -fx-text-fill: -gymmie-text;
+}
+.navigation-tab:hover { -fx-background-color: #d4dfd5; }
+.navigation-tab:selected {
+    -fx-background-color: -gymmie-primary;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.navigation-tab:pressed { -fx-background-color: #c2d1c4; -fx-text-fill: -gymmie-text; }
+
+/* A dropdown's closed value is a ListCell too; keep it neutral and legible. */
+.combo-box > .list-cell,
+.combo-box > .list-cell:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -gymmie-text;
+    -fx-text-background-color: -gymmie-text;
+}
+.combo-box-popup .list-cell:selected,
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #e2e7ed;
+    -fx-text-fill: -gymmie-text;
+    -fx-text-background-color: -gymmie-text;
 }

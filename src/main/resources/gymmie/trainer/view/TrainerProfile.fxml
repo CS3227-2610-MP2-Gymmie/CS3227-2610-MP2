@@ -3,29 +3,28 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <ScrollPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-        fitToWidth="true" stylesheets="@../../css/gymmie.css,@../css/profile.css"
+        fitToWidth="true" minWidth="0" stylesheets="@../../css/gymmie.css,@../css/profile.css"
         fx:controller="gymmie.trainer.TrainerProfileController">
     <VBox spacing="18" styleClass="page">
-        <Label text="GYMMIE" styleClass="brand" />
-        <Label text="My Trainer profile" styleClass="title" wrapText="true" />
-        <HBox spacing="12">
+        <Label text="My Trainer profile" styleClass="title" wrapText="true" minWidth="0" />
+        <FlowPane hgap="12" vgap="12">
             <Button fx:id="backButton" text="_Back to dashboard" onAction="#back" />
             <Button fx:id="reloadButton" text="_Reload profile" onAction="#load" />
-        </HBox>
+        </FlowPane>
         <StatusLabel fx:id="profileStatus" />
-        <VBox fx:id="form" spacing="12" maxWidth="600" styleClass="card" disable="true">
-            <Label text="Username (fixed)" labelFor="${username}" />
-            <TextField fx:id="username" editable="false" accessibleText="Username, cannot be changed" />
-            <Label text="_Display name" mnemonicParsing="true" labelFor="${displayName}" />
+        <VBox fx:id="form" spacing="12" maxWidth="900" styleClass="card" disable="true">
+            <Label text="Username (fixed)" labelFor="${username}" wrapText="true" minWidth="0" />
+            <TextField fx:id="username" editable="false" disable="true" accessibleText="Username, cannot be changed" />
+            <Label text="_Display name" mnemonicParsing="true" labelFor="${displayName}" wrapText="true" minWidth="0" />
             <TextField fx:id="displayName" onAction="#save" />
-            <Label text="1–100 characters; this is the name others see." wrapText="true" />
-            <Label text="S_ynopsis" mnemonicParsing="true" labelFor="${synopsis}" />
+            <Label text="1–100 characters; this is the name others see." styleClass="helper" wrapText="true" minWidth="0" />
+            <Label text="S_ynopsis" mnemonicParsing="true" labelFor="${synopsis}" wrapText="true" minWidth="0" />
             <TextArea fx:id="synopsis" wrapText="true" prefRowCount="4" />
-            <Label text="Training specializations" styleClass="heading" />
-            <Label text="Add one tag at a time. Select a tag to remove it. Synopsis and tags are optional."
-                    wrapText="true" />
+            <Label text="Training specializations" styleClass="heading" wrapText="true" minWidth="0" />
+            <Label text="Add one tag at a time. Select a tag to remove it. Synopsis and tags are optional." styleClass="helper"
+                   wrapText="true" minWidth="0" />
             <FlowPane fx:id="tags" hgap="8" vgap="8" />
-            <Label text="Specialization _tag" mnemonicParsing="true" labelFor="${tagInput}" />
+            <Label text="Specialization _tag" mnemonicParsing="true" labelFor="${tagInput}" wrapText="true" minWidth="0" />
             <HBox spacing="10">
                 <TextField fx:id="tagInput" promptText="e.g. Strength training" onAction="#addTag"
                         HBox.hgrow="ALWAYS" />

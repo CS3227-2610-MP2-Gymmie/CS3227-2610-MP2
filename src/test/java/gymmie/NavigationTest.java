@@ -5,6 +5,7 @@ import static gymmie.testutil.JavaFxTestSupport.onFxThread;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -122,6 +123,114 @@ class NavigationTest {
             assertTrue(status.getPseudoClassStates().contains(javafx.css.PseudoClass.getPseudoClass("success")));
             assertFalse(status.getPseudoClassStates().contains(javafx.css.PseudoClass.getPseudoClass("error")));
             owner.close();
+            return null;
+        });
+    }
+
+    @Test
+    void sideTabsKeepRoleNavigationAvailableAndPagesFitSmallAndLargeWindows() throws Exception {
+        AppContext context = new AppContext(temporaryDirectory.resolve("responsive.db"));
+        var hash = new PasswordHasher().hash("password123");
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection,
+                    new Account(2, "trainer", hash, "Trainer", Role.TRAINER, true));
+            context.getPersistence().accounts().insert(connection,
+                    new Account(3, "member", hash, "Member", Role.MEMBER, true));
+            return null;
+        });
+        Stage stage = onFxThread(Stage::new);
+        try {
+            for (String username : new String[]{"manager", "trainer", "member"}) {
+                context.getAuthService().login(username, username.equals("manager") ? "manager123" : "password123");
+                onFxThread(() -> {
+                    Router router = new Router(stage, context, new ViewLoader());
+                    router.showDashboard();
+                    stage.show();
+                    var root = stage.getScene().getRoot();
+                    root.applyCss();
+                    Label profile = (Label) root.lookup("#profileDetails");
+                    assertTrue(profile.getText().contains("@" + username));
+                    assertNotNull(root.lookup("#currentPassword"));
+                    var tabs = (javafx.scene.layout.VBox) root.lookup("#sideTabs");
+                    var destinations = tabs.getChildren().stream().filter(Button.class::isInstance)
+                            .map(javafx.scene.Node::getId).filter(id -> !id.equals("logoutButton")).toList();
+                    assertEquals(username.equals("member") ? 4 : 3, destinations.size());
+                    for (String destination : destinations) {
+                        Button navigate = (Button) stage.getScene().lookup("#" + destination);
+                        navigate.fire();
+                        root = stage.getScene().getRoot();
+                        for (int width : new int[]{520, 840, 1440}) {
+                            root.resize(width, 760);
+                            root.applyCss();
+                            root.layout();
+                            var scroll = (javafx.scene.control.ScrollPane) root.lookup("#pageScroll");
+                            assertTrue(scroll.getViewportBounds().getWidth() > 200);
+                            assertTrue(scroll.getContent().getLayoutBounds().getWidth()
+                                    <= scroll.getViewportBounds().getWidth() + 1,
+                                    username + " " + destination + " overflows at " + width);
+                            Button active = (Button) root.lookup("#" + destination);
+                            assertTrue(active.getPseudoClassStates().contains(
+                                    javafx.css.PseudoClass.getPseudoClass("selected")));
+                            assertTrue(active.localToScene(active.getBoundsInLocal()).getMaxX()
+                                    <= scroll.localToScene(scroll.getBoundsInLocal()).getMinX());
+                        }
+                    }
+                    Button home = (Button) root.lookup("#homeButton");
+                    home.fire();
+                    root = stage.getScene().getRoot();
+                    root.applyCss();
+                    Label helper = (Label) root.lookup(".helper");
+                    Label heading = (Label) root.lookup(".heading");
+                    assertNotEquals(heading.getTextFill(), helper.getTextFill());
+                    return null;
+                });
+            }
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void dropdownSelectionsUseNeutralBackgroundsWithReadableText() throws Exception {
+        onFxThread(() -> {
+            var roles = new javafx.scene.control.ComboBox<Role>();
+            roles.getItems().setAll(Role.TRAINER, Role.MEMBER);
+            Stage stage = new Stage();
+            stage.setScene(new Scene(new javafx.scene.layout.VBox(roles), 400, 200));
+            SharedStyles.apply(stage.getScene());
+            try {
+                stage.show();
+                for (Role role : roles.getItems()) {
+                    roles.getSelectionModel().select(role);
+                    stage.getScene().getRoot().applyCss();
+                    stage.getScene().getRoot().layout();
+                    var skin = (javafx.scene.control.skin.ComboBoxListViewSkin<?>) roles.getSkin();
+                    var closedCell = (javafx.scene.control.ListCell<?>) skin.getDisplayNode();
+                    assertEquals(role.name(), closedCell.getText());
+                    assertEquals(javafx.scene.paint.Color.TRANSPARENT,
+                            closedCell.getBackground().getFills().getFirst().getFill());
+                    assertEquals(javafx.scene.paint.Color.web("#243b2f"), closedCell.getTextFill());
+                    roles.show();
+                    var popup = javafx.stage.Window.getWindows().stream()
+                            .filter(window -> window != stage && window.isShowing()).findFirst().orElseThrow();
+                    popup.getScene().getRoot().applyCss();
+                    popup.getScene().getRoot().layout();
+                    var selected = popup.getScene().getRoot().lookupAll(".list-cell").stream()
+                            .filter(javafx.scene.control.ListCell.class::isInstance)
+                            .map(node -> (javafx.scene.control.ListCell<?>) node)
+                            .filter(javafx.scene.control.ListCell::isSelected).findFirst().orElseThrow();
+                    assertEquals(javafx.scene.paint.Color.web("#e2e7ed"),
+                            selected.getBackground().getFills().getFirst().getFill());
+                    assertEquals(javafx.scene.paint.Color.web("#243b2f"), selected.getTextFill());
+                    roles.hide();
+                }
+            } finally {
+                roles.hide();
+                stage.close();
+            }
             return null;
         });
     }

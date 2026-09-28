@@ -4,6 +4,7 @@ import static gymmie.testutil.JavaFxTestSupport.awaitUi;
 import static gymmie.testutil.JavaFxTestSupport.onFxThread;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,7 +38,6 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
@@ -109,11 +109,13 @@ class TrainerNavigationTest {
                     save.fire();
                 }
                 assertTrue(stage.getScene().lookup("#actions").isDisabled());
+                assertTrue(stage.getScene().lookup("#sideTabs").isDisabled());
                 return null;
             });
             awaitUi(feedback, text -> text.equals("Success: Password changed."));
             onFxThread(() -> {
                 assertFalse(stage.getScene().lookup("#actions").isDisabled());
+                assertFalse(stage.getScene().lookup("#sideTabs").isDisabled());
                 for (String id : new String[]{"#currentPassword", "#newPassword", "#confirmPassword"}) {
                     assertEquals("", ((PasswordField) stage.getScene().lookup(id)).getText());
                 }
@@ -125,6 +127,67 @@ class TrainerNavigationTest {
                     restarted.getAuthService().login(trainer.username(), "password123"));
             assertEquals(trainer.id(), restarted.getAuthService().login(
                     trainer.username(), "replacement123").accountId());
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void homeShowsCompleteTrainerProfileWithoutTruncatingLongNames(boolean emptyDetails) throws Exception {
+        AppContext context = new AppContext(temporaryDirectory.resolve("home-profile-" + emptyDetails + ".db"));
+        var trainer = new gymmie.testutil.AccountBuilder().withId(2).withUsername("trainer")
+                .withRole(Role.TRAINER).build();
+        context.getPersistence().unitOfWork().inTransaction(connection -> {
+            context.getPersistence().accounts().insert(connection, trainer);
+            return null;
+        });
+        context.getAuthService().login("trainer", gymmie.testutil.AccountBuilder.DEFAULT_PASSWORD);
+        String name = "Coach Alexandra with a long display name that must be shown completely on the Home page";
+        String biography = emptyDetails ? "" : "Strength and mobility coaching for athletes of all experience levels.";
+        List<String> specializations = emptyDetails ? List.of() : List.of("Strength training", "Mobility coaching");
+        context.getTrainerProfileService().updateOwnTrainerProfile(name, biography, specializations);
+        Stage stage = onFxThread(Stage::new);
+        try {
+            var details = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showDashboard();
+                stage.show();
+                return ((Label) stage.getScene().lookup("#trainerSynopsis")).textProperty();
+            });
+            awaitUi(details, value -> value.equals(emptyDetails ? "No synopsis added." : biography));
+            onFxThread(() -> {
+                Label profile = (Label) stage.getScene().lookup("#profileDetails");
+                assertEquals(name + "\n@trainer\nTRAINER", profile.getText());
+                Label tags = (Label) stage.getScene().lookup("#trainerSpecializations");
+                assertEquals(emptyDetails ? "No specializations added." : String.join("\n", specializations),
+                        tags.getText());
+                var root = stage.getScene().getRoot();
+                for (int width : new int[]{520, 840, 1440}) {
+                    root.resize(width, 580);
+                    root.applyCss();
+                    root.layout();
+                    for (String id : new String[]{"profileDetails", "welcome", "trainerSynopsis",
+                        "trainerSpecializations"}) {
+                        Label label = (Label) root.lookup("#" + id);
+                        assertEquals(label.getText(), ((javafx.scene.text.Text) label.lookup(".text")).getText());
+                        assertTrue(label.getHeight() >= label.prefHeight(label.getWidth()) - 1);
+                    }
+                    Button edit = (Button) root.lookup("#profileButton");
+                    var card = (javafx.scene.layout.VBox) edit.getParent();
+                    assertEquals(edit, card.getChildren().getLast());
+                    assertTrue(edit.localToScene(edit.getBoundsInLocal()).getMinY()
+                            >= tags.localToScene(tags.getBoundsInLocal()).getMaxY());
+                }
+                if (!emptyDetails) {
+                    root.resize(840, 760);
+                    root.layout();
+                    writePreview(stage, "trainer-home-details.png");
+                }
+                return null;
+            });
         } finally {
             onFxThread(() -> {
                 stage.close();
@@ -166,6 +229,7 @@ class TrainerNavigationTest {
                 TextField username = (TextField) stage.getScene().lookup("#username");
                 assertEquals("trainer", username.getText());
                 assertFalse(username.isEditable());
+                assertTrue(username.isDisabled());
                 TextField name = (TextField) stage.getScene().lookup("#displayName");
                 assertEquals("Original Trainer", name.getText());
                 name.setText("");
@@ -316,7 +380,7 @@ class TrainerNavigationTest {
             assertEquals(10, saved.getFirst().capacity());
             assertEquals("Strength training", saved.getFirst().description());
             onFxThread(() -> {
-                assertEquals(null, ((DatePicker) stage.getScene().lookup("#startDate")).getValue());
+                assertNull(((DatePicker) stage.getScene().lookup("#startDate")).getValue());
                 assertEquals("", ((TextField) stage.getScene().lookup("#startTime")).getText());
                 Button back = (Button) stage.getScene().lookup("#backButton");
                 pressKey(back, KeyCode.SPACE);
@@ -754,7 +818,7 @@ class TrainerNavigationTest {
             }
             awaitUi(feedback, text -> text.equals("Success: Session deleted."));
             onFxThread(() -> {
-                assertTrue(stage.getScene().lookup("#deleteButton-" + session.id()) == null);
+                assertNull(stage.getScene().lookup("#deleteButton-" + session.id()));
                 assertFalse(stage.getScene().lookup("#refreshButton").isDisabled());
                 return null;
             });
@@ -801,8 +865,7 @@ class TrainerNavigationTest {
     }
 
     private static void writePreview(Stage stage, String filename) throws Exception {
-        ScrollPane scroll = (ScrollPane) stage.getScene().getRoot();
-        WritableImage snapshot = scroll.getContent().snapshot(null, null);
+        WritableImage snapshot = stage.getScene().getRoot().snapshot(null, null);
         BufferedImage image = new BufferedImage((int) snapshot.getWidth(), (int) snapshot.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < image.getHeight(); y++) {

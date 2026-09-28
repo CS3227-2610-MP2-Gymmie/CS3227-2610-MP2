@@ -2,6 +2,58 @@
 
 ## Quick start
 
+After signing in, **Home** shows your profile (display name, username, and role)
+and the **Change password** form. Managers and Members also have a **Change display
+name** form. Trainers see their saved synopsis and all
+training specializations, followed by **Edit my profile** at the bottom of the
+profile card. Long display names and profile details wrap onto additional lines.
+If no synopsis or specializations have been added, Home says so. Choose **Edit my
+profile** to update these details.
+
+Use the tabs on the left to move between pages. The current tab is highlighted:
+
+- **Manager:** Home, Manage membership plans, Manage accounts.
+- **Trainer:** Home, My upcoming sessions, Create session.
+- **Member:** Home, My membership, Browse sessions, My bookings.
+
+The side tabs remain available on each page. **Home** or **Back to dashboard**
+returns to your profile and password form. **Log out** is in the sidebar.
+Switching pages discards unsaved form entries. Use **Tab** and **Shift+Tab** to
+focus navigation tabs, then **Space** or **Enter** to open one.
+
+Resize the window to adjust the content width. Text and grouped actions wrap,
+and longer pages scroll vertically. The sidebar scrolls separately if needed.
+Helper instructions and input examples use a muted blue-grey colour to distinguish
+them from field labels and entered values. Dropdown selections use a neutral
+background with dark text, including when the list is open.
+
+### Change your display name (Managers and Members)
+
+Managers and Members can change their own display name on **Home**,
+using **Change display name** just above the password form.
+
+1. Edit **Display name**, which initially contains your saved name. Use 1–100
+   characters; your display name does not have to be unique.
+2. Choose **Save display name**, or press **Enter** in the field.
+3. **Success: Display name changed.** confirms the save. Your welcome message
+   and profile summary update immediately, and the name remains saved after
+   signing out or restarting Gymmie.
+
+While saving, the Home controls and side navigation are temporarily disabled.
+If validation or saving fails, your saved name and welcome message stay unchanged;
+your input remains available to correct and retry. If your session has ended or
+your account is deactivated, you return to login. Your login username, role, and password do not change.
+Trainers use **Home → Edit my profile** to change their display name, synopsis,
+and specializations. Their Home page does not show a separate display-name form.
+
+### Change your password (all roles)
+
+On **Home**, enter your current password, a new password of 8–128 characters,
+and the same new password again. Choose **Save password**. Hold **Show** with
+the mouse or **Space** to reveal a password temporarily. A success message confirms
+that the new password is saved. Correct any validation error and re-enter cleared
+password fields before trying again.
+
 ## Verify the application
 
 ## Features
@@ -233,9 +285,9 @@ submitting discards unsaved inputs.
 
 #### View and edit your profile
 
-Log in as a Trainer and choose **My profile** on the **Trainer dashboard**.
+Log in as a Trainer and choose **Home → Edit my profile**.
 The editor loads your current username, display name, synopsis, and training
-specializations. Your username is fixed and cannot be edited.
+specializations. Your username is greyed out, fixed, and cannot be edited.
 
 1. Edit **Display name** (1–100 characters). This is your shared account display
    name, shown to other users; it does not need to be unique.
@@ -261,7 +313,7 @@ If your account has been deactivated, contact a Manager.
 
 #### Change your password
 
-Log in with your Trainer account. On the **Trainer dashboard**, use the
+Log in with your Trainer account. On **Home**, use the
 **Change password** form:
 
 1. Enter your **Current password**.
@@ -296,6 +348,12 @@ name, and its expiry date.
 2. Select **Refresh** to load the latest membership history, including after
    leaving Gymmie open overnight. You can also use **Tab** or **Shift+Tab** to
    focus the button and press **Space** or **Enter**.
+
+The **Active** status appears as a green badge. **Inactive**, **Expired**, and
+**Cancelled** use a red badge, matching the account-status styling. The status
+word is always shown as well as the colour. **Renew current plan** and **Cancel
+current membership** are grouped together; their progress, success, or error
+messages appear below the buttons without an empty message gap between them.
 
 **Active** means the membership covers today; the expiry date is included. An
 archived plan still appears by name while its membership covers today.
