@@ -2,19 +2,26 @@
 
 Gymmie is a Java 25 JavaFX desktop application for managing a gym's membership plans, user accounts, training sessions, and session bookings. It supports three roles: Manager, Trainer, and Member.
 
-The repository contains JavaFX login and role-specific dashboard shells, the SQLite persistence boundary and repositories, and the immutable domain model. Login, logout, and password change are available through the GUI; other gym workflows remain to be implemented.
+The repository contains JavaFX login and role-specific dashboards, an immutable domain model, and SQLite persistence. Implemented workflows include Manager plan and account administration, Trainer profiles and session management, and Member membership purchases, renewals, cancellations, and session bookings.
 
 `AppContext` is the composition root: it constructs `Database`, calls `SchemaInitializer.initialize()`, and then constructs persistence and shared services and seeds the Manager. `App.init()` creates this context before `App.start()` creates the router. `Router` owns one scene and selects the dashboard from the authenticated role; `ViewLoader` loads bundled FXML with explicitly injected controllers. Controllers run authentication and password changes on background tasks and update JavaFX controls on the application thread. Service-level authorization remains authoritative.
 
-For end-user instructions, see the [User Guide](UserGuide.md) when it is added.
+For end-user instructions, see the [User Guide](UserGuide.md). The requirements appendix includes both implemented workflows and future scope; it is not an implementation checklist.
 
 ## Contents
 
 - [Acknowledgements](#acknowledgements)
 - [Setting up, getting started](#setting-up-getting-started)
+- [Architectural design](#architectural-design)
+- [Shared UI conventions](#shared-ui-conventions)
 - [Domain model](#domain-model)
+- [Class diagrams](#class-diagrams)
 - [Repository contracts](#repository-contracts)
+- [Database schema](#database-schema)
 - [Authentication and authorization](#authentication-and-authorization)
+- [Sequence diagram: booking a session](#sequence-diagram-booking-a-session)
+- [Sequence diagram: cancelling a membership](#sequence-diagram-cancelling-a-membership)
+- [How to test](#how-to-test)
 - [Appendix: Requirements](#appendix-requirements)
 
 ---
@@ -37,8 +44,9 @@ Verify that both `java -version` and `javac -version` report version 25. Clone t
 | Command | Purpose |
 | --- | --- |
 | `./gradlew run` | Launch the JavaFX application during development. |
-| `./gradlew test` | Run the JUnit tests. |
-| `./gradlew check` | Run tests and Checkstyle. |
+| `./gradlew test` | Run JUnit tests; opt-in JavaFX tests are skipped. |
+| `./gradlew check` | Run default tests and Checkstyle. |
+| `./gradlew test -PuiTests=true` | Include JavaFX integration tests; requires a graphical desktop. |
 | `./gradlew shadowJar` | Create a runnable fat JAR in `build/libs/`. |
 | `java -jar build/libs/Gymmie-1.0.0-all.jar` | Launch the packaged application when that file has been built. |
 
@@ -48,11 +56,89 @@ Test, Checkstyle, and JaCoCo reports are written under `build/reports/` by Gradl
 
 ---
 
+## Architectural design
+
+Gymmie is a layered desktop application running in one JVM, with a local SQLite
+database and no remote application server. Role-specific packages organize
+features while shared models, security, and persistence provide common boundaries.
+The diagrams in this guide use Mermaid and render in GitHub's Markdown preview.
+
+```mermaid
+flowchart TB
+    App["Launcher / App"] --> Context["AppContext: composition root"]
+    App --> Router["Router / ViewLoader"]
+    Router --> UI["FXML views and controllers"]
+    Context -. constructs and injects .-> Services["Shared and role-specific services"]
+    Context -. initializes and wires .-> Persistence["Persistence / SchemaInitializer"]
+    UI --> Services
+    Services --> Security["Permissions / UserSession"]
+    Services --> Domain["Immutable domain records"]
+    Services --> UoW["UnitOfWork"]
+    Services --> Repos["Repository interfaces"]
+    Security --> Repos
+    Persistence -. supplies .-> UoW
+    Persistence -. supplies .-> SQL["SQLite repository implementations"]
+    SQL -. implements .-> Repos
+    UoW --> DB["Database: opens JDBC connections"]
+    SQL --> Connection["Caller-owned JDBC Connection"]
+    DB --> Connection
+    Connection --> File[("data/gymmie.db")]
+```
+
+Solid arrows show usage or data access; dotted arrows show wiring or interface
+implementation. Repository calls receive the connection created for the service's
+transaction; repositories do not open their own connections.
+
+| Layer | Main locations | Responsibility |
+| --- | --- | --- |
+| Startup and navigation | `gymmie.App`, `AppContext`, `Router`, `ViewLoader` | Initialize storage, construct dependencies, load FXML with injected controllers, and select role screens. |
+| Presentation | Controllers in `gymmie`, `gymmie.manager`, `gymmie.trainer`, `gymmie.member`; FXML/CSS under `src/main/resources/gymmie` | Read input, invoke services, and show progress, results, and errors. Shared presentation helpers live in `gymmie.ui`. |
+| Application services | `gymmie.service` and each role's `service` package | Enforce authorization, ownership, workflow rules, and transaction boundaries. |
+| Domain | `gymmie.model`, `gymmie.trainer.model` | Validate immutable records and represent lifecycle transitions without JavaFX or database dependencies. |
+| Persistence | `gymmie.persistence`, its `repository` and `sqlite` packages, and `gymmie.trainer.persistence` | Store records using JDBC and preserve history and atomic updates. |
+
+### Startup and request handling
+
+1. `Launcher` launches `App`; `App.init()` creates `AppContext`.
+2. The context initializes the schema, constructs `Persistence`, seeds
+   the Manager, and wires shared and role-specific services.
+3. `App.start()` constructs the router and opens login. Authentication populates
+   `UserSession`; navigation selects the authenticated role's dashboard.
+4. Controllers use background JavaFX `Task`s for service work such as login and
+   booking. Completion handlers update controls on the JavaFX application thread.
+5. A protected service starts a `UnitOfWork` transaction, checks the current
+   account, and passes the same connection to all repository operations. The
+   transaction commits before the result is returned, or rolls back on failure.
+
+### Design decisions
+
+- **Explicit dependency injection:** `AppContext` assembles services and
+  `ViewLoader` supplies controllers, keeping construction separate from workflows
+  and allowing tests to use isolated databases and fixed clocks.
+- **Service-level RBAC:** hiding a button is only presentation behavior.
+  `Permissions` reloads the account on the transaction connection and enforces an
+  exact role and, where needed, ownership. Manager does not inherit other roles.
+- **Immutable domain state:** records validate local invariants; services load
+  related records to enforce cross-record rules such as capacity and membership
+  eligibility. Memberships retain purchase-time price and duration snapshots.
+- **Atomic workflows:** cancellation of a membership or session and the affected
+  bookings shares one transaction. Nested work reuses the supplied connection;
+  the connection-taking `UnitOfWork` overload uses a savepoint when already in a
+  transaction.
+- **History preservation:** accounts are deactivated, purchased plans archived,
+  and booked sessions cancelled. Guarded deletion exists only for unused plans
+  and sessions that have never had a booking.
+- **Local deployment:** dates and times use the system's local zone. Run only one
+  Gymmie process against a data folder; there is no cross-instance coordination.
+
 ## Shared UI conventions
 
-Every role uses `gymmie/css/gymmie.css`, declared on each FXML root using
-`stylesheets="@../css/gymmie.css"`. This makes the stylesheet visible to IntelliJ
-and Scene Builder as well as the application. Router does not also attach it to
+Every role uses `gymmie/css/gymmie.css`, declared on each FXML root. Shared views
+under `gymmie/view/` use `stylesheets="@../css/gymmie.css"`; role-specific views
+under `gymmie/<role>/view/` use `stylesheets="@../../css/gymmie.css"`. Some role
+views also declare a local stylesheet for feature-specific layout. These FXML
+declarations make stylesheets visible to IntelliJ and Scene Builder as well as
+the application. Router does not also attach the shared stylesheet to
 the scene. Programmatic scenes and alerts use the same stylesheet through
 `SharedStyles` and `UiFeedback`. Extend this stylesheet rather than adding
 role-specific themes. Shared classes include `page`, `card`, `brand`, `title`,
@@ -92,7 +178,7 @@ replacing them with browser CSS would break the application theme.
 The `gymmie.model` package uses Java records and composition. `Account` represents all three roles; `Member` combines a Member-role account with its complete membership history. The model has no JavaFX or database dependencies.
 
 - Record constructors enforce field constraints, non-null required fields, and positive identifiers. Callers allocate identifiers before construction. Username matching uses an ASCII-only, locale-independent key while preserving the original spelling. Display-name and password lengths count Unicode code points, without trimming or normalizing the supplied values.
-- `PasswordHash.fromPassword` validates the 8–128-character password and creates a PBKDF2-HMAC-SHA256 hash with 600,000 iterations, a random 16-byte salt, and a 32-byte output. `Account` holds this value rather than plaintext. Persist `hash()` and `salt()` in the existing account columns; their Base64 contents are validated on rehydration and redacted from `toString()`. The current format has fixed algorithm parameters; changing them will require a versioned credential format or migration.
+- `PasswordHash.fromPassword` validates the 8–128-character password and creates a PBKDF2-HMAC-SHA256 hash with 600,000 iterations, a random 16-byte salt, and a 32-byte output. `Account` holds this value rather than plaintext. Persist `hash()` and `salt()` in the existing account columns; their Base64 contents are validated on rehydration and redacted from `toString()`. The current format has fixed algorithm parameters; changing them requires a compatibility strategy for existing credentials.
 - `MembershipPlan` holds integer cents and duration days. `Membership.purchase` copies those values into the membership snapshot; subsequent catalogue changes do not affect it. New purchases reject archived plans. The expiry date is the purchase date plus the purchased duration. `Membership.renew` preserves the plan and snapshots, and adds the saved duration to the later of today and the existing expiry date. Coverage includes the expiry date.
 - `Membership.isActiveOn` derives eligibility from lifecycle state and the start/expiry dates. An `ACTIVE` database record can therefore be inactive after expiry without rewriting history. `Member.activeMembership`, `planId`, and `status` derive current membership information from those records. Account activation remains a separate login concern.
 - `Member` defensively copies its history and rejects foreign ownership, duplicate membership IDs, and overlapping date ranges among `ACTIVE` records, including future overlaps and a shared expiry day. Non-overlapping periods and cancelled history are allowed. Repositories must load the complete history and services must rebuild the aggregate when replacing or adding memberships; a partial history cannot establish this invariant across the database.
@@ -101,7 +187,144 @@ The `gymmie.model` package uses Java records and composition. `Account` represen
 
 `DomainException` is the unchecked base type for model failures. `ValidationException` identifies invalid fields or inconsistent records; `ConflictException` identifies conflicting domain state. Messages do not include passwords or hash material.
 
-These records do not implement application workflows. Services and repositories remain responsible for global username uniqueness, resolving referenced accounts and checking their roles, RBAC, booking capacity and duplicates, future-time checks on creation/rescheduling, renewal, and transactional cancellation cascades. The existing SQLite schema is unchanged.
+These records do not implement application workflows. Services and repositories remain responsible for global username uniqueness, resolving referenced accounts and checking their roles, RBAC, booking capacity and duplicates, future-time checks on creation/rescheduling, renewal, and transactional cancellation cascades. See [Database schema](#database-schema) for the storage structure and initialization process.
+
+## Class diagrams
+
+### Domain relationships
+
+This diagram shows selected record fields and relationships, not every accessor
+or validation method. Associations labelled with an ID represent logical links
+resolved by repositories; records do not hold object references for those links.
+`Member` is an in-memory aggregate over a Member-role `Account` and its complete
+membership history, rather than an `Account` subclass or a separate member table.
+
+```mermaid
+classDiagram
+    class Account {
+        long id
+        String username
+        PasswordHash password
+        String displayName
+        Role role
+        boolean active
+    }
+    class Member {
+        Account account
+        List~Membership~ memberships
+        activeMembershipOn(date)
+        status()
+    }
+    class MembershipPlan {
+        long id
+        String name
+        int durationDays
+        int priceCents
+        boolean archived
+    }
+    class Membership {
+        long id
+        long memberId
+        long planId
+        LocalDate startDate
+        LocalDate expiryDate
+        MembershipStatus status
+        int snapshotPriceCents
+        int snapshotDurationDays
+        renew(today)
+        cancel()
+    }
+    class TrainingSession {
+        long id
+        long trainerId
+        LocalDateTime startsAt
+        int durationMinutes
+        int capacity
+        boolean cancelled
+        String cancellationReason
+    }
+    class Booking {
+        long id
+        long sessionId
+        long memberId
+        LocalDateTime bookedAt
+        BookingStatus status
+        CancellationReason cancellationReason
+    }
+    class TrainerProfile {
+        long accountId
+        String synopsis
+        List~String~ specializations
+    }
+    Member "1" o-- "1" Account : wraps MEMBER account
+    Member "1" o-- "0..*" Membership : complete history
+    Account "1" -- "0..*" Membership : memberId / MEMBER
+    MembershipPlan "1" -- "0..*" Membership : planId
+    Account "1" -- "0..*" TrainingSession : trainerId / TRAINER
+    Account "1" -- "0..*" Booking : memberId / MEMBER
+    TrainingSession "1" -- "0..*" Booking : sessionId
+    Account "1" -- "0..1" TrainerProfile : accountId / TRAINER
+```
+
+An account can have many historical memberships, but a valid `Member` aggregate
+rejects overlapping `ACTIVE` date ranges. Capacity counts only `BOOKED` bookings;
+cancelled bookings remain stored. A Trainer without a saved profile is presented
+with empty profile details.
+
+### Service and persistence collaboration
+
+The booking service illustrates the same dependency pattern used throughout the
+application. Only the booking repository implementation is expanded here; the
+other repository interfaces have corresponding SQLite implementations.
+
+```mermaid
+classDiagram
+    class MemberSessionBookingService {
+        book(sessionId) Booking
+    }
+    class Permissions {
+        requireRole(connection, role) Account
+        requireOwner(connection, role, ownerAccountId) Account
+    }
+    class UnitOfWork {
+        inTransaction(callback)
+        inTransaction(connection, callback)
+    }
+    class Database {
+        openConnection() Connection
+    }
+    class BookingRepository {
+        <<interface>>
+        findByMemberAndSession(connection, memberId, sessionId)
+        countBookedBySessionId(connection, sessionId)
+        insert(connection, booking)
+        reactivate(connection, bookingId, bookedAt)
+    }
+    class MembershipRepository {
+        <<interface>>
+    }
+    class TrainingSessionRepository {
+        <<interface>>
+    }
+    class AccountRepository {
+        <<interface>>
+    }
+    MemberSessionBookingService --> Permissions
+    MemberSessionBookingService --> UnitOfWork
+    MemberSessionBookingService --> MembershipRepository
+    MemberSessionBookingService --> TrainingSessionRepository
+    MemberSessionBookingService --> BookingRepository
+    MemberSessionBookingService --> Clock
+    Permissions --> UserSession
+    Permissions --> AccountRepository
+    UnitOfWork --> Database
+    BookingRepository <|.. SqliteBookingRepository
+    SqliteBookingRepository ..> Connection : uses supplied connection
+```
+
+See [`AppContext`](../src/main/java/gymmie/AppContext.java) for the full wiring and
+[`MemberSessionBookingService`](../src/main/java/gymmie/member/service/MemberSessionBookingService.java)
+for this concrete collaboration.
 
 ## Repository contracts
 
@@ -117,7 +340,7 @@ Writes must target the supplied database and become durable when its caller comm
 | Membership plans | Update the archived flag to archive/restore. `findAllAvailable` excludes archived plans; identifier and administrative lookups include them for history and renewal. `deleteIfUnpurchased` atomically refuses deletion when any membership references the plan, regardless of status. |
 | Memberships | No deletion API. Load complete Member history, including cancelled, expired and future records, before validating the Member aggregate. Updates preserve ownership, plan, start date, and purchase snapshots while allowing expiry/status changes. |
 | Training sessions | Update cancellation state while retaining bookings. `findUpcoming` excludes cancelled sessions and uses a local-time cut-off supplied by the caller. `deleteIfNeverBooked` atomically refuses deletion when any booking exists, including cancelled bookings. |
-| Bookings | No deletion API. Cancellation updates status and reason while preserving Member, session and booking time. `reactivate` accepts only a cancelled row, changes its status to `BOOKED`, clears its cancellation reason, and sets a new booking time. Reactivation is the only repository path that changes `booked_at`; it deliberately overwrites the previous cancellation reason to avoid a schema migration. History queries include cancelled bookings; the capacity count includes only `BOOKED` reservations and cannot establish whether a session has booking history. |
+| Bookings | No deletion API. Cancellation updates status and reason while preserving Member, session and booking time. `reactivate` accepts only a cancelled row, changes its status to `BOOKED`, clears its cancellation reason, and sets a new booking time. Reactivation is the only repository path that changes `booked_at`; it overwrites the previous cancellation reason rather than retaining a separate cancellation-event history. History queries include cancelled bookings; the capacity count includes only `BOOKED` reservations and cannot establish whether a session has booking history. |
 
 Identifier lookups return `Optional.empty()` for missing records. List queries return immutable snapshots in identifier order and empty lists when there are no matches. Guarded deletion returns `false` without changes when the target is absent or has history. SQL errors propagate to the transaction owner for rollback.
 
@@ -125,9 +348,9 @@ Services remain responsible for RBAC, seeded-Manager protection, membership elig
 
 ### SQLite implementation and startup
 
-`App.init()` creates `AppContext`, which initializes the schema before constructing shared persistence and services and displaying login. Its default `Database` uses `data/gymmie.db` relative to the working directory and creates the directory when needed. `Persistence` exposes the five repository interfaces and the top-level `UnitOfWork`; a custom `Database(Path)` can be supplied for isolated storage. Repository instances are stateless and hold neither connections nor transaction managers. There is no long-lived connection to close when the application stops.
+`App.init()` creates `AppContext`, which initializes the schema before constructing shared persistence and services and displaying login. Its default `Database` uses `data/gymmie.db` relative to the working directory and creates the directory when needed. `Persistence` exposes six repository interfaces: the five shared interfaces described above and `gymmie.trainer.persistence.TrainerProfileRepository`, as well as the top-level `UnitOfWork`. A custom `Database(Path)` can be supplied for isolated storage. Repository instances are stateless and hold neither connections nor transaction managers. There is no long-lived connection to close when the application stops.
 
-`SqliteQueries` binds values to prepared statements and closes statements/results without committing or closing the caller's connection. SQL inserts reject duplicates; updates affect existing rows in place and reject missing records or changes to immutable fields. Deletes for unused plans and sessions use `DELETE ... WHERE ... NOT EXISTS (...)` so the history check is part of the same statement. The schema and foreign-key restrictions are unchanged.
+`SqliteQueries` binds values to prepared statements and closes statements/results without committing or closing the caller's connection. SQL inserts reject duplicates; updates affect existing rows in place and reject missing records or changes to immutable fields. Deletes for unused plans and sessions use `DELETE ... WHERE ... NOT EXISTS (...)` so the history check is part of the same statement. `Database` enables foreign-key enforcement on every connection; schema changes are applied by `SchemaInitializer`.
 
 Dates and local timestamps use ISO text, and timestamps retain nanosecond precision. `findUpcoming` loads uncancelled sessions in identifier order and compares parsed `LocalDateTime` values in Java, avoiding precision loss or incorrect comparisons between ISO strings with optional seconds. Malformed stored domain values are reported as `SQLException` rather than silently skipped.
 
@@ -181,18 +404,128 @@ class DatabaseFixtureExample {
 `AuthServiceTest` demonstrates authentication and RBAC with the memory fixture.
 `InMemoryDatabaseTest` demonstrates source-record and booking changes in one
 transaction, including rollback when a later booking update fails. These test
-compositions exercise persistence primitives; they do not implement the planned
-cancellation services. `TestClocksTest` checks inclusive expiry and exact session
+compositions exercise persistence primitives; the cancellation service tests
+exercise the application workflows. `TestClocksTest` checks inclusive expiry and exact session
 start boundaries in multiple zones. Run focused checks with
 `./gradlew test --tests 'gymmie.testutil.*' --tests 'gymmie.service.AuthServiceTest'`,
 then run `./gradlew check` before integration.
 
 
+## Database schema
+
+### Stored relationships and constraints
+
+Gymmie stores its application data in one SQLite database, normally
+`data/gymmie.db`, with one shared schema for all roles. This ER diagram shows all
+seven tables and their key relationships; non-key fields are omitted. `PK`, `FK`, and
+`UK` denote primary, foreign, and unique keys. The two `PK` fields in
+`trainer_specialization` form one composite primary key.
+
+```mermaid
+erDiagram
+    account ||--o{ membership : member_id
+    membership_plan ||--o{ membership : plan_id
+    account ||--o{ training_session : trainer_id
+    account ||--o{ booking : member_id
+    training_session ||--o{ booking : session_id
+    account ||--o| trainer_profile : account_id
+    trainer_profile ||--o{ trainer_specialization : account_id
+
+    account {
+        INTEGER id PK
+        TEXT username UK
+    }
+    membership_plan {
+        INTEGER id PK
+    }
+    membership {
+        INTEGER id PK
+        INTEGER member_id FK
+        INTEGER plan_id FK
+    }
+    training_session {
+        INTEGER id PK
+        INTEGER trainer_id FK
+    }
+    booking {
+        INTEGER id PK
+        INTEGER session_id FK
+        INTEGER member_id FK
+    }
+    trainer_profile {
+        INTEGER account_id PK, FK
+    }
+    trainer_specialization {
+        INTEGER account_id PK, FK
+        INTEGER position PK
+    }
+```
+
+| Table | Additional constraints and stored state |
+| --- | --- |
+| `account` | `username` is globally unique with `COLLATE NOCASE`. Hash, salt, display name, role, and username are required. `active` is constrained to 0 or 1. |
+| `membership_plan` | Name, duration days, and price cents are required. `archived` is constrained to 0 or 1. |
+| `membership` | Member and plan references, local start/expiry dates, status, and purchase-time price/duration snapshots are required. Multiple historical rows per Member are allowed. |
+| `training_session` | Trainer reference, local start time, duration, and capacity are required. `cancelled` is constrained to 0 or 1; description and cancellation explanation are nullable. |
+| `booking` | The pair `(session_id, member_id)` is unique, including cancelled rows. Both references, booking time, and status are required; cancellation reason is nullable. Rebooking updates the existing row. |
+| `trainer_profile` | The account reference is also the primary key, allowing at most one stored profile per account. Synopsis is required and defaults to an empty string. |
+| `trainer_specialization` | `(account_id, position)` is the primary key. Position must be nonnegative; tag is required and nonempty. Position preserves display order. |
+
+`Database.openConnection()` enables `PRAGMA foreign_keys = ON` and requests WAL
+mode. Foreign keys have no `ON DELETE CASCADE` clauses; application workflows
+explicitly update related records to preserve history. SQL foreign keys establish
+account existence, not the required Member or Trainer role. Domain constructors
+and services enforce role rules, numeric ranges, membership overlap, booking
+capacity, valid status/reason combinations, and case-insensitive specialization
+deduplication; these are not all SQL constraints.
+
+### Schema initialization
+
+[`SchemaInitializer`](../src/main/java/gymmie/persistence/SchemaInitializer.java)
+prepares the database before services or views are used. On a fresh database, it
+applies these SQL resources in order to create the complete schema:
+
+| Resource | Contribution to the shared schema |
+| --- | --- |
+| [`schema.sql`](../src/main/resources/gymmie/db/schema.sql) | Creates `account`, `membership_plan`, `membership`, `training_session`, and `booking`. |
+| [`trainer-profile.sql`](../src/main/resources/gymmie/trainer/db/trainer-profile.sql) | Creates `trainer_profile` and `trainer_specialization` in the same database. |
+| [`session-cancellation.sql`](../src/main/resources/gymmie/trainer/db/session-cancellation.sql) | Adds the nullable cancellation explanation column to `training_session`. |
+
+These resources together define one application schema. Use `SchemaInitializer`
+rather than running only `schema.sql` or blindly replaying every script against
+an initialized database. Reopening an initialized database preserves its records
+and does not reapply the `ALTER TABLE` statement.
+
+During normal startup, initialization owns its transaction and commits the
+initialization changes together, or rolls them back on failure. When supplied a
+connection already inside a transaction, it leaves commit and rollback to the
+caller. A Trainer without a stored profile is presented with empty profile
+details; a session's cancellation explanation can be null.
+
+### Maintaining the schema
+
+Keep the SQL resources, `SchemaInitializer`, repository mappings, and this schema
+diagram consistent when changing storage. Preserve existing records and define
+how new fields receive values. Verify both fresh initialization and opening an
+existing database, including repeated initialization, transaction ownership, and
+rollback on failure. Avoid defining the same column in the base script and an
+additional script that also runs during fresh initialization.
+
+`applySchema` splits scripts on semicolons. SQL containing embedded semicolons,
+such as trigger bodies or string literals, requires replacing that splitter with
+a suitable parser first.
+
+[`PersistenceBoundaryTest`](../src/test/java/gymmie/PersistenceBoundaryTest.java)
+provides examples for fresh initialization and caller-owned transactions.
+[`SqliteRepositoriesTest`](../src/test/java/gymmie/persistence/sqlite/SqliteRepositoriesTest.java)
+covers stored records, constraints, rollback, and durability after reopening the
+database. Add tests for any changed storage behavior and run `./gradlew check`.
+
 ## Authentication and authorization
 
-`gymmie.service` provides `PasswordHasher`, `AuthService`, `UserSession`, and `Permissions`. `App` wires one shared session to its authentication service and permission checks alongside the existing `Persistence` boundary. Authentication is independent of JavaFX; the welcome screen remains a scaffold.
+`gymmie.service` provides `PasswordHasher`, `AuthService`, `UserSession`, and `Permissions`. `AppContext`, created by `App.init()`, wires one shared session to its authentication service and permission checks alongside the `Persistence` boundary. Authentication is independent of JavaFX; the login controller invokes it and routes authenticated users to their role-specific dashboards.
 
-- `PasswordHasher` validates the documented 8–128-character policy and delegates to the existing salted `PasswordHash` format. Hashing parameters are implementation choices, not guide requirements. Existing hashes remain compatible, and no schema migration is needed. Plaintext passwords are call inputs only; they are not retained in services, session state, or database records.
+- `PasswordHasher` validates the documented 8–128-character policy and delegates to the existing salted `PasswordHash` format. Hashing parameters are implementation choices, not guide requirements. Password changes use the same stored hash and salt format. Plaintext passwords are call inputs only; they are not retained in services, session state, or database records.
 - `AuthService.login(username, password)` uses the repository's case-insensitive lookup while preserving the stored username spelling. Unknown usernames and incorrect passwords raise `AuthenticationException` with the same message. Correct credentials for a deactivated account raise `AccountDeactivatedException`. Every login attempt clears an earlier identity, and a new identity is published only after successful transaction completion.
 - `UserSession` exposes an optional, immutable principal containing account ID, username, display name, and dashboard role, without hashes or passwords. Session establishment is internal to services. `AuthService.logout()` clears it and is safe to call repeatedly. Sessions are not persisted across application restarts.
 - `AuthService.changeOwnPassword(currentPassword, newPassword)` requires authentication, reloads the active account, verifies its current password, and updates only that account. It accepts no target account ID. Verification and persistence share a `UnitOfWork` connection; failed validation or a database write leaves the old hash unchanged. Session refresh happens after commit.
@@ -206,96 +539,245 @@ Account inserts continue to enforce global, case-insensitive username uniqueness
 
 `AuthServiceTest` exercises real SQLite storage for all roles, case-insensitive login, logout, distinct deactivation failures, exact-role and ownership checks, revocation after deactivation, password-change failure rollback, and authentication after reopening the database with the changed password. `PasswordHasherTest` checks compatibility, fresh salts, verification, and password boundaries without asserting algorithm parameters as product requirements.
 
-### Trainer profile persistence and authorization
 
-Role-specific code is grouped under `src/main/java/gymmie/trainer/`, with
-`model`, `service`, and `persistence` subpackages alongside the controller.
-Trainer FXML, CSS, and migration SQL live under
-`src/main/resources/gymmie/trainer/`; Trainer tests mirror the role folder under
-`src/test/java/gymmie/trainer/`. Shared account models, authentication,
-display-name services, SQL helpers, validation, and JavaFX test support remain
-in common packages. Future role-specific features should follow this layout.
+## Sequence diagram: booking a session
 
-`gymmie.service.ProfileService` provides the shared own-display-name operation.
-`gymmie.trainer.service.TrainerProfileService` owns Trainer profile reads and
-updates. Both reuse `Account.withDisplayName` and the
-existing 1–100 Unicode code-point rule without introducing another identity.
-The Trainer operations require a fresh active `TRAINER` account through
-`Permissions`; the target account ID always comes from the current session.
-Credential-free views expose only the fixed username and editable profile data.
+This sequence follows `MemberSessionBrowseController.bookSession` and
+`MemberSessionBookingService.book`. Repository participants group several
+interfaces for readability. All calls inside the transaction use the same JDBC
+connection, including the account lookup performed by `Permissions`.
 
-Schema version 2 adds `trainer_profile` and `trainer_specialization`. Startup
-migrates version 1 databases transactionally. Existing accounts have an empty
-synopsis and tag list until they save details. Tags retain insertion order,
-remove surrounding whitespace, and collapse case-insensitive duplicates.
-Account names, synopsis, and replacement tags are saved in one transaction.
-Profile operations share the authentication service monitor to serialize with
-login, logout, and password changes; the session name updates only after commit.
+```mermaid
+sequenceDiagram
+    actor Member
+    participant UI as MemberSessionBrowseController
+    participant Task as Background JavaFX Task
+    participant Service as MemberSessionBookingService
+    participant UoW as UnitOfWork
+    participant Auth as Permissions
+    participant Repos as Repository interfaces
+    participant DB as JDBC / SQLite
 
-`TrainerProfileController` runs service calls in background tasks, disables the
-editor during requests, and retains edits on save failures. The dashboard offers
-**My profile** to Trainers; the service enforces authorization independently of
-navigation visibility. `TrainerNavigationTest` writes a preview to
-`build/reports/trainer-profile.png` for visual review.
+    Member->>UI: Choose Book
+    UI->>UI: Disable booking controls; show progress
+    UI->>Task: Start worker
+    Task->>Service: book(sessionId)
+    Service->>UoW: inTransaction(callback)
+    UoW->>DB: Open connection; disable auto-commit
+    UoW->>Service: Execute callback(connection)
+    Service->>Auth: requireRole(connection, MEMBER)
+    Auth->>Repos: Reload authenticated account
+    Repos->>DB: Read account
+    Auth-->>Service: Active Member account
+    Service->>Repos: Load complete membership history and session
+    Repos->>DB: Read memberships and session
+    Service->>Service: Check membership, session start and expiry coverage
+    Service->>Repos: Find existing booking; count BOOKED reservations
+    Repos->>DB: Read booking state and capacity usage
+    Service->>Service: Reject duplicate or full session
+    alt Existing cancelled booking
+        Service->>Repos: reactivate(connection, bookingId, now)
+        Repos->>DB: Set BOOKED, clear reason, replace booking time
+    else No previous booking
+        Service->>Repos: nextId(connection); insert(connection, booking)
+        Repos->>DB: Allocate ID and insert BOOKED record
+    end
+    Service-->>UoW: Return Booking from callback
+    UoW->>DB: Commit; restore auto-commit; close connection
+    UoW-->>Service: Committed Booking
+    Service-->>Task: Booking
+    Task-->>UI: onSucceeded on JavaFX thread
+    UI->>UI: Re-enable controls and refresh sessions
+    UI-->>Member: Show booking confirmation
+```
 
-### Member membership services and UI
+If authorization, eligibility, or persistence fails, the callback throws and
+`UnitOfWork` rolls back instead of returning a booking. The task's `onFailed`
+handler restores controls and shows an error; if authorization cleared the
+session, the controller returns to login. The service rechecks capacity and
+eligibility even when the previously loaded screen showed an enabled Book
+button. Reactivation retains the booking ID but replaces its previous
+cancellation reason and booking time.
 
-Member membership services and their tests live in
-`gymmie.member.service` and `src/test/java/gymmie/member/service`. The
-`MembershipStatusService`, `MembershipPurchaseService`, and
-`MembershipRenewalService` enforce the Member role using the shared
-`Permissions` boundary. Renewal extends current coverage when it exists, or
-otherwise the latest started non-cancelled membership, including an archived
-plan. It uses the membership repository's expiry update while retaining the
-original plan and purchase snapshots. These services use the common membership
-models and repositories; plan and membership records remain shared persistence
-concerns rather than role-specific copies.
+## Sequence diagram: cancelling a membership
 
-`MembershipCancellationService` cancels the current membership and the Member's
-future `BOOKED` bookings with the `MEMBERSHIP_CANCELLED` reason in one
-transaction. Past bookings and bookings belonging to other Members are left
-unchanged. `MemberBookingHistoryService` supplies the Member's full booking
-history, including cancelled bookings and their reasons, to the **My bookings**
-screen. `MemberBookingsController` groups this history into three sections:
-**Upcoming** contains `BOOKED` bookings for sessions not yet started, soonest
-first; **Past** contains `BOOKED` bookings for sessions started at or before
-now, newest first; and **Cancelled** contains all `CANCELLED` bookings, newest
-session first. Only **Upcoming** offers cancellation. Grouping happens in the
-controller; the history service continues to return the full history. For each
-booking, it also includes the Trainer's display name, session description, and
-duration for display on that screen.
+[`MembershipCancellationService.cancel`](../src/main/java/gymmie/member/service/MembershipCancellationService.java)
+cancels the signed-in Member's current membership and only their `BOOKED`
+bookings whose sessions start strictly after the captured local time. The service
+checks that the displayed membership ID still identifies the current membership.
+The diagram starts after the Member confirms cancellation in the UI. Repository
+participants are grouped; every read and write uses the same transaction connection.
 
-`MemberBookingCancellationService` cancels only an active booking owned by the
-authenticated Member, and only strictly before its session starts. It records
-the `MEMBER_CANCELLED_BOOKING` reason while retaining the booking time and
-identity. Cancelled bookings are excluded from the active booking count, which
-releases that session's capacity for another Member.
+```mermaid
+sequenceDiagram
+    actor Member
+    participant UI as MemberMembershipController
+    participant Task as Background JavaFX Task
+    participant Service as MembershipCancellationService
+    participant UoW as UnitOfWork
+    participant Auth as Permissions
+    participant Repos as Repository interfaces
+    participant DB as JDBC / SQLite
 
-`MemberMembershipController` and its FXML and CSS live under
-`gymmie.member` and `src/main/resources/gymmie/member`. The Gym User dashboard
-keeps a Member-only **My membership** entry point, while `Router` opens the
-membership screen. The screen shows the latest started membership, renews that
-plan, lists unarchived plans, and purchases a plan through the Member services.
-Visibility only controls navigation; service authorization remains
-authoritative.
+    Member->>UI: Confirm membership cancellation
+    UI->>Task: Disable actions; start cancellation worker
+    Task->>Service: cancel(displayedMembershipId)
+    Service->>Service: Capture local date and time from Clock
+    Service->>UoW: inTransaction(callback)
+    UoW->>DB: Open connection; disable auto-commit
+    UoW->>Service: Execute callback(connection)
+    Service->>Auth: requireRole(connection, MEMBER)
+    Auth->>Repos: Reload authenticated account
+    Repos->>DB: Read account
+    Auth-->>Service: Active Member account
+    Service->>Repos: Load complete membership history
+    Repos->>DB: Read Member memberships
+    Service->>Service: Validate current membership ID and updated aggregate
+    Service->>Repos: update(connection, cancelledMembership)
+    Repos->>DB: Set membership status to CANCELLED
+    Note over Service,DB: Membership change remains uncommitted
+    Service->>Repos: findByMemberId(connection, memberId)
+    Repos->>DB: Read Member bookings
+    loop Each booking, until completion or an exception
+        opt Booking is BOOKED
+            Service->>Repos: Load booking's session
+            Repos->>DB: Read session start time
+            opt Session starts strictly after captured time
+                Service->>Repos: update(connection, cancelledBooking)
+                Repos->>DB: Set CANCELLED and MEMBERSHIP_CANCELLED
+            end
+        end
+    end
+    alt All updates succeed
+        Service-->>UoW: Return number of cancelled bookings
+        UoW->>DB: Commit transaction
+        UoW->>DB: Restore auto-commit; close connection
+        UoW-->>Service: Committed count
+        Service-->>Task: Count
+        Task-->>UI: onSucceeded on JavaFX thread
+        UI-->>Member: Show cancellation result and refresh membership options
+    else A booking update fails after earlier writes
+        Note over Repos,DB: Failure occurs during the loop; remaining updates stop
+        DB-->>Repos: SQLException
+        Repos-->>Service: Propagate failure
+        Service-->>UoW: Callback throws
+        UoW->>DB: Roll back membership and all earlier booking changes
+        UoW->>DB: Restore auto-commit; close connection
+        UoW-->>Service: Rethrow failure
+        Service-->>Task: Exception
+        Task-->>UI: onFailed on JavaFX thread
+        UI-->>Member: Restore actions and show failure
+    end
+```
 
-### Trainer session cancellation persistence
+The failure branch illustrates an exception within the loop, not a second pass
+over the bookings. A successful transaction preserves booking IDs and booking
+times while recording `MEMBERSHIP_CANCELLED`. Already cancelled bookings, sessions
+starting at or before the cut-off, and other Members' bookings are unaffected.
+Cancelling the membership does not cancel the training sessions themselves.
+Authorization failures and stale membership selections also abort the transaction.
 
-Schema version 3 adds nullable `training_session.cancellation_reason`. Existing
-sessions, including legacy cancelled sessions, retain their fields and load with
-no written explanation. New Trainer cancellations require a nonblank explanation
-in `SessionCancellationService`, which saves the stripped text on the session.
-Current bookings receive `TRAINER_CANCELLED_SESSION`; previously cancelled
-bookings keep their original status and reason. Member history joins the saved
-explanation only for bookings affected by Trainer cancellation.
+[`MembershipCancellationServiceTest.bookingPersistenceFailureRollsBackMembershipAndEarlierBookingUpdates`](../src/test/java/gymmie/member/service/MembershipCancellationServiceTest.java)
+injects a failure on a later booking update and verifies that both the membership
+and the earlier booking changes are rolled back. This is the atomicity guarantee
+described in UC2, rather than a sequence of independently committed updates.
 
-The confirmation preview reads session details and current booking identities in
-one transaction. Cancellation rechecks persisted Trainer authorization, ownership,
-the exact local-time start boundary, and the preview inside the write transaction.
-A changed session or booking list requires a fresh confirmation. Session updates
-and every affected booking update share the same connection and roll back together
-on a persistence error. The GUI reports a safe failure message without SQL details.
+## How to test
 
+### Prerequisites and commands
+
+Use JDK 25 and run the Gradle Wrapper from the repository root. Initial dependency
+resolution requires network access. On Windows PowerShell, replace `./gradlew`
+with `.\gradlew.bat`. JavaFX integration tests require a graphical desktop.
+
+| Goal | Command |
+| --- | --- |
+| Run the default JUnit suite | `./gradlew test` |
+| Run tests and Checkstyle before integration | `./gradlew check` |
+| Include JavaFX integration tests | `./gradlew test -PuiTests=true` |
+| Run all checks with JavaFX tests enabled | `./gradlew check -PuiTests=true` |
+| Run one service test class | `./gradlew test --tests 'gymmie.member.service.MemberSessionBookingServiceTest'` |
+| Run repository integration tests | `./gradlew test --tests 'gymmie.persistence.sqlite.SqliteRepositoriesTest'` |
+| Run one JavaFX test class | `./gradlew test -PuiTests=true --tests 'gymmie.member.MemberSessionBrowseNavigationTest'` |
+| Generate coverage after default tests | `./gradlew test jacocoTestReport` |
+| Verify and build the runnable JAR | `./gradlew verify` |
+
+The `uiTests` Gradle property is forwarded as the `gymmie.uiTests` system property.
+GUI test classes use `@EnabledIfSystemProperty` and are skipped by default, so a
+successful plain `check` does not demonstrate that GUI tests passed. The opt-in
+command runs the regular suite as well as GUI tests unless `--tests` narrows it.
+Use `--rerun-tasks` when an explicit fresh run is needed despite up-to-date outputs.
+
+`jacocoTestReport` is a separate task; `check` does not automatically generate the
+coverage report, and the build does not configure a minimum coverage gate.
+
+### Test layers and adding coverage
+
+| Layer | Existing examples | What to verify |
+| --- | --- | --- |
+| Domain | `MembershipTest`, `MemberTest`, `BookingTest` | Valid/invalid construction, inclusive expiry, non-overlapping history, and cancellation invariants. |
+| Services | `AuthServiceTest`, `MemberSessionBookingServiceTest`, `MembershipCancellationServiceTest` | Successful workflows, wrong roles/owners, deactivated accounts, time boundaries, capacity, and rollback without partial changes. |
+| Persistence | `SqliteRepositoriesTest`, `PersistenceBoundaryTest`, `SqliteTest` | Round trips, constraints, caller-owned connections, rollback, schema behavior, and durability after reopening a file database. |
+| UI | `NavigationTest`, `MemberSessionBrowseNavigationTest`, `TrainerNavigationTest` | Real FXML loading, navigation, asynchronous actions, displayed feedback, and control state. |
+
+Place tests under `src/test/java` in the corresponding feature package. For every
+code change, add or update tests for the changed behavior, run `./gradlew check`,
+and also run `./gradlew test -PuiTests=true` for UI changes.
+
+Use the [shared JUnit test utilities](#shared-junit-test-utilities) for isolated
+SQLite fixtures, valid record builders, and deterministic clocks. Use temporary
+file databases for reopen durability and file-specific concurrency behavior;
+never point automated tests at the development `data/gymmie.db`. Test important
+boundaries explicitly, such as the exact session start, the membership expiry
+date, a full session, and a failure halfway through a cancellation cascade.
+
+For GUI tests, use `JavaFxTestSupport.startToolkit()` and
+`JavaFxTestSupport.onFxThread(...)` to manage JavaFX correctly. Wait for observable
+conditions with `awaitUi(...)` rather than fixed sleeps. Follow the existing
+navigation tests for temporary `AppContext` databases and cleanup of stages.
+
+### Reports and troubleshooting
+
+| Output | Location relative to repository root |
+| --- | --- |
+| JUnit HTML report, including skipped tests and failures | `build/reports/tests/test/index.html` |
+| JUnit XML results | `build/test-results/test/` |
+| Checkstyle reports | `build/reports/checkstyle/main.html`, `build/reports/checkstyle/test.html` |
+| JaCoCo HTML report after `jacocoTestReport` | `build/reports/jacoco/test/html/index.html` |
+| Trainer profile preview produced by its GUI test | `build/reports/trainer-profile.png` |
+
+If Gradle cannot locate a Java 25 toolchain, check `java -version`,
+`javac -version`, and `JAVA_HOME`. If GUI tests are skipped, check that
+`-PuiTests=true` was supplied. Toolkit/display errors require a working graphical
+session; the build does not configure a headless JavaFX backend. For a failing
+test, inspect its report and rerun the specific class with `--stacktrace` as
+needed. Resolve Checkstyle findings using the file and line in its report.
+
+### Manual smoke test
+
+Use a disposable data folder with the packaged application, or a development
+database containing only test accounts. The database path is relative to the
+process working directory; restarting from that same directory reuses its data.
+Follow the [User Guide](UserGuide.md) for screen-level instructions.
+
+1. Launch Gymmie and log in with `manager` / `manager123` on a fresh database.
+   Create a plan, one Trainer, and one Member; verify validation feedback for
+   invalid input and duplicate usernames.
+2. Log in as the Trainer and create a future session. Check that it appears in
+   upcoming sessions and that profile changes are displayed after saving.
+3. Log in as the Member, buy the plan, and book the session. Choose a session
+   within the membership dates. Confirm that it appears under **My bookings**
+   and that a second active booking cannot be made for the same session.
+4. Cancel the booking and check the **Cancelled** section and reason. Rebook it,
+   then cancel the membership and verify that its future booking is cancelled
+   with the membership-cancellation reason.
+5. Restart the application from the same working directory and verify that
+   account, membership, session, and booking history remains available. Check
+   logout/login navigation, keyboard focus, and readable layouts at smaller
+   window sizes.
+
+Manual checks complement automated assertions; use service tests to verify RBAC
+directly, since hidden controls alone do not prove authorization.
 
 ## Appendix: Requirements
 
@@ -467,7 +949,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 1. Trainer opens their own upcoming sessions.
 2. Gymmie shows the session and its current bookings.
 3. Trainer states a reason for cancelling the session and confirms the action.
-4. Gymmie marks the session as cancelled and cancels all bookings for it.
+4. Gymmie marks the session as cancelled and cancels all currently `BOOKED` bookings for it. Previously cancelled bookings retain their original cancellation reasons.
 5. Gymmie persists the session and booking changes as one transaction.
 6. Gymmie shows the affected Members that their bookings remain visible with a cancelled status and a reason identifying the Trainer's session cancellation.
 
@@ -478,7 +960,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 - 3a. The selected session belongs to another Trainer. The service layer rejects the operation. Use case ends.
 - 3b. The Trainer does not confirm. Gymmie makes no changes. Use case ends.
 - 3c. The session has already started. Gymmie rejects the cancellation because a past session is history. Use case ends.
-- 4a. The session has no bookings. The Trainer may delete it outright under the session-history rule instead of performing a cancellation. Use case ends after the deletion is confirmed and persisted.
+- 4a. The session has never had a booking. The Trainer may delete it outright under the session-history rule instead of performing a cancellation. A session with any booking history, including cancelled bookings, cannot be deleted. Use case ends after the deletion is confirmed and persisted.
 - 5a. Persistence fails. Gymmie keeps the session and its bookings in their previous state and reports the failure. Use case resumes at step 3.
 
 ### Non-functional requirements
@@ -527,3 +1009,4 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 - Plan switching is not supported. A Member who wants a different plan must cancel the current one first, forfeiting its remaining days, then buy the new plan.
 - The seeded Manager account ships with the fixed password `manager123`, and changing it is not enforced on first login.
 - A Manager sets the initial password when creating a Trainer or Member account, so that password is known to the Manager until the user changes it.
+- Gymmie does not process payments or maintain a payment transaction ledger. Membership records retain the purchased plan, start date, and purchase-time price and duration snapshots; payment collection is handled outside the application.
