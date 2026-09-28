@@ -437,7 +437,10 @@ number of booked Members. Cancelled and past sessions are not shown.
 3. Choose **Book session** on an eligible session card. A successful booking is
    saved and the card changes to **Already booked**. Choose **My bookings** on
    the dashboard to see the saved booking.
-4. Choose **Back to dashboard** to return.
+4. A full session stays in the list with a disabled **Full** button. When a
+   booking is cancelled and a place frees up, choose **Refresh**; the session
+   shows **Book session** again.
+5. Choose **Back to dashboard** to return.
 
 Booking counts include current bookings and exclude cancelled bookings. A
 session list with **No upcoming sessions are available.** means there are no
@@ -446,9 +449,11 @@ sessions to browse. If loading fails, choose **Refresh** to try again. Use
 **Enter** to activate them. Booking requires an active membership. The session
 must have available capacity, must not have started, and must start on or before
 the membership expiry date. Gymmie explains when a booking is rejected because
-membership is inactive, the session is full or has started, the session starts
-after membership expiry, or the Member already has an active booking for it.
-If you cancelled a booking, its session card shows **Book session** again. You
-can rebook it while space remains and the other booking requirements are met.
+membership is inactive, the session has started, the session starts after
+membership expiry, or the Member already has an active booking for it. A
+**This session is full** rejection happens only if the session fills after the
+list was loaded; choose **Refresh** to see the current state. If you cancelled
+a booking, its session card shows **Book session** again. You can rebook it while
+space remains and the other booking requirements are met.
 
 ### Saving the data

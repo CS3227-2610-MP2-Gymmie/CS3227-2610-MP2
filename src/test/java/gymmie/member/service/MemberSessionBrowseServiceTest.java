@@ -118,6 +118,31 @@ class MemberSessionBrowseServiceTest {
     }
 
     @Test
+    void includesFullSessionsAndIdentifiesWhetherTheMemberHasBookedThem() throws Exception {
+        var fullForMember = new TrainingSessionBuilder().withId(60).withTrainerId(trainer.id())
+                .withStartsAt(NOW.plusHours(1)).withCapacity(1).build();
+        var fullForOtherMember = new TrainingSessionBuilder().withId(61).withTrainerId(trainer.id())
+                .withStartsAt(NOW.plusHours(2)).withCapacity(1).build();
+        persistence.unitOfWork().inTransaction(connection -> {
+            persistence.sessions().insert(connection, fullForMember);
+            persistence.sessions().insert(connection, fullForOtherMember);
+            persistence.bookings().insert(connection, booking(1, fullForMember.id(), member.id(),
+                    BookingStatus.BOOKED));
+            persistence.bookings().insert(connection, booking(2, fullForOtherMember.id(), 5,
+                    BookingStatus.BOOKED));
+            return null;
+        });
+
+        List<BrowseSession> results = service.upcomingSessions();
+
+        assertEquals(2, results.size());
+        assertEquals(1, results.get(0).bookingCount());
+        assertTrue(results.get(0).hasBooking());
+        assertEquals(1, results.get(1).bookingCount());
+        assertFalse(results.get(1).hasBooking());
+    }
+
+    @Test
     void rejectsUnauthenticatedNonMemberAndDeactivatedMemberCallers() throws Exception {
         auth.logout();
         assertThrows(AuthenticationException.class, () -> service.upcomingSessions());

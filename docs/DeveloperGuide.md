@@ -401,8 +401,9 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 
 **Extensions**
 
+- 2a. A session is full and the Member has no active booking for it. Gymmie keeps it in the list with a disabled Full button, so the Member cannot select it. Use case resumes at step 3 with another session.
 - 4a. The Member has no active membership. Gymmie rejects the booking and explains that an active membership is required. Use case ends.
-- 4b. The session is full. Gymmie rejects the booking. Use case ends.
+- 4b. The session became full after the list was loaded. Gymmie rejects the booking and explains that the session is full. Use case ends.
 - 4c. The session has already started. Gymmie rejects the booking. Use case ends.
 - 4d. The Member already has an active booking for the session. Gymmie rejects the duplicate booking. Use case ends.
 - 4e. The session starts after the Member's membership expires. Gymmie rejects the booking. Use case ends.
