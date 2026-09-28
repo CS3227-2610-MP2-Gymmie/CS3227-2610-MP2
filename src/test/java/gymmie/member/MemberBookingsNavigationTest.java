@@ -53,7 +53,7 @@ class MemberBookingsNavigationTest {
     }
 
     @Test
-    void dashboardBookingsSeparateUpcomingAndPastAndKeepCancellationReasons() throws Exception {
+    void dashboardBookingsSeparateUpcomingPastAndCancelledAndShowCancellationReasons() throws Exception {
         AppContext context = contextWithBookings(temporaryDirectory.resolve("member-bookings.db"));
         context.getAuthService().login("member", "password123");
         Stage stage = onFxThread(Stage::new);
@@ -67,7 +67,7 @@ class MemberBookingsNavigationTest {
                 stage.getScene().getRoot().applyCss();
                 return ((Label) stage.getScene().lookup("#bookingsStatus")).textProperty();
             });
-            awaitUi(status, "5 bookings"::equals);
+            awaitUi(status, "6 bookings"::equals);
             CompletableFuture<Void> bookingListUpdated = new CompletableFuture<>();
             ListChangeListener<MemberBooking> bookingChangeListener = _ -> bookingListUpdated.complete(null);
             Booking originalBooking = bookingUnderTest(context);
@@ -77,12 +77,19 @@ class MemberBookingsNavigationTest {
                         .lookup("#upcomingBookings");
                 @SuppressWarnings("unchecked")
                 ListView<MemberBooking> past = (ListView<MemberBooking>) stage.getScene().lookup("#pastBookings");
-                assertEquals(3, upcoming.getItems().size());
-                assertEquals(2, past.getItems().size());
-                assertEquals("3 upcoming bookings", ((Label) stage.getScene().lookup("#upcomingStatus")).getText());
-                assertEquals("2 past bookings", ((Label) stage.getScene().lookup("#pastStatus")).getText());
+                @SuppressWarnings("unchecked")
+                ListView<MemberBooking> cancelled = (ListView<MemberBooking>) stage.getScene()
+                        .lookup("#cancelledBookings");
+                assertEquals(1, upcoming.getItems().size());
+                assertEquals(1, past.getItems().size());
+                assertEquals(4, cancelled.getItems().size());
+                assertEquals("1 upcoming booking", ((Label) stage.getScene().lookup("#upcomingStatus")).getText());
+                assertEquals("1 past booking", ((Label) stage.getScene().lookup("#pastStatus")).getText());
+                assertEquals("4 cancelled bookings", ((Label) stage.getScene().lookup("#cancelledStatus")).getText());
                 assertTrue(upcoming.getItems().stream().allMatch(item -> startsAt(item).isAfter(LocalDateTime.now())));
-                assertTrue(past.getItems().stream().allMatch(item -> startsAt(item).isBefore(LocalDateTime.now())));
+                assertTrue(past.getItems().stream().allMatch(item -> !startsAt(item).isAfter(LocalDateTime.now())));
+                assertEquals(List.of(4L, 3L, 2L, 1L), cancelled.getItems().stream()
+                        .map(MemberBooking::bookingId).toList());
 
                 var root = stage.getScene().getRoot();
                 for (int width : new int[]{520, 840, 1440}) {
@@ -101,14 +108,18 @@ class MemberBookingsNavigationTest {
                 content.layout();
                 List<String> upcomingText = rowLabels(upcoming);
                 List<String> pastText = rowLabels(past);
+                List<String> cancelledText = rowLabels(cancelled);
                 assertTrue(upcomingText.stream().anyMatch(MemberBookingsNavigationTest::hasSessionDetails));
                 assertTrue(pastText.stream().anyMatch(MemberBookingsNavigationTest::hasSessionDetails));
-                assertTrue(pastText.stream().anyMatch(text -> text.contains("Cancelled")
+                assertTrue(cancelledText.stream().anyMatch(text -> text.contains("Cancelled")
                         && text.contains("Reason: Membership cancelled")));
-                assertTrue(pastText.stream().anyMatch(text -> text.contains("Cancelled")
+                assertTrue(cancelledText.stream().anyMatch(text -> text.contains("Cancelled")
                         && text.contains("Reason: Member cancelled booking")));
-                assertTrue(upcomingText.stream().anyMatch(text -> text.contains("Reason: Trainer cancelled session")));
-                assertTrue(upcomingText.stream().anyMatch(text -> text.contains("Reason: Account deactivated")));
+                assertTrue(cancelledText.stream().anyMatch(text -> text.contains("Reason: Trainer cancelled session")
+                        && text.contains("Coach unavailable")));
+                assertTrue(cancelledText.stream().anyMatch(text -> text.contains("Reason: Account deactivated")));
+                assertTrue(past.lookupAll(".list-cell .button").isEmpty());
+                assertTrue(cancelled.lookupAll(".list-cell .button").isEmpty());
 
                 Button cancel = (Button) stage.getScene().lookup("#upcomingBookings .list-cell .button");
                 assertEquals("Cancel booking", cancel.getText());
@@ -120,9 +131,9 @@ class MemberBookingsNavigationTest {
 
             onFxThread(() -> {
                 @SuppressWarnings("unchecked")
-                ListView<MemberBooking> upcoming = (ListView<MemberBooking>) stage.getScene()
-                        .lookup("#upcomingBookings");
-                upcoming.getItems().addListener(bookingChangeListener);
+                ListView<MemberBooking> cancelled = (ListView<MemberBooking>) stage.getScene()
+                        .lookup("#cancelledBookings");
+                cancelled.getItems().addListener(bookingChangeListener);
                 Button cancel = (Button) stage.getScene().lookup("#upcomingBookings .list-cell .button");
                 Platform.runLater(() -> clickConfirmationButton(ButtonType.OK));
                 cancel.fire();
@@ -131,13 +142,13 @@ class MemberBookingsNavigationTest {
             bookingListUpdated.get(15, TimeUnit.SECONDS);
             onFxThread(() -> {
                 @SuppressWarnings("unchecked")
-                ListView<MemberBooking> upcoming = (ListView<MemberBooking>) stage.getScene()
-                        .lookup("#upcomingBookings");
-                upcoming.getItems().removeListener(bookingChangeListener);
-                MemberBooking cancelled = upcoming.getItems().stream().filter(item -> item.bookingId() == 5)
+                ListView<MemberBooking> cancelled = (ListView<MemberBooking>) stage.getScene()
+                        .lookup("#cancelledBookings");
+                cancelled.getItems().removeListener(bookingChangeListener);
+                MemberBooking cancelledBooking = cancelled.getItems().stream().filter(item -> item.bookingId() == 5)
                         .findFirst().orElseThrow();
-                assertEquals(BookingStatus.CANCELLED, cancelled.status());
-                assertEquals(CancellationReason.MEMBER_CANCELLED_BOOKING, cancelled.cancellationReason());
+                assertEquals(BookingStatus.CANCELLED, cancelledBooking.status());
+                assertEquals(CancellationReason.MEMBER_CANCELLED_BOOKING, cancelledBooking.cancellationReason());
                 return null;
             });
         } finally {
@@ -166,6 +177,7 @@ class MemberBookingsNavigationTest {
             addBooking(context, connection, 4, now.plusDays(3), BookingStatus.CANCELLED,
                     CancellationReason.ACCOUNT_DEACTIVATED);
             addBooking(context, connection, 5, now.plusDays(4), BookingStatus.BOOKED, null);
+            addBooking(context, connection, 6, now.minusDays(1), BookingStatus.BOOKED, null);
             return null;
         });
         return context;
@@ -174,7 +186,8 @@ class MemberBookingsNavigationTest {
     private static void addBooking(AppContext context, java.sql.Connection connection, long id,
             LocalDateTime startsAt, BookingStatus status, CancellationReason reason) throws Exception {
         context.getPersistence().sessions().insert(connection,
-                new TrainingSession(id, 3, startsAt, 60, 10, "Workout", false));
+                new TrainingSession(id, 3, startsAt, 60, 10, "Workout", false,
+                        reason == CancellationReason.TRAINER_CANCELLED_SESSION ? "Coach unavailable" : null));
         context.getPersistence().bookings().insert(connection,
                 new Booking(id, id, 2, startsAt.minusDays(5), status, reason));
     }

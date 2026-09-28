@@ -20,5 +20,10 @@
             <StatusLabel fx:id="pastStatus" />
             <ListView fx:id="pastBookings" prefHeight="200" accessibleText="Past bookings" />
         </VBox>
+        <VBox maxWidth="720" spacing="10" styleClass="card">
+            <Label text="Cancelled bookings" styleClass="heading" wrapText="true" minWidth="0" />
+            <StatusLabel fx:id="cancelledStatus" />
+            <ListView fx:id="cancelledBookings" prefHeight="200" accessibleText="Cancelled bookings" />
+        </VBox>
     </VBox>
 </ScrollPane>

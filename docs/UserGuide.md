@@ -382,30 +382,38 @@ the membership cancellation reason. Past sessions and bookings already
 cancelled are unchanged.
 
 Open **My bookings** from the **Gym User dashboard** to see the updated lists.
-Each booking appears under **Upcoming bookings** or **Past bookings** according
-to its session start time. Cancelled bookings remain visible with **Cancelled**
-and the reason, including **Membership cancelled** for bookings affected by
-this action. The membership screen confirms cancellation and reports how many
-future bookings were cancelled. If saving fails, the membership and bookings
-remain unchanged; try again. After cancellation, you can purchase another
-available plan.
+Active bookings appear under **Upcoming bookings** or **Past bookings** according
+to their session start time. Cancelled bookings appear under **Cancelled bookings**
+with **Cancelled** and the reason, including **Membership cancelled** for bookings
+affected by this action. The membership screen confirms cancellation and reports
+how many future bookings were cancelled. If saving fails, the membership and
+bookings remain unchanged; try again. After cancellation, you can purchase
+another available plan.
 
 #### View your bookings
 
-On the **Gym User dashboard**, choose **My bookings**. The screen separates
-bookings whose session has not started from past bookings, and shows each
-session's local date and time, Trainer, description, duration, and booking
-status. Choose **Cancel booking** on an upcoming booking to release its place
-for another Member. Review the confirmation and choose **OK** to cancel. Choose
-**Cancel** or close the confirmation to keep your booking. A booking cannot be
-cancelled after its session starts.
+On the **Gym User dashboard**, choose **My bookings**. The screen has three
+sections:
 
-Cancelled bookings stay in the appropriate list and show why they were
-cancelled: **Trainer cancelled session**, **Member cancelled booking**,
-**Membership cancelled**, or **Account deactivated**. Choose **Refresh bookings**
-to reload the lists, or **Back to dashboard** to return. If loading fails,
-choose **Refresh bookings** to try again. If your session has ended, sign in
-again.
+- **Upcoming bookings** lists active bookings for sessions that have not started,
+  soonest first. Choose **Cancel booking** on one to release its place for another
+  Member. Review the confirmation and choose **OK** to cancel. Choose **Cancel**
+  or close the confirmation to keep your booking.
+- **Past bookings** lists active bookings for sessions that have started, most
+  recent first. A session starting exactly now is considered past.
+- **Cancelled bookings** lists all cancelled bookings, most recent session first.
+  Each shows its cancellation reason: **Trainer cancelled session**, **Member
+  cancelled booking**, **Membership cancelled**, or **Account deactivated**.
+  Trainer cancellations also show the Trainer's written reason when provided.
+  If you book a cancelled session again, the booking moves from **Cancelled
+  bookings** back to **Upcoming bookings** and its earlier cancellation reason
+  is no longer shown.
+
+Each booking shows its session's local date and time, Trainer, description,
+duration, and status. Cancellation is available only for Upcoming bookings; a
+booking cannot be cancelled after its session starts. Choose **Refresh bookings**
+to reload the lists, or **Back to dashboard** to return. If loading fails, choose
+**Refresh bookings** to try again. If your session has ended, sign in again.
 
 #### Buy a membership
 
