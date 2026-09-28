@@ -1,45 +1,39 @@
+[![Java CI](https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/actions/workflows/gradle.yml/badge.svg)](https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/actions/workflows/gradle.yml)
+
 # Gymmie
 
-Gymmie is a JavaFX desktop app for gym management.
+![Member's Browse sessions screen](docs/images/Ui.png)
 
-On launch (`./gradlew run`), Gymmie creates an active Manager account if the
-case-insensitive username `manager` is absent:
+**Gymmie is a desktop app for managing a small or medium gym**, with tools for Managers, Trainers and Members. The gym is open 24 hours, so sessions can be scheduled and booked at any time, including overnight.
 
-- Username: `manager`
-- Password: `manager123`
+- **Managers** create, edit, archive, restore and delete membership plans; create accounts, edit display names, and deactivate or reactivate accounts.
+- **Trainers** maintain their profile; create, edit, cancel and delete unused sessions; and view upcoming sessions and rosters.
+- **Members** buy, renew and cancel a membership, browse and book sessions, and view and cancel bookings.
 
-Seeding runs after schema initialization in a transaction against `data/gymmie.db`.
-Other accounts, including inactive accounts, do not prevent seeding. The seed uses
-the first available positive account ID and preserves existing accounts.
-An existing active Manager with this username is left unchanged, including its
-password. If the username belongs to another role or an inactive Manager, startup
-fails with a clear conflict error instead of overwriting or reactivating it.
+Members choose and buy membership plans in Gymmie; each purchase is recorded as a membership, while payment is handled at the gym.
 
-The seeded Manager is identified by its immutable username (case-insensitive)
-and Manager role and cannot be deactivated. Its password can be changed through
-the normal password-change service without losing that protection. The initial
-password uses the application's password-storage rules: PBKDF2-HMAC-SHA256 with
-600,000 iterations and a fresh random 128-bit salt. Only the hash and salt are
-stored in the database, never the plaintext password.
+## Getting started
 
-The application opens on the login screen. Use Tab / Shift+Tab to move between
-controls and Enter to submit login (or click **Log in**). Verified credentials
-for a deactivated account show a distinct message asking you to contact a Manager.
-Managers, Trainers, and Gym Users land on their respective dashboard shells.
-Each dashboard provides **Log out** and **Change password**, including password
-confirmation; all controls support keyboard focus and mouse interaction.
-Other gym workflows are not yet implemented.
+Requires **JDK 25**. Download [`gymmie-release.jar`](https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/releases) from GitHub Releases and run:
 
-`AppContext` constructs the database and initializes its schema before wiring
-persistence, seeding the Manager, and exposing shared services. `Router` owns
-navigation and `ViewLoader` loads bundled FXML with injected controllers.
+```shell
+java -jar gymmie-release.jar
+```
 
-Use JDK 25 on Windows, macOS, or Linux with a graphical desktop. On Windows, run
-`.\gradlew.bat run`; on macOS/Linux, run `./gradlew run`. JavaFX dependencies
-resolve for the build platform, so build the fat JAR on each target OS and
-architecture instead of copying one OS's JAR to another.
+The release JAR bundles JavaFX for Windows x64, Apple Silicon macOS and x64 Linux. On other platforms, run Gymmie from source with `./gradlew run` (or `.\gradlew.bat run` on Windows).
 
-Run `./gradlew check shadowJar` for the standard checks and package build. On a
-graphical desktop, `./gradlew check -PuiTests=true` also exercises the actual FXML
-login forms, asynchronous authentication, all role dashboards, deactivation
-feedback, and logout with an isolated temporary database.
+Sign in first as the seeded Manager (`manager` / `manager123`) and change the password. Gymmie stores its data in `data/gymmie.db`, relative to the folder you launch it from. See the [User Guide](docs/UserGuide.md) for full instructions on using Gymmie.
+
+## Documentation
+
+- **[User Guide](docs/UserGuide.md)** — instructions for each role's workflows.
+- **[Developer Guide](docs/DeveloperGuide.md)** — architecture, development workflow and implementation details.
+- **[Product website](https://cs3227-2610-mp2-gymmie.github.io/CS3227-2610-MP2/)**
+
+For development, run `./gradlew check`. On a graphical desktop, run `./gradlew test -PuiTests=true` to include the UI tests.
+
+**Team:** [shawnnygoh](https://github.com/shawnnygoh) (Member features), [naa-siuuuu-ff](https://github.com/naa-siuuuu-ff) (Manager features), and [TaiaYovelaPang](https://github.com/TaiaYovelaPang) (Trainer features).
+
+## Acknowledgements
+
+Built with [JavaFX](https://openjfx.io/), [SQLite JDBC](https://github.com/xerial/sqlite-jdbc), [Gradle](https://gradle.org/) and [Shadow](https://gradleup.com/shadow/), [JUnit 5](https://junit.org/junit5/), and [Checkstyle](https://checkstyle.org/). The documentation structure is adapted from [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by [SE-EDU](https://se-education.org/). See the Developer Guide's [Acknowledgements](docs/DeveloperGuide.md) for details.
