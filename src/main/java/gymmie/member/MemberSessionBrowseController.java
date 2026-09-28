@@ -136,9 +136,12 @@ public final class MemberSessionBrowseController {
                 ? "No description provided." : description);
         descriptionLabel.setWrapText(true);
         card.getChildren().addAll(trainer, start, details, descriptionLabel);
-        Button bookingButton = new Button(session.hasBooking() ? "Already booked" : "Book session");
-        bookingButton.setDisable(session.hasBooking());
-        bookingButton.setAccessibleText(session.hasBooking() ? "Session already booked" : "Book this session");
+        boolean full = session.bookingCount() >= session.capacity();
+        String bookingLabel = session.hasBooking() ? "Already booked" : full ? "Full" : "Book session";
+        Button bookingButton = new Button(bookingLabel);
+        bookingButton.setDisable(session.hasBooking() || full);
+        bookingButton.setAccessibleText(session.hasBooking() ? "Session already booked"
+                : full ? "Session is full" : "Book this session");
         bookingButton.setOnAction(_ -> bookSession(session, bookingButton));
         card.getChildren().add(bookingButton);
         return card;
