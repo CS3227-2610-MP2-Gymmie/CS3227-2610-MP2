@@ -32,6 +32,7 @@ import gymmie.testutil.AccountBuilder;
 import gymmie.testutil.BookingBuilder;
 import gymmie.testutil.InMemoryDatabase;
 import gymmie.testutil.TrainingSessionBuilder;
+import gymmie.trainer.model.TrainerProfile;
 
 class MemberSessionBrowseServiceTest {
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-09-26T04:00:00Z"),
@@ -67,8 +68,8 @@ class MemberSessionBrowseServiceTest {
         });
         auth.login(member.username(), AccountBuilder.DEFAULT_PASSWORD);
         service = new MemberSessionBrowseService(persistence.accounts(), persistence.sessions(),
-                persistence.bookings(), persistence.unitOfWork(), new Permissions(persistence.accounts(), session),
-                CLOCK);
+                persistence.bookings(), persistence.trainerProfiles(), persistence.unitOfWork(),
+                new Permissions(persistence.accounts(), session), CLOCK);
     }
 
     @AfterEach
@@ -81,6 +82,9 @@ class MemberSessionBrowseServiceTest {
         var later = new TrainingSessionBuilder().withId(10).withTrainerId(trainer.id())
                 .withStartsAt(NOW.plusHours(2)).withDurationMinutes(75).withCapacity(8)
                 .withDescription("Strength and mobility").build();
+        var latest = new TrainingSessionBuilder().withId(11).withTrainerId(trainer.id())
+                .withStartsAt(NOW.plusHours(3)).withDurationMinutes(45).withCapacity(6)
+                .withDescription("Mobility focus").build();
         var earlier = new TrainingSessionBuilder().withId(20).withTrainerId(secondTrainer.id())
                 .withStartsAt(NOW.plusHours(1)).withDurationMinutes(30).withCapacity(4)
                 .withDescription("Intro session").build();
@@ -91,9 +95,11 @@ class MemberSessionBrowseServiceTest {
         var inactiveTrainerSession = new TrainingSessionBuilder().withId(50).withTrainerId(inactiveTrainer.id())
                 .withStartsAt(NOW.plusHours(4)).build();
         persistence.unitOfWork().inTransaction(connection -> {
-            for (var trainingSession : List.of(later, earlier, past, cancelled, inactiveTrainerSession)) {
+            for (var trainingSession : List.of(later, latest, earlier, past, cancelled, inactiveTrainerSession)) {
                 persistence.sessions().insert(connection, trainingSession);
             }
+            persistence.trainerProfiles().save(connection,
+                    new TrainerProfile(trainer.id(), "Strength and mobility coach", List.of("Strength", "Mobility")));
             persistence.bookings().insert(connection, booking(1, later.id(), member.id(), BookingStatus.BOOKED));
             persistence.bookings().insert(connection, booking(2, later.id(), 5, BookingStatus.BOOKED));
             persistence.bookings().insert(connection, new BookingBuilder().withId(3).withSessionId(later.id())
@@ -108,11 +114,15 @@ class MemberSessionBrowseServiceTest {
 
         List<BrowseSession> results = service.upcomingSessions();
 
-        assertEquals(List.of(20L, 10L), results.stream().map(BrowseSession::sessionId).toList());
-        assertEquals(new BrowseSession(20, secondTrainer.id(), secondTrainer.displayName(), earlier.startsAt(),
+        assertEquals(List.of(20L, 10L, 11L), results.stream().map(BrowseSession::sessionId).toList());
+        assertEquals(new BrowseSession(20, secondTrainer.id(), secondTrainer.displayName(), "", List.of(),
+                earlier.startsAt(),
                 30, "Intro session", 4, 1, false), results.get(0));
-        assertEquals(new BrowseSession(10, trainer.id(), trainer.displayName(), later.startsAt(),
+        assertEquals(new BrowseSession(10, trainer.id(), trainer.displayName(), "Strength and mobility coach",
+                List.of("Strength", "Mobility"), later.startsAt(),
                 75, "Strength and mobility", 8, 2, true), results.get(1));
+        assertEquals("Strength and mobility coach", results.get(2).trainerSynopsis());
+        assertEquals(List.of("Strength", "Mobility"), results.get(2).trainerSpecializations());
         assertTrue(results.stream().noneMatch(item -> item.sessionId() == past.id()
                 || item.sessionId() == cancelled.id() || item.sessionId() == inactiveTrainerSession.id()));
     }

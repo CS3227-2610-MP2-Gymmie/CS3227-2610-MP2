@@ -86,7 +86,8 @@ public final class AppContext {
         memberBookingCancellationService = new MemberBookingCancellationService(persistence.bookings(),
                 persistence.sessions(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         memberSessionBrowseService = new MemberSessionBrowseService(persistence.accounts(), persistence.sessions(),
-                persistence.bookings(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
+                persistence.bookings(), persistence.trainerProfiles(), persistence.unitOfWork(), permissions,
+                Clock.systemDefaultZone());
         memberSessionBookingService = new MemberSessionBookingService(persistence.memberships(), persistence.sessions(),
                 persistence.bookings(), persistence.unitOfWork(), permissions, Clock.systemDefaultZone());
         authService = new AuthService(persistence.accounts(), persistence.unitOfWork(), userSession, hasher);

@@ -435,8 +435,10 @@ offerings, then choose an available plan and try again.
 
 On the **Gym User dashboard**, choose **Browse sessions** to see upcoming
 sessions from active Trainers. Each session card shows the Trainer's display
-name, local start date and time, duration, description, capacity, and current
-number of booked Members. Cancelled and past sessions are not shown.
+name, profile synopsis and specialisations, local start date and time, duration,
+description, capacity, and current number of booked Members. A Trainer without a
+synopsis or specialisations shows **No profile details.** Cancelled and past
+sessions are not shown.
 
 1. Choose **All trainers** or a Trainer from the **Trainer** list to filter the
    session cards. Trainer names include an account number to distinguish
