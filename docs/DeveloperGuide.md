@@ -256,9 +256,14 @@ future `BOOKED` bookings with the `MEMBERSHIP_CANCELLED` reason in one
 transaction. Past bookings and bookings belonging to other Members are left
 unchanged. `MemberBookingHistoryService` supplies the Member's full booking
 history, including cancelled bookings and their reasons, to the **My bookings**
-screen, where bookings are separated by whether their sessions have started.
-For each booking, the history service also includes the Trainer's display name,
-session description, and duration for display on that screen.
+screen. `MemberBookingsController` groups this history into three sections:
+**Upcoming** contains `BOOKED` bookings for sessions not yet started, soonest
+first; **Past** contains `BOOKED` bookings for sessions started at or before
+now, newest first; and **Cancelled** contains all `CANCELLED` bookings, newest
+session first. Only **Upcoming** offers cancellation. Grouping happens in the
+controller; the history service continues to return the full history. For each
+booking, it also includes the Trainer's display name, session description, and
+duration for display on that screen.
 
 `MemberBookingCancellationService` cancels only an active booking owned by the
 authenticated Member, and only strictly before its session starts. It records

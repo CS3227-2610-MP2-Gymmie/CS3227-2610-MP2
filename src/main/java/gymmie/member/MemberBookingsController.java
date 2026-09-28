@@ -21,7 +21,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 
-/** Shows the authenticated Member's upcoming and past bookings. */
+/** Shows the authenticated Member's upcoming, past, and cancelled bookings. */
 public final class MemberBookingsController {
     private final AppContext context;
     private final Router router;
@@ -33,9 +33,13 @@ public final class MemberBookingsController {
     @FXML
     private StatusLabel pastStatus;
     @FXML
+    private StatusLabel cancelledStatus;
+    @FXML
     private ListView<MemberBooking> upcomingBookings;
     @FXML
     private ListView<MemberBooking> pastBookings;
+    @FXML
+    private ListView<MemberBooking> cancelledBookings;
     @FXML
     private Button refreshButton;
 
@@ -49,6 +53,7 @@ public final class MemberBookingsController {
     private void initialize() {
         upcomingBookings.setCellFactory(_ -> new MemberBookingCell(true));
         pastBookings.setCellFactory(_ -> new MemberBookingCell(false));
+        cancelledBookings.setCellFactory(_ -> new MemberBookingCell(false));
         loadBookings();
     }
 
@@ -62,6 +67,7 @@ public final class MemberBookingsController {
         bookingsStatus.info("Loading bookings…");
         upcomingStatus.setText("");
         pastStatus.setText("");
+        cancelledStatus.setText("");
         Task<List<MemberBooking>> task = new Task<>() {
             @Override
             protected List<MemberBooking> call() throws Exception {
@@ -73,17 +79,21 @@ public final class MemberBookingsController {
             List<MemberBooking> allBookings = task.getValue();
             List<MemberBooking> upcoming = upcomingBookings(allBookings, now);
             List<MemberBooking> past = pastBookings(allBookings, now);
+            List<MemberBooking> cancelled = cancelledBookings(allBookings);
             upcomingBookings.getItems().setAll(upcoming);
             pastBookings.getItems().setAll(past);
+            cancelledBookings.getItems().setAll(cancelled);
             refreshButton.setDisable(false);
             bookingsStatus.info(allBookings.isEmpty() ? "No bookings yet."
                     : allBookings.size() + " booking" + (allBookings.size() == 1 ? "" : "s"));
             upcomingStatus.info(countText(upcoming.size(), "upcoming booking"));
             pastStatus.info(countText(past.size(), "past booking"));
+            cancelledStatus.info(countText(cancelled.size(), "cancelled booking"));
         });
         task.setOnFailed(_ -> {
             upcomingBookings.getItems().clear();
             pastBookings.getItems().clear();
+            cancelledBookings.getItems().clear();
             refreshButton.setDisable(false);
             bookingsStatus.error(task.getException(), "Unable to load bookings. Please try again.");
             returnToLoginIfSessionEnded();
@@ -120,14 +130,21 @@ public final class MemberBookingsController {
 
     static List<MemberBooking> upcomingBookings(List<MemberBooking> bookings, LocalDateTime now) {
         return bookings.stream()
-                .filter(booking -> booking.startsAt().isAfter(now))
+                .filter(booking -> booking.status() == BookingStatus.BOOKED && booking.startsAt().isAfter(now))
                 .sorted(Comparator.comparing(MemberBooking::startsAt))
                 .toList();
     }
 
     static List<MemberBooking> pastBookings(List<MemberBooking> bookings, LocalDateTime now) {
         return bookings.stream()
-                .filter(booking -> !booking.startsAt().isAfter(now))
+                .filter(booking -> booking.status() == BookingStatus.BOOKED && !booking.startsAt().isAfter(now))
+                .sorted(Comparator.comparing(MemberBooking::startsAt).reversed())
+                .toList();
+    }
+
+    static List<MemberBooking> cancelledBookings(List<MemberBooking> bookings) {
+        return bookings.stream()
+                .filter(booking -> booking.status() == BookingStatus.CANCELLED)
                 .sorted(Comparator.comparing(MemberBooking::startsAt).reversed())
                 .toList();
     }
