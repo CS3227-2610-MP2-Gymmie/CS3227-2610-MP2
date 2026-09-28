@@ -12,6 +12,7 @@ For end-user instructions, see the [User Guide](UserGuide.md). The requirements 
 
 - [Acknowledgements](#acknowledgements)
 - [Setting up, getting started](#setting-up-getting-started)
+- [Development process](#development-process)
 - [Architectural design](#architectural-design)
 - [Shared UI conventions](#shared-ui-conventions)
 - [Domain model](#domain-model)
@@ -22,6 +23,8 @@ For end-user instructions, see the [User Guide](UserGuide.md). The requirements 
 - [Sequence diagram: booking a session](#sequence-diagram-booking-a-session)
 - [Sequence diagram: cancelling a membership](#sequence-diagram-cancelling-a-membership)
 - [How to test](#how-to-test)
+- [Planned enhancements](#planned-enhancements)
+- [Design considerations](#design-considerations)
 - [Appendix: Requirements](#appendix-requirements)
 
 ---
@@ -29,15 +32,17 @@ For end-user instructions, see the [User Guide](UserGuide.md). The requirements 
 ## Acknowledgements
 
 - [OpenJFX](https://openjfx.io/) provides the JavaFX 25 GUI modules used by the application.
+- [SQLite JDBC](https://github.com/xerial/sqlite-jdbc) (`org.xerial:sqlite-jdbc`) provides the SQLite driver.
 - [JUnit 5](https://junit.org/junit5/) provides the test framework.
 - [Gradle](https://gradle.org/) and the [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) provide the build and dependency-management workflow. The project also uses the [Shadow](https://gradleup.com/shadow/) plugin to create a runnable fat JAR.
 - [Checkstyle](https://checkstyle.org/) and [JaCoCo](https://www.jacoco.org/jacoco/) are used for source checks and code-coverage reporting.
 - The overall structure of this guide, including its requirements appendix and use-case format, follows the supplied sample Developer Guide, which in turn acknowledges the [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) Developer Guide by the [SE-EDU initiative](https://se-education.org/). No AddressBook source code is reused.
-- Gymmie was built with AI assistance. The project-specific conventions and constraints given to the assistant are recorded in [`AGENTS.md`](../AGENTS.md).
+- OpenAI Codex and Anthropic Claude were the AI tools used during development. The project-specific conventions and constraints are recorded in [`AGENTS.md`](../AGENTS.md).
 
 ## Setting up, getting started
 
-**Prerequisites:** JDK 25, Git, and a desktop environment capable of running JavaFX.
+**Prerequisites:** JDK 25, Git, and a desktop environment. A JDK that bundles
+JavaFX is not required; Gradle supplies JavaFX for source runs.
 
 Verify that both `java -version` and `javac -version` report version 25. Clone the repository, then run commands from the repository root, which is the folder containing `build.gradle`. On Windows PowerShell, replace `./gradlew` with `.\gradlew.bat`.
 
@@ -49,12 +54,29 @@ Verify that both `java -version` and `javac -version` report version 25. Clone t
 | `./gradlew test -PuiTests=true` | Include JavaFX integration tests; requires a graphical desktop. |
 | `./gradlew shadowJar` | Create a runnable fat JAR in `build/libs/`. |
 | `./gradlew releaseJar` | Create `build/libs/gymmie-release.jar` with JavaFX for Windows x64, Apple Silicon macOS, and x64 Linux. |
+| `java -jar build/libs/gymmie-release.jar` | Launch the release JAR after running `./gradlew releaseJar`. |
 | `./gradlew test -PreleaseTests=true` | Check the release JAR's contents. |
-| `java -jar build/libs/Gymmie-1.0.0-all.jar` | Launch the packaged application when that file has been built. |
 
 **Build configuration:** Java 25 toolchain, JavaFX 25.0.2 (`javafx.controls` and `javafx.fxml`), Gradle Wrapper 9.7.1, JUnit Jupiter 5.14.4, Checkstyle 14.1.0, JaCoCo 0.8.15, and the application entry point `gymmie.Launcher`.
 
 Test, Checkstyle, and JaCoCo reports are written under `build/reports/` by Gradle. Build output is generated under `build/`.
+
+## Development process
+
+Contributors fork the repository and open a pull request to `upstream/master`.
+Pull requests use merge commits. Work on one issue per Codex session and use the
+[`implement-issue` skill](../.agents/skills/implement-issue/SKILL.md). The skill
+produces a report in `evals/implement-issue/reports/` and runs
+`evals/implement-issue/review.sh`, which asks a fresh, read-only reviewer to
+review the report and diff. The review and fix cycle can run for up to three
+rounds. A human reviews the working-tree changes before a commit is made, then
+reviews the pull request before it is merged.
+
+Follow the repository's [`AGENTS.md`](../AGENTS.md) coding and Git conventions.
+Write session summaries in `logs/<member>/`. CI is defined in
+`.github/workflows/gradle.yml`: on Ubuntu, macOS, and Windows it runs `check`
+and `shadowJar`, then runs the opt-in release JAR test. It does not run the GUI
+tests.
 
 ---
 
@@ -780,6 +802,31 @@ Follow the [User Guide](UserGuide.md) for screen-level instructions.
 Manual checks complement automated assertions; use service tests to verify RBAC
 directly, since hidden controls alone do not prove authorization.
 
+## Planned enhancements
+
+- Mark attendance for a session roster ([#68](https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/issues/68)).
+- Switch membership plans without forfeiting remaining days
+  ([#44](https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/issues/44)).
+- Record membership payments and report revenue.
+- Cancel a deactivated Trainer's future sessions and affected Member bookings.
+- Let Managers reset a user's forgotten password.
+- Publish release JARs for Intel Mac and ARM Linux.
+- Add an opt-in benchmark for NFR 12; it has not yet been measured.
+
+## Design considerations
+
+- **Archive or deactivate instead of deleting:** Keeping plans with purchase
+  history, accounts, and sessions with bookings preserves audit history and
+  links from memberships or bookings. The tradeoff is that old records remain
+  in storage and need clear inactive states.
+- **Reactivate the same booking row when rebooking:** Reusing the row preserves
+  one booking per Member and session and keeps the lifecycle easy to query. It
+  replaces the prior cancellation reason and booking time; inserting a new row
+  would preserve each attempt but require more history and duplicate handling.
+- **Enforce RBAC in services:** Service checks protect operations even when a
+  caller bypasses the UI. UI-only checks are simpler to implement, but can be
+  bypassed and cannot protect service calls from tests or other callers.
+
 ## Appendix: Requirements
 
 ### Product scope
@@ -834,8 +881,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 | `* * *` | Manager | view membership plans and whether each is archived | I can administer the plan catalogue accurately                          |
 | `* * *` | Manager | create a Trainer account with an initial password | a Trainer can access Gymmie                                             |
 | `* * *` | Manager | create a Member account with an initial password | a Member can access Gymmie                                              |
-| `* * *` | Manager | view and edit Trainer profile details | Trainer records remain accurate                                         |
-| `* * *` | Manager | view and edit Member profile details without changing the Member's plan or status | I can maintain account information while the Member controls membership |
+| `* * *` | Manager | edit any Trainer or Member account's display name | I can keep the name shown to other users accurate                       |
 | `* * *` | Manager | deactivate a Trainer or Member account and cancel a Member's future bookings | a departing user cannot log in while their history is retained          |
 | `* * *` | Manager | reactivate a previously deactivated Trainer or Member account | an eligible user can access Gymmie again                                |
 | `*` | Manager | record Member payments and view revenue | I can track the gym's income                                            |
@@ -972,7 +1018,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 4. **Authentication clarity:** Usernames must be globally unique across all roles and matched case-insensitively, while being stored as entered by the user. Login must distinguish a deactivated account from invalid credentials.
 5. **Authorization:** Role permissions must be enforced in the service layer, not only by hiding controls in the JavaFX UI.
 6. **Transactional consistency:** Cancelling a membership or session must update all related bookings atomically. A failed persistence operation must not expose only part of the change.
-7. **History preservation:** An account is deactivated rather than deleted. Deactivating a Member also cancels that Member's future bookings. A plan with purchase history is archived rather than deleted, and a session that has ever had a booking is cancelled rather than deleted. These rules preserve the history needed for the payment and revenue Manager stories.
+7. **History preservation:** An account is deactivated rather than deleted. Deactivating a Member also cancels that Member's future bookings. A plan with purchase history is archived rather than deleted, and a session that has ever had a booking is cancelled rather than deleted. These rules preserve audit history for Members, Trainers, and Managers.
 8. **Time handling:** All times use the local system time.
 9. **Maintainability:** The project must remain buildable with the Gradle Wrapper and should pass the repository's `check` task before a change is considered ready for integration.
 10. **Single instance:** Only one Gymmie process should run against a given data folder. There is no cross-instance coordination.
@@ -1008,6 +1054,9 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 ### Known limitations
 
 - Plan switching is not supported. A Member who wants a different plan must cancel the current one first, forfeiting its remaining days, then buy the new plan.
+- Deactivating a Trainer does not cancel their sessions or Members' bookings. Their sessions disappear from **Browse sessions**, while affected bookings remain **Booked** in **My bookings**.
+- The release JAR supports Windows x64, Apple Silicon macOS, and x64 Linux. Intel Mac and ARM Linux users must run Gymmie from source.
+- Managers cannot reset a user's forgotten password.
 - The seeded Manager account ships with the fixed password `manager123`, and changing it is not enforced on first login.
 - A Manager sets the initial password when creating a Trainer or Member account, so that password is known to the Manager until the user changes it.
 - Gymmie does not process payments or maintain a payment transaction ledger. Membership records retain the purchased plan, start date, and purchase-time price and duration snapshots; payment collection is handled outside the application.
