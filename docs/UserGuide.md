@@ -67,12 +67,20 @@ buy memberships and book sessions.
 
 ### 1.1 System requirements
 
-Gymmie requires **Java 25** (with JavaFX support) to run. Ensure `JAVA_HOME` points
-to your Java 25 installation.
+Gymmie requires **JDK 25**. You do not need to install JavaFX separately. The
+release JAR bundles JavaFX for Windows x64, Apple Silicon macOS, and x64 Linux.
 
 ### 1.2 Launch Gymmie
 
-**From Gradle (development mode):**
+**Recommended: download the release JAR.** Get `gymmie-release.jar` from
+[GitHub Releases](https://github.com/CS3227-2610-MP2-Gymmie/CS3227-2610-MP2/releases)
+and run it with Java 25:
+
+```bash
+java -jar gymmie-release.jar
+```
+
+**From source:**
 
 Open a terminal in the project root folder and run:
 
@@ -80,14 +88,9 @@ Open a terminal in the project root folder and run:
 ./gradlew run
 ```
 
-**From the standalone JAR (release mode):**
-
-To build and run the executable fat JAR:
-
-```bash
-./gradlew shadowJar
-java -jar build/libs/Gymmie.jar
-```
+On Windows, run `.\gradlew.bat run` in PowerShell.
+Gymmie creates `data/gymmie.db` in the folder it was launched from. Always launch
+it from the same folder so it continues using the same data.
 
 ### 1.3 Sign in
 
@@ -195,26 +198,22 @@ Both commands should complete with `BUILD SUCCESSFUL`.
 
 ### 3.2 Manual verification walkthrough
 
-To verify end-to-end functionality manually across all three roles:
+To verify the main flow, launch Gymmie with `./gradlew run` or
+`java -jar gymmie-release.jar` after downloading the release JAR. Use the same
+launch folder each time so Gymmie uses the same `data/gymmie.db`.
 
-1. **Launch Gymmie:** Run `./gradlew run`.
-2. **Manager verification:**
-   - Sign in with `manager` / `manager123`.
-   - Go to **Manage membership plans** and create a plan named `Monthly Pass` (30 days, `50.00`).
-   - Go to **Manage accounts** and provision a Trainer (`trainer_sam` / `trainer123`, role `TRAINER`, display name `Sam Trainer`).
-   - Provision a Member (`member_ann` / `member123`, role `MEMBER`, display name `Ann Member`).
-   - Log out.
-3. **Trainer verification:**
-   - Sign in with `trainer_sam` / `trainer123`.
-   - Go to **Create session**, pick tomorrow's date at `10:00`, duration `60`, capacity `10`, description `Morning Strength`.
-   - Verify it appears on **My upcoming sessions**.
-   - Log out.
-4. **Member verification:**
-   - Sign in with `member_ann` / `member123`.
-   - Go to **My membership** and purchase `Monthly Pass`.
-   - Go to **Browse sessions**, find `Sam Trainer`'s session, and choose **Book session**.
-   - Go to **My bookings** and verify the session appears under **Upcoming bookings**.
-   - Log out.
+1. **Manager:** Sign in as `manager` / `manager123`. Create a plan named
+   `Monthly Pass` for 30 days at `50.00`. Provision a Trainer account with
+   username `trainer_sam`, password `trainer123`, and display name `Sam Trainer`;
+   then provision a Member account with username `member_ann`, password
+   `member123`, and display name `Ann Member`. Log out.
+2. **Trainer:** Sign in as `trainer_sam` / `trainer123`. Create a session for
+   tomorrow at `10:00`, with a duration of 60 minutes, capacity of 10, and the
+   description `Morning Strength`. Confirm it appears under **My upcoming sessions**,
+   then log out.
+3. **Member:** Sign in as `member_ann` / `member123`. Buy **Monthly Pass**, open
+   **Browse sessions**, and book the **Morning Strength** session. Open **My
+   bookings** and confirm it appears under **Upcoming bookings**.
 
 ---
 
@@ -269,7 +268,7 @@ The table below lists all Manager capabilities in recommended workflow order:
 | **Delete plan** | [Delete a plan](#53-create-edit-archive-and-delete-plans) | Permanently delete an unpurchased plan (automatically archives if purchased). |
 | **Provision account** | [Provision a new account](#54-provision-a-new-account) | Create a new Trainer or Member account. |
 | **Edit display name** | [Edit an account's display name](#55-edit-an-accounts-display-name) | Change the display name of any existing account. |
-| **Deactivate account** | [Deactivate an account](#56-deactivate-or-reactivate-an-account) | Revoke sign-in access and cancel future bookings. |
+| **Deactivate account** | [Deactivate an account](#56-deactivate-or-reactivate-an-account) | Disable sign-in; Member deactivation also cancels future bookings. |
 | **Reactivate account** | [Reactivate an account](#56-deactivate-or-reactivate-an-account) | Restore sign-in access for an inactive account. |
 
 ### 5.2 Manage membership plans
@@ -289,9 +288,9 @@ Choose **Refresh** to reload the list from storage.
 **Create a plan**
 
 1. In the **Create new plan** card, enter:
-   - **Plan name**: unique across all plans, case-insensitive (for example, `Standard Monthly`).
+   - **Plan name**: non-blank and unique across all plans, ignoring case (for example, `Standard Monthly`). There is no length limit.
    - **Duration in days**: an integer between 1 and 365.
-   - **Price**: in SGD with at most two decimal places (for example, `50` or `49.90`).
+   - **Price**: SGD 0.00–10,000.00 with at most two decimal places (for example, `50` or `49.90`).
 2. Choose **Create plan**, or press **Enter** in any field.
 3. **Plan created.** confirms the creation, and the plan appears in the list.
 
@@ -343,6 +342,7 @@ Choose **Refresh** to reload the list.
 
 Provide the new user with their initial username and password. Users can update
 their password at any time on their **Home** page.
+Hold **Show** beside the password field to reveal the password while the button is held.
 
 ### 5.5 Edit an account's display name
 
@@ -361,7 +361,10 @@ Choose **Deactivate** on an account card.
 - If the account is a **Member**, all their future training session bookings are
   automatically cancelled in the same operation with the reason **Account deactivated**.
 - If the account is a **Trainer**, their sign-in is disabled; scheduled sessions
-  and past records remain in storage for historical tracking.
+  and past records remain in storage for historical tracking. Their sessions
+  disappear from Members' **Browse sessions** list, but existing Member bookings
+  remain **Booked** in **My bookings** and are not cancelled. Ask the Trainer to
+  cancel their sessions before deactivation.
 - The seeded Manager account (`manager`) cannot be deactivated.
 
 **Reactivate an account**
@@ -405,6 +408,7 @@ Choose **Create session** in the sidebar.
 
 Sessions cannot overlap another uncancelled session scheduled under your account.
 Back-to-back sessions (where one starts exactly when another ends) are permitted.
+The gym is open 24 hours, so sessions may start at any time, including overnight.
 
 ### 6.3 View your upcoming sessions
 
@@ -562,6 +566,13 @@ date and time, duration, description, capacity, and current booking count.
 2. Choose **Refresh** to reload availability.
 3. Choose **Book session** on an eligible card. The button changes to **Already booked**.
 
+**Full** is disabled when no places remain; **Already booked** is shown instead
+when you already have a booking, even if the session is full. If the Trainer has
+no profile information, the card says **No profile details.** Only active
+Trainers' sessions are listed. If booking reports **This session is full**, a
+place was taken after the list loaded; choose **Refresh**. You can rebook a
+cancelled booking when all booking rules below are still met.
+
 **To book a session, all of the following rules must be met:**
 - You hold an active membership covering today.
 - The session has open capacity.
@@ -576,17 +587,21 @@ Choose **My bookings** in the sidebar.
 ![My bookings page](images/member-bookings.png)
 > 📷 **Screenshot placeholder:** My bookings with Upcoming, Past and Cancelled sections.
 
-Bookings are organized into three tabs:
-- **Upcoming bookings:** Active reservations for future sessions.
-- **Past bookings:** Sessions that have already started or concluded.
-- **Cancelled bookings:** Cancelled reservations along with their specific cancellation reason.
+Bookings are organized into three sections:
+- **Upcoming bookings:** Active reservations for future sessions, soonest first.
+- **Past bookings:** Sessions that have started, with the most recent first. A
+  session starting exactly now is past.
+- **Cancelled bookings:** Cancelled reservations, most recent session first,
+  with the cancellation reason and (when a Trainer cancelled) the Trainer's
+  written reason.
 
-**Cancel a booking:** Choose **Cancel booking** on an upcoming card and confirm.
+**Cancel a booking:** Choose **Cancel booking** on an Upcoming card and confirm.
 Your reserved place is immediately released for other members. Bookings cannot be
 cancelled once a session has started.
 
-If you subsequently rebook a previously cancelled session, the new active booking
-overwrites the earlier cancellation record and clears the previous cancellation reason.
+If you rebook a cancelled session while the booking rules are met, its booking
+moves from **Cancelled** back to **Upcoming** and the earlier cancellation reason
+is cleared.
 
 ---
 
@@ -599,9 +614,9 @@ overwrites the earlier cancellation record and clears the previous cancellation 
 | **Username** | 3–30 characters using ASCII letters, digits, underscores, or hyphens (`[A-Za-z0-9_-]`). Globally unique across all roles. Matched case-insensitively, stored with original casing preserved. Immutable once created. |
 | **Password** | 8–128 characters. Validated upon entry; stored only as salted cryptographic hashes. |
 | **Display name** | 1–100 characters. Does not require uniqueness. |
-| **Plan name** | 1–100 characters. Non-blank, globally unique across plans (case-insensitive). |
+| **Plan name** | Non-blank and globally unique across plans, ignoring case. No length limit. |
 | **Plan duration** | Integer between 1 and 365 days. |
-| **Plan price** | Non-negative numeric value in SGD with at most 2 decimal places (e.g., `49.90` or `50`). |
+| **Plan price** | SGD 0.00–10,000.00 with at most 2 decimal places (e.g., `49.90` or `50`). |
 | **Session start** | Must be strictly in the future at submission time (`HH:mm`, 24-hour local time). |
 | **Session duration** | Integer between 15 and 240 minutes. |
 | **Session capacity** | Integer between 1 and 50 Members (must be $\ge$ current active booking count when editing). |
@@ -624,12 +639,13 @@ Gymmie applies soft-deletion and archiving principles to preserve audit trails:
 | **Membership plan** | Hard-deleted only if never purchased by any Member. If purchase history exists, automatically archived instead. Archiving is reversible via **Restore**. |
 | **Training session** | Hard-deleted only if no Member has ever booked the session. If any booking history exists, it must be cancelled with a stated reason. |
 | **User account** | Never hard-deleted. Soft-deactivated instead; account profile and historical activity are preserved. Deactivation is reversible via **Reactivate**. |
-| **Booking & Membership** | Never hard-deleted. Cancelled with reason and timestamp retained for auditing. |
+| **Booking** | Never hard-deleted. A cancelled booking has a cancellation reason; no cancellation timestamp is stored. |
+| **Membership** | Never hard-deleted. A membership can be cancelled without a reason; no cancellation timestamp is stored. |
 
 ### 8.4 Saving the data
 
 Gymmie stores all data locally on your computer in an embedded SQLite database:
-- **Default file path:** `data/gymmie.db` (relative to the application root directory).
+- **Default file path:** `data/gymmie.db` (relative to the folder Gymmie was launched from).
 - All changes (account creation, plan updates, bookings, and cancellations) commit
   immediately inside ACID-compliant transactions.
 - State persists across sign-outs and application restarts.
@@ -652,20 +668,21 @@ Gymmie stores all data locally on your computer in an embedded SQLite database:
 If you need to reset Gymmie to a clean first-run state for testing or evaluation:
 
 1. Close Gymmie completely.
-2. In your terminal, delete or rename the database file:
+2. In your terminal, delete or rename the database file from the folder Gymmie
+   was launched from. On macOS or Linux, choose one command:
    ```bash
-   # On macOS / Linux
    rm data/gymmie.db
-
-   # Alternatively, create a backup before removing:
+   # or, to keep a backup:
    mv data/gymmie.db data/gymmie.db.backup
    ```
-3. Relaunch Gymmie:
-   ```bash
-   ./gradlew run
+   In Windows Command Prompt, choose one command:
+   ```cmd
+   del data\gymmie.db
+   rem or, to keep a backup:
+   ren data\gymmie.db gymmie.db.backup
    ```
-4. Gymmie will automatically execute `SchemaInitializer` to recreate the schema and
-   run `Seeder` to re-create the default initial Manager account (`manager` / `manager123`).
+3. Relaunch Gymmie from the same folder. Gymmie recreates the database and the
+   seeded Manager (`manager` / `manager123`) on next launch.
 
 ---
 
@@ -691,6 +708,15 @@ If you need to reset Gymmie to a clean first-run state for testing or evaluation
   cannot be modified.
 - **No self-service password recovery:** There is no automated password reset link.
   Users must change their password on their Home page while logged in.
+- **No Manager password reset:** A Manager cannot reset a user's forgotten password.
+- **Trainer deactivation leaves sessions and bookings:** Deactivating a Trainer
+  hides their sessions from Browse sessions but does not cancel the sessions or
+  their Members' bookings. The bookings remain Booked.
+- **Release JAR platform coverage:** The release JAR supports Windows x64,
+  Apple Silicon macOS, and x64 Linux. Intel Mac and ARM Linux users must run
+  Gymmie from source.
+- **One instance per data folder:** Run only one Gymmie instance against each
+  data folder at a time.
 - **No cancellation refunds:** Cancelling an active membership terminates coverage
   immediately without refund.
 
