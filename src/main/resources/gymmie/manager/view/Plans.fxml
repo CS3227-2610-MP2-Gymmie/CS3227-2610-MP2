@@ -17,8 +17,8 @@
             <TextField fx:id="planName" promptText="e.g. Standard Monthly" onAction="#savePlan" />
             <Label text="_Duration in days (1–365)" mnemonicParsing="true" labelFor="${planDuration}" wrapText="true" minWidth="0" />
             <TextField fx:id="planDuration" promptText="e.g. 30" onAction="#savePlan" />
-            <Label text="P_rice in SGD cents (e.g. 4990 = SGD 49.90)" mnemonicParsing="true" labelFor="${planPrice}" wrapText="true" minWidth="0" />
-            <TextField fx:id="planPrice" promptText="e.g. 4990 or 49.90" onAction="#savePlan" />
+            <Label text="P_rice in SGD dollars (e.g. 49.90)" mnemonicParsing="true" labelFor="${planPrice}" wrapText="true" minWidth="0" />
+            <TextField fx:id="planPrice" promptText="e.g. 50 or 49.90" onAction="#savePlan" />
             <FlowPane hgap="10" vgap="10">
                 <Button fx:id="savePlanButton" text="_Create plan" onAction="#savePlan" />
                 <Button fx:id="cancelEditButton" text="_Cancel edit" onAction="#cancelEdit"

@@ -76,13 +76,13 @@ Log in as a Manager and choose **Manage membership plans** on the **Manager dash
 1. In the **Create new plan** card, enter:
    - **Plan name**: A non-blank, unique name for the plan (e.g., `Standard Monthly`).
    - **Duration in days**: An integer between 1 and 365 days (e.g., `30`).
-   - **Price**: The price in SGD cents or dollars (e.g., `4990` or `49.90` for SGD 49.90).
+   - **Price**: The price in SGD dollars with at most 2 decimal places (e.g., `50` or `49.90` for SGD 49.90).
 2. Choose **Create plan** or press **Enter** in any form field.
 3. A success confirmation confirms creation, and the new plan appears in the plan list.
 
 ##### Edit an existing plan
 1. Find an active plan in the list and choose its **Edit** button.
-2. The form updates to **Edit plan: <name>** with the plan's current values loaded.
+2. The form updates to **Edit plan: <name>** with the plan's current values loaded (price displayed in SGD dollars, e.g., `49.90`).
 3. Correct the name, duration, or price, and choose **Save changes** (or **Cancel edit**
    to discard changes).
 4. Archived plans cannot be edited.
@@ -117,7 +117,7 @@ Log in as a Manager and choose **Manage accounts** on the **Manager dashboard**.
 ##### Provision a new account
 1. In the **Provision new account** card, enter:
    - **Username**: A unique ASCII login name of 3–30 letters, digits, hyphens or underscores (e.g., `trainer_john`).
-   - **Password**: A password of 8–128 characters.
+   - **Password**: A password of 8–128 characters. Hold **Show** with the mouse or **Space** to reveal the password temporarily.
    - **Display name**: A display name of 1–100 characters (e.g., `John Doe`).
    - **Role**: Select `TRAINER` or `MEMBER`.
 2. Choose **Provision account** or press **Enter** in any form field.
@@ -435,8 +435,10 @@ offerings, then choose an available plan and try again.
 
 On the **Gym User dashboard**, choose **Browse sessions** to see upcoming
 sessions from active Trainers. Each session card shows the Trainer's display
-name, local start date and time, duration, description, capacity, and current
-number of booked Members. Cancelled and past sessions are not shown.
+name, profile synopsis and specialisations, local start date and time, duration,
+description, capacity, and current number of booked Members. A Trainer without a
+synopsis or specialisations shows **No profile details.** Cancelled and past
+sessions are not shown.
 
 1. Choose **All trainers** or a Trainer from the **Trainer** list to filter the
    session cards. Trainer names include an account number to distinguish

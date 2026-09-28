@@ -539,7 +539,6 @@ Account inserts continue to enforce global, case-insensitive username uniqueness
 
 `AuthServiceTest` exercises real SQLite storage for all roles, case-insensitive login, logout, distinct deactivation failures, exact-role and ownership checks, revocation after deactivation, password-change failure rollback, and authentication after reopening the database with the changed password. `PasswordHasherTest` checks compatibility, fresh salts, verification, and password boundaries without asserting algorithm parameters as product requirements.
 
-
 ## Sequence diagram: booking a session
 
 This sequence follows `MemberSessionBrowseController.bookSession` and
@@ -878,7 +877,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 **MSS**
 
 1. Member logs in and opens the session catalogue.
-2. Gymmie shows sessions with their Trainer, start time, duration, description, capacity, and current booking count.
+2. Gymmie shows sessions with their Trainer, synopsis and specialisations, start time, duration, description, capacity, and current booking count.
 3. Member selects a session and chooses to book it.
 4. Gymmie verifies that the Member has an active membership, the session has available capacity, the session has not started, the Member has no active booking for it, and the session starts on or before the membership expiry date.
 5. Gymmie creates or reactivates the booking and persists the change.

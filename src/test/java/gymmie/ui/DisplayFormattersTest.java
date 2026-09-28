@@ -17,6 +17,10 @@ class DisplayFormattersTest {
         assertEquals("SGD 49.90", DisplayFormatters.price(4990));
         assertEquals("SGD 10000.00", DisplayFormatters.price(1_000_000));
         assertEquals("SGD 92233720368547758.07", DisplayFormatters.price(Long.MAX_VALUE));
+        assertEquals("0.00", DisplayFormatters.dollars(0));
+        assertEquals("0.01", DisplayFormatters.dollars(1));
+        assertEquals("49.90", DisplayFormatters.dollars(4990));
+        assertEquals("10000.00", DisplayFormatters.dollars(1_000_000));
     }
 
     @Test
