@@ -117,7 +117,7 @@ Log in as a Manager and choose **Manage accounts** on the **Manager dashboard**.
 ##### Provision a new account
 1. In the **Provision new account** card, enter:
    - **Username**: A unique ASCII login name of 3–30 letters, digits, hyphens or underscores (e.g., `trainer_john`).
-   - **Password**: A password of 8–128 characters.
+   - **Password**: A password of 8–128 characters. Hold **Show** with the mouse or **Space** to reveal the password temporarily.
    - **Display name**: A display name of 1–100 characters (e.g., `John Doe`).
    - **Role**: Select `TRAINER` or `MEMBER`.
 2. Choose **Provision account** or press **Enter** in any form field.

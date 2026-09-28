@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import gymmie.AppContext;
+import gymmie.PasswordReveal;
 import gymmie.Router;
 import gymmie.model.Account;
 import gymmie.model.Role;
@@ -19,6 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
@@ -48,7 +50,11 @@ public final class ManagerAccountsController {
     @FXML
     private Label passwordLabel;
     @FXML
+    private HBox passwordBox;
+    @FXML
     private PasswordField accountPassword;
+    @FXML
+    private Button accountPasswordReveal;
     @FXML
     private TextField accountDisplayName;
     @FXML
@@ -77,6 +83,7 @@ public final class ManagerAccountsController {
 
     @FXML
     private void initialize() {
+        PasswordReveal.install(accountPassword, accountPasswordReveal);
         accountRole.setItems(FXCollections.observableArrayList(Role.TRAINER, Role.MEMBER));
         accountRole.setValue(Role.TRAINER);
         refresh();
@@ -232,8 +239,8 @@ public final class ManagerAccountsController {
         accountUsername.setDisable(true);
         passwordLabel.setVisible(false);
         passwordLabel.setManaged(false);
-        accountPassword.setVisible(false);
-        accountPassword.setManaged(false);
+        passwordBox.setVisible(false);
+        passwordBox.setManaged(false);
         accountDisplayName.setText(account.displayName());
         roleLabel.setVisible(false);
         roleLabel.setManaged(false);
@@ -253,8 +260,8 @@ public final class ManagerAccountsController {
         passwordLabel.setVisible(true);
         passwordLabel.setManaged(true);
         accountPassword.clear();
-        accountPassword.setVisible(true);
-        accountPassword.setManaged(true);
+        passwordBox.setVisible(true);
+        passwordBox.setManaged(true);
         accountDisplayName.clear();
         roleLabel.setVisible(true);
         roleLabel.setManaged(true);

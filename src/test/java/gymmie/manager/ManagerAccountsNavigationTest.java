@@ -28,6 +28,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -69,6 +71,7 @@ class ManagerAccountsNavigationTest {
                 assertNotNull(stage.getScene().lookup("#refreshButton"));
                 assertNotNull(stage.getScene().lookup("#accountUsername"));
                 assertNotNull(stage.getScene().lookup("#accountPassword"));
+                assertNotNull(stage.getScene().lookup("#accountPasswordReveal"));
                 assertNotNull(stage.getScene().lookup("#accountDisplayName"));
                 assertNotNull(stage.getScene().lookup("#accountRole"));
                 assertNotNull(stage.getScene().lookup("#saveAccountButton"));
@@ -216,7 +219,10 @@ class ManagerAccountsNavigationTest {
 
                 TextField usernameField = (TextField) stage.getScene().lookup("#accountUsername");
                 TextField displayNameField = (TextField) stage.getScene().lookup("#accountDisplayName");
+                HBox passwordBox = (HBox) stage.getScene().lookup("#passwordBox");
                 assertTrue(usernameField.isDisabled());
+                assertFalse(passwordBox.isVisible());
+                assertFalse(passwordBox.isManaged());
                 assertEquals("trainer_dan", usernameField.getText());
                 assertEquals("Dan Initial", displayNameField.getText());
 
@@ -229,7 +235,10 @@ class ManagerAccountsNavigationTest {
 
             onFxThread(() -> {
                 TextField usernameField = (TextField) stage.getScene().lookup("#accountUsername");
+                HBox passwordBox = (HBox) stage.getScene().lookup("#passwordBox");
                 assertFalse(usernameField.isDisabled());
+                assertTrue(passwordBox.isVisible());
+                assertTrue(passwordBox.isManaged());
                 return null;
             });
         } finally {
@@ -287,6 +296,52 @@ class ManagerAccountsNavigationTest {
                 VBox accountList = (VBox) stage.getScene().lookup("#accountList");
                 VBox card = (VBox) accountList.getChildren().get(1);
                 assertFalse(card.getStyleClass().contains("account-card-deactivated"));
+                return null;
+            });
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    void passwordRevealTogglesPreviewVisibilityWhenArmed() throws Exception {
+        AppContext context = createContext(temporaryDirectory.resolve("reveal-test.db"));
+        context.getAuthService().login("manager", "manager123");
+        Stage stage = onFxThread(Stage::new);
+        Router router = onFxThread(() -> new Router(stage, context, new ViewLoader()));
+        try {
+            ObservableValue<String> statusText = onFxThread(() -> {
+                router.showManagerAccounts();
+                stage.show();
+                return ((StatusLabel) stage.getScene().lookup("#status")).textProperty();
+            });
+            awaitUi(statusText, text -> text.contains("Accounts loaded."));
+
+            onFxThread(() -> {
+                PasswordField passwordField = (PasswordField) stage.getScene().lookup("#accountPassword");
+                Button revealButton = (Button) stage.getScene().lookup("#accountPasswordReveal");
+                assertNotNull(revealButton);
+                assertTrue(revealButton.isVisible());
+                assertTrue(revealButton.isManaged());
+
+                passwordField.setText("secret1234");
+                HBox passwordBox = (HBox) stage.getScene().lookup("#passwordBox");
+                StackPane stackPane = (StackPane) passwordBox.getChildren().getFirst();
+                TextField previewField = (TextField) stackPane.getChildren().get(1);
+
+                assertFalse(previewField.isVisible());
+                assertEquals("", previewField.getText());
+
+                revealButton.arm();
+                assertTrue(previewField.isVisible());
+                assertEquals("secret1234", previewField.getText());
+
+                revealButton.disarm();
+                assertFalse(previewField.isVisible());
+                assertEquals("", previewField.getText());
                 return null;
             });
         } finally {
