@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,22 +20,27 @@ import gymmie.persistence.repository.AccountRepository;
 import gymmie.persistence.repository.BookingRepository;
 import gymmie.persistence.repository.TrainingSessionRepository;
 import gymmie.service.Permissions;
+import gymmie.trainer.model.TrainerProfile;
+import gymmie.trainer.persistence.TrainerProfileRepository;
 
 /** Reads upcoming sessions and current booking counts for the authenticated Member. */
 public final class MemberSessionBrowseService {
     private final AccountRepository accounts;
     private final TrainingSessionRepository sessions;
     private final BookingRepository bookings;
+    private final TrainerProfileRepository trainerProfiles;
     private final UnitOfWork unitOfWork;
     private final Permissions permissions;
     private final Clock clock;
 
     /** Creates the Member session reader with its persistence and authorization dependencies. */
     public MemberSessionBrowseService(AccountRepository accounts, TrainingSessionRepository sessions,
-            BookingRepository bookings, UnitOfWork unitOfWork, Permissions permissions, Clock clock) {
+            BookingRepository bookings, TrainerProfileRepository trainerProfiles, UnitOfWork unitOfWork,
+            Permissions permissions, Clock clock) {
         this.accounts = Objects.requireNonNull(accounts);
         this.sessions = Objects.requireNonNull(sessions);
         this.bookings = Objects.requireNonNull(bookings);
+        this.trainerProfiles = Objects.requireNonNull(trainerProfiles);
         this.unitOfWork = Objects.requireNonNull(unitOfWork);
         this.permissions = Objects.requireNonNull(permissions);
         this.clock = Objects.requireNonNull(clock);
@@ -52,12 +58,19 @@ public final class MemberSessionBrowseService {
             Map<Long, Account> activeTrainers = accounts.findAllActive(connection).stream()
                     .filter(account -> account.role() == Role.TRAINER)
                     .collect(Collectors.toMap(Account::id, Function.identity()));
+            Map<Long, TrainerProfile> trainerProfilesById = new HashMap<>();
             LocalDateTime now = LocalDateTime.now(clock);
             List<BrowseSession> upcoming = new ArrayList<>();
             for (TrainingSession session : sessions.findUpcoming(connection, now)) {
                 Account trainer = activeTrainers.get(session.trainerId());
                 if (trainer != null) {
+                    TrainerProfile profile = trainerProfilesById.get(trainer.id());
+                    if (profile == null) {
+                        profile = trainerProfiles.findByAccountId(connection, trainer.id());
+                        trainerProfilesById.put(trainer.id(), profile);
+                    }
                     upcoming.add(toBrowseSession(session, trainer,
+                            profile,
                             bookings.countBookedBySessionId(connection, session.id()),
                             bookings.findByMemberAndSession(connection, member.id(), session.id())
                                     .filter(booking -> booking.status() == BookingStatus.BOOKED)
@@ -71,10 +84,11 @@ public final class MemberSessionBrowseService {
         });
     }
 
-    private static BrowseSession toBrowseSession(TrainingSession session, Account trainer, int bookingCount,
-            boolean hasBooking) {
-        return new BrowseSession(session.id(), trainer.id(), trainer.displayName(), session.startsAt(),
-                session.durationMinutes(), session.description(), session.capacity(), bookingCount, hasBooking);
+    private static BrowseSession toBrowseSession(TrainingSession session, Account trainer, TrainerProfile profile,
+            int bookingCount, boolean hasBooking) {
+        return new BrowseSession(session.id(), trainer.id(), trainer.displayName(), profile.synopsis(),
+                profile.specializations(), session.startsAt(), session.durationMinutes(), session.description(),
+                session.capacity(), bookingCount, hasBooking);
     }
 
     /**
@@ -83,6 +97,8 @@ public final class MemberSessionBrowseService {
      * @param sessionId session identifier.
      * @param trainerId owning Trainer account identifier.
      * @param trainerName Trainer's current display name.
+     * @param trainerSynopsis Trainer's optional profile synopsis.
+     * @param trainerSpecializations Trainer's ordered specialization tags.
      * @param startsAt local session start time.
      * @param durationMinutes session duration.
      * @param description optional session description.
@@ -90,8 +106,13 @@ public final class MemberSessionBrowseService {
      * @param bookingCount current number of booked Members.
      * @param hasBooking whether the signed-in Member has an active booking for this session.
      */
-    public record BrowseSession(long sessionId, long trainerId, String trainerName,
+    public record BrowseSession(long sessionId, long trainerId, String trainerName, String trainerSynopsis,
+            List<String> trainerSpecializations,
             LocalDateTime startsAt, int durationMinutes, String description, int capacity, int bookingCount,
             boolean hasBooking) {
+        /** Takes a defensive copy of the Trainer's specialization tags. */
+        public BrowseSession {
+            trainerSpecializations = List.copyOf(trainerSpecializations);
+        }
     }
 }

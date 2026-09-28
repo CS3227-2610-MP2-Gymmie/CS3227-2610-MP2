@@ -135,7 +135,10 @@ public final class MemberSessionBrowseController {
         Label descriptionLabel = new Label(description == null || description.isBlank()
                 ? "No description provided." : description);
         descriptionLabel.setWrapText(true);
-        card.getChildren().addAll(trainer, start, details, descriptionLabel);
+        Label profileDetails = new Label(profileDetails(session));
+        profileDetails.setWrapText(true);
+        profileDetails.getStyleClass().add("trainer-profile-details");
+        card.getChildren().addAll(trainer, start, details, descriptionLabel, profileDetails);
         boolean full = session.bookingCount() >= session.capacity();
         String bookingLabel = session.hasBooking() ? "Already booked" : full ? "Full" : "Book session";
         Button bookingButton = new Button(bookingLabel);
@@ -145,6 +148,17 @@ public final class MemberSessionBrowseController {
         bookingButton.setOnAction(_ -> bookSession(session, bookingButton));
         card.getChildren().add(bookingButton);
         return card;
+    }
+
+    private static String profileDetails(BrowseSession session) {
+        List<String> details = new ArrayList<>();
+        if (session.trainerSynopsis() != null && !session.trainerSynopsis().isBlank()) {
+            details.add("Synopsis: " + session.trainerSynopsis());
+        }
+        if (!session.trainerSpecializations().isEmpty()) {
+            details.add("Specialisations: " + String.join(", ", session.trainerSpecializations()));
+        }
+        return details.isEmpty() ? "No profile details." : String.join("\n", details);
     }
 
     private void bookSession(BrowseSession session, Button bookingButton) {

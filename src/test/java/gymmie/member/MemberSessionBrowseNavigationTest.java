@@ -78,6 +78,8 @@ class MemberSessionBrowseNavigationTest {
                 assertEquals(DisplayFormatters.dateTime(zedStart), ((Label) card.getChildren().get(1)).getText());
                 assertEquals("60 minutes · 0 of 10 Members booked", ((Label) card.getChildren().get(2)).getText());
                 assertEquals("Strength basics", ((Label) card.getChildren().get(3)).getText());
+                assertEquals("Synopsis: Zed's strength and mobility coaching\n"
+                        + "Specialisations: Strength, Mobility", ((Label) card.getChildren().get(4)).getText());
                 assertEquals("1 upcoming session", status.getValue());
                 return null;
             });
@@ -121,6 +123,7 @@ class MemberSessionBrowseNavigationTest {
                 VBox card = (VBox) cards.getChildren().getFirst();
                 assertEquals("Amy Coach", ((Label) card.getChildren().get(0)).getText());
                 assertEquals("60 minutes · 1 of 10 Members booked", ((Label) card.getChildren().get(2)).getText());
+                assertEquals("No profile details.", ((Label) card.getChildren().get(4)).getText());
                 return null;
             });
         } finally {
@@ -154,7 +157,7 @@ class MemberSessionBrowseNavigationTest {
             });
             awaitUi(status, "2 upcoming sessions"::equals);
             Button book = onFxThread(() -> (Button) ((VBox) ((VBox) stage.getScene().lookup("#sessionCards"))
-                    .getChildren().getFirst()).getChildren().get(4));
+                    .getChildren().getFirst()).getChildren().get(5));
             onFxThread(() -> {
                 book.fire();
                 return null;
@@ -162,7 +165,7 @@ class MemberSessionBrowseNavigationTest {
             awaitUi(status, "Success: Session booked. See My bookings."::equals);
             onFxThread(() -> {
                 VBox card = (VBox) ((VBox) stage.getScene().lookup("#sessionCards")).getChildren().getFirst();
-                Button booked = (Button) card.getChildren().get(4);
+                Button booked = (Button) card.getChildren().get(5);
                 assertEquals("Already booked", booked.getText());
                 assertTrue(booked.isDisabled());
                 return null;
@@ -197,7 +200,7 @@ class MemberSessionBrowseNavigationTest {
             awaitUi(status, "2 upcoming sessions"::equals);
             onFxThread(() -> {
                 VBox card = (VBox) ((VBox) stage.getScene().lookup("#sessionCards")).getChildren().getFirst();
-                Button book = (Button) card.getChildren().get(4);
+                Button book = (Button) card.getChildren().get(5);
                 assertEquals("Book session", book.getText());
                 assertFalse(book.isDisabled());
                 return null;
@@ -237,7 +240,7 @@ class MemberSessionBrowseNavigationTest {
                 VBox cards = (VBox) stage.getScene().lookup("#sessionCards");
                 assertEquals(2, cards.getChildren().size());
                 VBox card = (VBox) cards.getChildren().getFirst();
-                Button full = (Button) card.getChildren().get(4);
+                Button full = (Button) card.getChildren().get(5);
                 assertEquals("Full", full.getText());
                 assertTrue(full.isDisabled());
                 return null;
@@ -260,7 +263,7 @@ class MemberSessionBrowseNavigationTest {
             onFxThread(() -> {
                 VBox card = (VBox) ((VBox) stage.getScene().lookup("#sessionCards"))
                         .getChildren().getFirst();
-                Button available = (Button) card.getChildren().get(4);
+                Button available = (Button) card.getChildren().get(5);
                 assertEquals("Book session", available.getText());
                 assertFalse(available.isDisabled());
                 return null;
@@ -327,6 +330,9 @@ class MemberSessionBrowseNavigationTest {
             context.getPersistence().sessions().insert(connection, new TrainingSessionBuilder()
                     .withId(2).withTrainerId(secondTrainer.id()).withStartsAt(secondStart)
                     .withDescription("Strength basics").build());
+            context.getPersistence().trainerProfiles().save(connection,
+                    new gymmie.trainer.model.TrainerProfile(secondTrainer.id(),
+                            "Zed's strength and mobility coaching", List.of("Strength", "Mobility")));
             return null;
         });
         return context;

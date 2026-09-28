@@ -224,6 +224,12 @@ The Trainer operations require a fresh active `TRAINER` account through
 `Permissions`; the target account ID always comes from the current session.
 Credential-free views expose only the fixed username and editable profile data.
 
+Members read (never write) Trainer synopsis and specialisations through
+`MemberSessionBrowseService`, which requires an active `MEMBER` via `Permissions`
+and reads `TrainerProfileRepository` within its existing transaction, once per
+Trainer. This is the one Member-to-Trainer package dependency and it is
+read-only.
+
 Schema version 2 adds `trainer_profile` and `trainer_specialization`. Startup
 migrates version 1 databases transactionally. Existing accounts have an empty
 synopsis and tag list until they save details. Tags retain insertion order,
@@ -396,7 +402,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 **MSS**
 
 1. Member logs in and opens the session catalogue.
-2. Gymmie shows sessions with their Trainer, start time, duration, description, capacity, and current booking count.
+2. Gymmie shows sessions with their Trainer, synopsis and specialisations, start time, duration, description, capacity, and current booking count.
 3. Member selects a session and chooses to book it.
 4. Gymmie verifies that the Member has an active membership, the session has available capacity, the session has not started, the Member has no active booking for it, and the session starts on or before the membership expiry date.
 5. Gymmie creates or reactivates the booking and persists the change.
