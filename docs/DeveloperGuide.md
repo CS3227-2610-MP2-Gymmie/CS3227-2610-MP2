@@ -48,6 +48,8 @@ Verify that both `java -version` and `javac -version` report version 25. Clone t
 | `./gradlew check` | Run default tests and Checkstyle. |
 | `./gradlew test -PuiTests=true` | Include JavaFX integration tests; requires a graphical desktop. |
 | `./gradlew shadowJar` | Create a runnable fat JAR in `build/libs/`. |
+| `./gradlew releaseJar` | Create `build/libs/gymmie-release.jar` with JavaFX for Windows x64, Apple Silicon macOS, and x64 Linux. |
+| `./gradlew test -PreleaseTests=true` | Check the release JAR's contents. |
 | `java -jar build/libs/Gymmie-1.0.0-all.jar` | Launch the packaged application when that file has been built. |
 
 **Build configuration:** Java 25 toolchain, JavaFX 25.0.2 (`javafx.controls` and `javafx.fxml`), Gradle Wrapper 9.7.1, JUnit Jupiter 5.14.4, Checkstyle 14.1.0, JaCoCo 0.8.15, and the application entry point `gymmie.Launcher`.
