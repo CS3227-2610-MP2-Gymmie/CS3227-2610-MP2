@@ -24,8 +24,10 @@ application {
     applicationDefaultJvmArgs = [ '--enable-native-access=ALL-UNNAMED,javafx.graphics' ]
 }
 
+def javafxVersion = '25.0.2'
+
 javafx {
-    version = '25.0.2'
+    version = javafxVersion
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
@@ -36,9 +38,81 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+configurations {
+    releaseRuntime {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom implementation, runtimeOnly
+        exclude group: 'org.openjfx'
+    }
+    releaseWin {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+    releaseMacAarch64 {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+    releaseLinux {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    releaseWin "org.openjfx:javafx-base:${javafxVersion}:win@jar"
+    releaseWin "org.openjfx:javafx-graphics:${javafxVersion}:win@jar"
+    releaseWin "org.openjfx:javafx-controls:${javafxVersion}:win@jar"
+    releaseWin "org.openjfx:javafx-fxml:${javafxVersion}:win@jar"
+
+    releaseMacAarch64 "org.openjfx:javafx-base:${javafxVersion}:mac-aarch64@jar"
+    releaseMacAarch64 "org.openjfx:javafx-graphics:${javafxVersion}:mac-aarch64@jar"
+    releaseMacAarch64 "org.openjfx:javafx-controls:${javafxVersion}:mac-aarch64@jar"
+    releaseMacAarch64 "org.openjfx:javafx-fxml:${javafxVersion}:mac-aarch64@jar"
+
+    releaseLinux "org.openjfx:javafx-base:${javafxVersion}:linux@jar"
+    releaseLinux "org.openjfx:javafx-graphics:${javafxVersion}:linux@jar"
+    releaseLinux "org.openjfx:javafx-controls:${javafxVersion}:linux@jar"
+    releaseLinux "org.openjfx:javafx-fxml:${javafxVersion}:linux@jar"
+}
+
 shadowJar {
     manifest {
         attributes 'Enable-Native-Access': 'ALL-UNNAMED'
+    }
+}
+
+tasks.register('releaseJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    group = 'build'
+    description = 'Builds a runnable JAR with Windows, macOS ARM64, and Linux JavaFX natives.'
+    from sourceSets.main.output
+    configurations = [
+        project.configurations.releaseRuntime,
+        project.configurations.releaseWin,
+        project.configurations.releaseMacAarch64,
+        project.configurations.releaseLinux
+    ]
+    archiveFileName = 'gymmie-release.jar'
+    manifest {
+        attributes(
+            'Main-Class': 'gymmie.Launcher',
+            'Enable-Native-Access': 'ALL-UNNAMED'
+        )
+    }
+}
+
+def releaseTestsEnabled = providers.gradleProperty('releaseTests')
+    .map { it.toBoolean() }
+    .getOrElse(false)
+
+tasks.named('test', Test) {
+    systemProperty 'gymmie.releaseTests', releaseTestsEnabled
+    if (releaseTestsEnabled) {
+        dependsOn tasks.named('releaseJar')
+        doFirst {
+            systemProperty 'gymmie.releaseJarPath',
+                tasks.named('releaseJar').get().archiveFile.get().asFile.absolutePath
+        }
     }
 }
 

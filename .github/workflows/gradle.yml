@@ -27,3 +27,6 @@ jobs:
 
       - name: Build and check with Gradle
         run: ./gradlew check shadowJar
+
+      - name: Test release JAR with platform natives
+        run: ./gradlew test -PreleaseTests=true --tests gymmie.release.ReleaseJarTest
