@@ -1,469 +1,710 @@
 # Gymmie User Guide
 
-## Quick start
+Gymmie is a desktop application for running a gym. **Managers** maintain
+membership plans and accounts, **Trainers** run training sessions, and **Members**
+buy memberships and book sessions.
 
-After signing in, **Home** shows your profile (display name, username, and role)
-and the **Change password** form. Managers and Members also have a **Change display
-name** form. Trainers see their saved synopsis and all
-training specializations, followed by **Edit my profile** at the bottom of the
-profile card. Long display names and profile details wrap onto additional lines.
-If no synopsis or specializations have been added, Home says so. Choose **Edit my
-profile** to update these details.
+> **How to use this guide:** Read [Getting started](#1-getting-started),
+> [Navigating Gymmie](#2-navigating-gymmie), and [Verifying the application](#3-verifying-the-application)
+> first, then jump to the guide for your role. Input rules, cancellation reasons,
+> and storage guidelines are collected in the [Reference](#8-reference) section.
 
-Use the tabs on the left to move between pages. The current tab is highlighted:
+## Table of contents
 
-- **Manager:** Home, Manage membership plans, Manage accounts.
-- **Trainer:** Home, My upcoming sessions, Create session.
-- **Member:** Home, My membership, Browse sessions, My bookings.
+1. [Getting started](#1-getting-started)
+   - [1.1 System requirements](#11-system-requirements)
+   - [1.2 Launch Gymmie](#12-launch-gymmie)
+   - [1.3 Sign in](#13-sign-in)
+   - [1.4 Roles at a glance](#14-roles-at-a-glance)
+   - [1.5 Log out](#15-log-out)
+2. [Navigating Gymmie](#2-navigating-gymmie)
+   - [2.1 The sidebar](#21-the-sidebar)
+   - [2.2 Keyboard shortcuts](#22-keyboard-shortcuts)
+   - [2.3 Window size and display](#23-window-size-and-display)
+3. [Verifying the application](#3-verifying-the-application)
+   - [3.1 Automated verification suite](#31-automated-verification-suite)
+   - [3.2 Manual verification walkthrough](#32-manual-verification-walkthrough)
+4. [Your account (all roles)](#4-your-account-all-roles)
+   - [4.1 Change your display name (Managers and Members)](#41-change-your-display-name-managers-and-members)
+   - [4.2 Change your password](#42-change-your-password)
+5. [Manager guide](#5-manager-guide)
+   - [5.1 Manager features at a glance](#51-manager-features-at-a-glance)
+   - [5.2 Manage membership plans](#52-manage-membership-plans)
+   - [5.3 Create, edit, archive and delete plans](#53-create-edit-archive-and-delete-plans)
+   - [5.4 Provision a new account](#54-provision-a-new-account)
+   - [5.5 Edit an account's display name](#55-edit-an-accounts-display-name)
+   - [5.6 Deactivate or reactivate an account](#56-deactivate-or-reactivate-an-account)
+6. [Trainer guide](#6-trainer-guide)
+   - [6.1 Trainer features at a glance](#61-trainer-features-at-a-glance)
+   - [6.2 Create a training session](#62-create-a-training-session)
+   - [6.3 View your upcoming sessions](#63-view-your-upcoming-sessions)
+   - [6.4 View a session roster](#64-view-a-session-roster)
+   - [6.5 Edit a session](#65-edit-a-session)
+   - [6.6 Cancel a session](#66-cancel-a-session)
+   - [6.7 Delete an unused session](#67-delete-an-unused-session)
+   - [6.8 Edit your profile](#68-edit-your-profile)
+7. [Member guide](#7-member-guide)
+   - [7.1 Member features at a glance](#71-member-features-at-a-glance)
+   - [7.2 Buy a membership](#72-buy-a-membership)
+   - [7.3 View your membership](#73-view-your-membership)
+   - [7.4 Renew your membership](#74-renew-your-membership)
+   - [7.5 Cancel your membership](#75-cancel-your-membership)
+   - [7.6 Browse and book sessions](#76-browse-and-book-sessions)
+   - [7.7 View and cancel your bookings](#77-view-and-cancel-your-bookings)
+8. [Reference](#8-reference)
+   - [8.1 Input limits](#81-input-limits)
+   - [8.2 Booking cancellation reasons](#82-booking-cancellation-reasons)
+   - [8.3 Deleting versus archiving](#83-deleting-versus-archiving)
+   - [8.4 Saving the data](#84-saving-the-data)
+   - [8.5 Editing the data file safely](#85-editing-the-data-file-safely)
+   - [8.6 Resetting the workspace safely](#86-resetting-the-workspace-safely)
+9. [Known limitations](#9-known-limitations)
+10. [Troubleshooting](#10-troubleshooting)
 
-The side tabs remain available on each page. **Home** or **Back to dashboard**
-returns to your profile and password form. **Log out** is in the sidebar.
-Switching pages discards unsaved form entries. Use **Tab** and **Shift+Tab** to
-focus navigation tabs, then **Space** or **Enter** to open one.
+---
 
-Resize the window to adjust the content width. Text and grouped actions wrap,
-and longer pages scroll vertically. The sidebar scrolls separately if needed.
-Helper instructions and input examples use a muted blue-grey colour to distinguish
-them from field labels and entered values. Dropdown selections use a neutral
-background with dark text, including when the list is open.
+## 1. Getting started
 
-### Change your display name (Managers and Members)
+### 1.1 System requirements
 
-Managers and Members can change their own display name on **Home**,
-using **Change display name** just above the password form.
+Gymmie requires **Java 25** (with JavaFX support) to run. Ensure `JAVA_HOME` points
+to your Java 25 installation.
 
-1. Edit **Display name**, which initially contains your saved name. Use 1–100
-   characters; your display name does not have to be unique.
+### 1.2 Launch Gymmie
+
+**From Gradle (development mode):**
+
+Open a terminal in the project root folder and run:
+
+```bash
+./gradlew run
+```
+
+**From the standalone JAR (release mode):**
+
+To build and run the executable fat JAR:
+
+```bash
+./gradlew shadowJar
+java -jar build/libs/Gymmie.jar
+```
+
+### 1.3 Sign in
+
+1. Enter your **Username** and **Password** on the login screen.
+2. Choose **Log in** (or press **Enter** in the password field).
+3. Gymmie opens the dashboard for your role.
+
+![Login screen](images/login-screen.png)
+> 📷 **Screenshot placeholder:** Login screen with username and password fields.
+
+The initial Manager account is created automatically when Gymmie launches for
+the first time:
+- **Username:** `manager`
+- **Password:** `manager123`
+
+Only a Manager can provision new Trainer and Member accounts
+(see [Provision a new account](#54-provision-a-new-account)).
+
+**Login messages and error conditions:**
+- If either field is left empty when submitting: **"Enter your username and password."**
+- If the username does not exist, or the password does not match: **"Invalid username or password"**
+- If valid credentials belong to an account that has been deactivated: **"This account is deactivated"**
+
+If your account has been deactivated, you cannot sign in. Contact a Manager to reactivate your account.
+
+### 1.4 Roles at a glance
+
+| Role | Primary responsibilities | Key capabilities |
+|------|--------------------------|------------------|
+| **Manager** | Facility & membership administration | Create, edit, archive, and delete membership plans; provision and manage Trainer and Member accounts; deactivate and reactivate accounts. |
+| **Trainer** | Training session instruction | Schedule, edit, cancel, and delete training sessions; view booked member rosters; customize public profile (synopsis and specializations). |
+| **Member** | Workout and gym participation | Buy, view, renew, and cancel memberships; browse upcoming trainer sessions; book and cancel session reservations. |
+
+Gymmie enforces strict Role-Based Access Control (RBAC). Roles do not inherit each
+other's permissions (for example, a Manager cannot book training sessions or create
+trainer schedules).
+
+### 1.5 Log out
+
+Choose **Log out** in the sidebar. Gymmie clears the active session and returns to
+the login screen.
+
+---
+
+## 2. Navigating Gymmie
+
+### 2.1 The sidebar
+
+The sidebar on the left lets you move between screens. The current page tab is
+highlighted, and the sidebar remains visible on every page.
+
+| Role | Sidebar tabs |
+|------|--------------|
+| **Manager** | Home, Manage membership plans, Manage accounts |
+| **Trainer** | Home, My upcoming sessions, Create session |
+| **Member** | Home, My membership, Browse sessions, My bookings |
+
+**Home** returns you to your profile summary and password form. Switching pages
+discards any unsaved form inputs.
+
+![Sidebar for each role](images/sidebar-by-role.png)
+> 📷 **Screenshot placeholder:** Sidebar for Manager, Trainer, and Member side by side.
+
+### 2.2 Keyboard shortcuts
+
+Every user interaction in Gymmie is accessible via keyboard:
+
+| To do this | Press |
+|------------|-------|
+| Move to next / previous control | **Tab** / **Shift+Tab** |
+| Activate focused button or tab | **Space** or **Enter** |
+| Submit form from a text field | **Enter** |
+| Open date picker calendar | **F4** |
+| Navigate dates in calendar | **Arrow keys**, then **Enter** to select |
+| Reveal password temporarily | Hold **Space** while focused on **Show** |
+| Close dialog without action | **Escape** |
+
+### 2.3 Window size and display
+
+Resize the window to adjust the layout width. Content cards and button groups
+wrap responsively, long pages scroll vertically, and the sidebar scrolls
+independently if screen height is constrained.
+
+Helper text, prompt placeholders, and input constraints appear in a muted
+blue-grey to distinguish them from field labels and entered values.
+
+---
+
+## 3. Verifying the application
+
+### 3.1 Automated verification suite
+
+Before using or evaluating Gymmie, you can run the complete automated test and
+compliance suite from the project directory:
+
+```bash
+# Run Checkstyle code style and all unit/repository tests
+./gradlew check
+
+# Run full JavaFX UI navigation and integration tests (requires graphical display)
+./gradlew test -PuiTests=true
+```
+
+Both commands should complete with `BUILD SUCCESSFUL`.
+
+### 3.2 Manual verification walkthrough
+
+To verify end-to-end functionality manually across all three roles:
+
+1. **Launch Gymmie:** Run `./gradlew run`.
+2. **Manager verification:**
+   - Sign in with `manager` / `manager123`.
+   - Go to **Manage membership plans** and create a plan named `Monthly Pass` (30 days, `50.00`).
+   - Go to **Manage accounts** and provision a Trainer (`trainer_sam` / `trainer123`, role `TRAINER`, display name `Sam Trainer`).
+   - Provision a Member (`member_ann` / `member123`, role `MEMBER`, display name `Ann Member`).
+   - Log out.
+3. **Trainer verification:**
+   - Sign in with `trainer_sam` / `trainer123`.
+   - Go to **Create session**, pick tomorrow's date at `10:00`, duration `60`, capacity `10`, description `Morning Strength`.
+   - Verify it appears on **My upcoming sessions**.
+   - Log out.
+4. **Member verification:**
+   - Sign in with `member_ann` / `member123`.
+   - Go to **My membership** and purchase `Monthly Pass`.
+   - Go to **Browse sessions**, find `Sam Trainer`'s session, and choose **Book session**.
+   - Go to **My bookings** and verify the session appears under **Upcoming bookings**.
+   - Log out.
+
+---
+
+## 4. Your account (all roles)
+
+The **Home** page displays your display name, username, and role, plus personal
+account management forms.
+
+![Home page](images/home-page.png)
+> 📷 **Screenshot placeholder:** Home page showing the profile card and Change password form.
+
+### 4.1 Change your display name (Managers and Members)
+
+1. On **Home**, enter a new name in **Display name** under **Change display name**.
+   It starts with your currently saved display name.
 2. Choose **Save display name**, or press **Enter** in the field.
-3. **Success: Display name changed.** confirms the save. Your welcome message
-   and profile summary update immediately, and the name remains saved after
-   signing out or restarting Gymmie.
+3. **Success: Display name changed.** confirms the save. Your welcome banner and
+   profile summary update immediately.
 
-While saving, the Home controls and side navigation are temporarily disabled.
-If validation or saving fails, your saved name and welcome message stay unchanged;
-your input remains available to correct and retry. If your session has ended or
-your account is deactivated, you return to login. Your login username, role, and password do not change.
-Trainers use **Home → Edit my profile** to change their display name, synopsis,
-and specializations. Their Home page does not show a separate display-name form.
+Display names use 1–100 characters and do not need to be unique. Your username,
+role, and password remain unchanged.
 
-### Change your password (all roles)
+Trainers change their display name through their trainer profile instead
+(see [Edit your profile](#68-edit-your-profile)).
 
-On **Home**, enter your current password, a new password of 8–128 characters,
-and the same new password again. Choose **Save password**. Hold **Show** with
-the mouse or **Space** to reveal a password temporarily. A success message confirms
-that the new password is saved. Correct any validation error and re-enter cleared
-password fields before trying again.
+### 4.2 Change your password
 
-## Verify the application
+1. On **Home**, enter your **Current password**.
+2. Enter a **New password** of 8–128 characters, and re-type it in **Confirm new password**.
+3. Choose **Save password**, or press **Enter** in the confirmation field.
+4. **Success: Password changed.** confirms the update. Use the new password on
+   your next login.
 
-## Features
+Hold **Show** beside any password field to reveal the entered text temporarily.
+Password fields are cleared on submit. Failed updates leave your stored password
+unchanged.
 
-### Manager
+---
 
-#### Manage membership plans
+## 5. Manager guide
 
-Log in as a Manager and choose **Manage membership plans** on the **Manager dashboard**.
+### 5.1 Manager features at a glance
 
-##### View all plans
-1. View all configured membership plans in the list. Each card displays the plan's
-   name, duration in days, price in SGD, and a badge indicating whether it is
-   **ACTIVE** or **ARCHIVED**.
-2. Archived plans are visually distinguished with a tinted card background and a red status badge.
-3. Choose **Refresh** to reload the plan list from storage.
-4. Choose **Back to dashboard** to return to the Manager dashboard.
+The table below lists all Manager capabilities in recommended workflow order:
 
-##### Create a new plan
+| Action | Section | Description |
+|--------|---------|-------------|
+| **Create plan** | [Create a plan](#53-create-edit-archive-and-delete-plans) | Add a new membership plan to the catalogue. |
+| **Edit plan** | [Edit a plan](#53-create-edit-archive-and-delete-plans) | Update name, duration, or price of an unarchived plan. |
+| **Archive plan** | [Archive or restore a plan](#53-create-edit-archive-and-delete-plans) | Disable new purchases while preserving member purchase history. |
+| **Restore plan** | [Archive or restore a plan](#53-create-edit-archive-and-delete-plans) | Re-enable purchases for a previously archived plan. |
+| **Delete plan** | [Delete a plan](#53-create-edit-archive-and-delete-plans) | Permanently delete an unpurchased plan (automatically archives if purchased). |
+| **Provision account** | [Provision a new account](#54-provision-a-new-account) | Create a new Trainer or Member account. |
+| **Edit display name** | [Edit an account's display name](#55-edit-an-accounts-display-name) | Change the display name of any existing account. |
+| **Deactivate account** | [Deactivate an account](#56-deactivate-or-reactivate-an-account) | Revoke sign-in access and cancel future bookings. |
+| **Reactivate account** | [Reactivate an account](#56-deactivate-or-reactivate-an-account) | Restore sign-in access for an inactive account. |
+
+### 5.2 Manage membership plans
+
+Choose **Manage membership plans** in the sidebar. Each card in the list shows the
+plan name, duration in days, price formatted in SGD, and an **ACTIVE** or
+**ARCHIVED** badge. Archived plans are styled with a tinted card background and a
+red status badge.
+
+![Manage membership plans page](images/manager-plans-list.png)
+> 📷 **Screenshot placeholder:** Plan list with one active and one archived plan, and the Create new plan card.
+
+Choose **Refresh** to reload the list from storage.
+
+### 5.3 Create, edit, archive and delete plans
+
+**Create a plan**
+
 1. In the **Create new plan** card, enter:
-   - **Plan name**: A non-blank, unique name for the plan (e.g., `Standard Monthly`).
-   - **Duration in days**: An integer between 1 and 365 days (e.g., `30`).
-   - **Price**: The price in SGD dollars with at most 2 decimal places (e.g., `50` or `49.90` for SGD 49.90).
-2. Choose **Create plan** or press **Enter** in any form field.
-3. A success confirmation confirms creation, and the new plan appears in the plan list.
+   - **Plan name**: unique across all plans, case-insensitive (for example, `Standard Monthly`).
+   - **Duration in days**: an integer between 1 and 365.
+   - **Price**: in SGD with at most two decimal places (for example, `50` or `49.90`).
+2. Choose **Create plan**, or press **Enter** in any field.
+3. **Plan created.** confirms the creation, and the plan appears in the list.
 
-##### Edit an existing plan
-1. Find an active plan in the list and choose its **Edit** button.
-2. The form updates to **Edit plan: <name>** with the plan's current values loaded (price displayed in SGD dollars, e.g., `49.90`).
-3. Correct the name, duration, or price, and choose **Save changes** (or **Cancel edit**
-   to discard changes).
-4. Archived plans cannot be edited.
+**Edit a plan**
 
-##### Archive or restore a plan
-1. To disable new member purchases of a plan while retaining all existing member
-   purchase snapshots, choose **Archive** on an active plan's card. The plan status
-   updates to **ARCHIVED**.
-2. To re-enable purchases of an archived plan, choose **Restore** on the archived
-   plan's card. The status updates back to **ACTIVE**.
+1. Choose **Edit** on an active plan. The form updates to **Edit plan: \<name\>**
+   with its current values loaded.
+2. Update the name, duration, or price, then choose **Save changes**. Choose
+   **Cancel edit** to discard changes.
 
-##### Delete an unpurchased plan
-1. Choose **Delete** on a plan's card.
-2. If the plan has never been purchased by any member, it is permanently deleted from
-   the catalogue.
-3. If the plan has existing purchase history, Gymmie preserves member history and
-   automatically archives the plan instead of deleting it.
+Archived plans cannot be edited. Editing a plan does not modify existing member
+purchases, because each membership retains a historical snapshot of the price
+and duration paid at purchase time.
 
-#### Provision and manage accounts
+**Archive or restore a plan**
 
-Log in as a Manager and choose **Manage accounts** on the **Manager dashboard**.
+- Choose **Archive** on an active plan to disable new purchases while preserving
+  every existing member's coverage and history. The badge changes to **ARCHIVED**.
+- Choose **Restore** on an archived plan to re-enable purchases.
 
-##### View all accounts
-1. View all system accounts in the list. Each card displays the account's display name,
-   username prefixed with `@`, role badge (`TRAINER`, `MEMBER`, or `MANAGER`), and
-   an **ACTIVE** or **DEACTIVATED** status badge.
-2. Deactivated accounts are visually distinguished with a tinted card background and a
-   red status badge.
-3. Choose **Refresh** to reload the account list from storage.
-4. Choose **Back to dashboard** to return to the Manager dashboard.
+Members holding an active membership on an archived plan can still renew it.
 
-##### Provision a new account
+**Delete a plan**
+
+Choose **Delete** on a plan card.
+- If nobody has ever purchased the plan, it is permanently deleted from the database.
+- If the plan has any purchase history, Gymmie preserves historical integrity and
+  **archives the plan instead**, reporting: *"Plan '\<name\>' had purchase history and was archived instead."*
+
+### 5.4 Provision a new account
+
+Choose **Manage accounts** in the sidebar. Each card shows the account's display
+name, username prefixed with `@`, role badge (**TRAINER**, **MEMBER**, or
+**MANAGER**), and an **ACTIVE** or **DEACTIVATED** badge.
+
+![Manage accounts page](images/manager-accounts-list.png)
+> 📷 **Screenshot placeholder:** Account list with active and deactivated accounts and the Provision new account card.
+
+Choose **Refresh** to reload the list.
+
 1. In the **Provision new account** card, enter:
-   - **Username**: A unique ASCII login name of 3–30 letters, digits, hyphens or underscores (e.g., `trainer_john`).
-   - **Password**: A password of 8–128 characters. Hold **Show** with the mouse or **Space** to reveal the password temporarily.
-   - **Display name**: A display name of 1–100 characters (e.g., `John Doe`).
-   - **Role**: Select `TRAINER` or `MEMBER`.
-2. Choose **Provision account** or press **Enter** in any form field.
-3. A success confirmation confirms creation, and the new account appears in the list.
-
-##### Edit an account's display name
-1. Find any account in the list and choose its **Edit** button.
-2. The form updates to **Edit account: <username>** with the username and role locked, and the
-   display name loaded for editing.
-3. Update the display name and choose **Save changes** (or **Cancel edit** to discard).
-
-##### Deactivate or reactivate an account
-1. To disable an active Trainer or Member account, choose **Deactivate** on the account's card.
-   - The account status changes to **DEACTIVATED**.
-   - If the account is a Member with future session bookings, all upcoming bookings are
-     automatically cancelled in the same operation with the reason recorded as `Account deactivated`.
-   - The seeded Manager account cannot be deactivated.
-2. To restore access to a deactivated account, choose **Reactivate** on its card.
-   - The account status updates back to **ACTIVE**.
-   - Previously cancelled bookings are not re-created upon reactivation.
-
-### Trainer
-
-#### View your upcoming sessions
-
-Log in as a Trainer and choose **My upcoming sessions** on the **Trainer dashboard**.
-
-1. Read your sessions in start-time order. Each card shows the local start date
-   and time, session number, duration, capacity, and description.
-2. Choose **Refresh** to reload the list and apply the current time cut-off.
-3. Choose **Back to dashboard** to return.
-
-Only your own uncancelled sessions starting strictly after your computer's
-current local time appear. Sessions that have already started are excluded.
-**No upcoming sessions.** means there are no matching sessions. The list updates
-when opened or refreshed; use **Refresh** if you leave it open.
-
-Click buttons with the mouse, or use **Tab** and **Shift+Tab** to focus them and
-**Space** to activate them. The page scrolls for longer lists. Previous details
-are cleared while refreshing. If loading fails, an error appears; retry with
-**Refresh**. Access requires an active Trainer account; sign in again if your
-session has ended.
-
-#### View a session roster
-
-On **Trainer dashboard → My upcoming sessions**, find the session you want and
-choose its **View roster** button. The roster opens inside that session's card.
-It lists currently booked Members by display name in alphabetical order, with
-a count. Cancelled bookings are excluded. Members with the same display name
-appear separately. Login usernames and passwords are never shown in rosters.
-
-Use the mouse, or **Tab** / **Shift+Tab** to focus the session's **View roster**
-button and **Space** to activate it. Choose **Refresh roster** to reload current
-bookings and display names. **No Members booked.** means the roster is empty.
-Previous names are cleared while loading; if an error appears, activate the
-button again to retry. Only an active, signed-in Trainer can access rosters for
-their own sessions. Refreshing the session list closes all open rosters.
-
-#### Edit your training session
-
-On **Trainer dashboard → My upcoming sessions**, choose **Edit session** on the
-session's card. The form opens with its saved details.
-
-1. Correct the start date, local start time (**HH:mm**), duration, capacity, or description.
-2. Choose **Save changes**. **Success: Session changes saved.** confirms the edit.
-3. Choose **Back to upcoming sessions** to see the updated card.
-
-Use the mouse, or **Tab** / **Shift+Tab** to reach **Edit session** and press
-**Space**. The form supports the same calendar and keyboard controls as creation;
-**Tab** from the description reaches **Save changes**. Press **Space** to save,
-or **Enter** in the time, duration, or capacity field.
-
-The start must be in the future, duration must be **15–240 minutes**, and capacity
-must be **1–50** and at least the number of current bookings. Cancelled bookings
-do not count toward this minimum. Only an active Trainer can edit their own
-sessions; cancelled sessions cannot be edited. Validation errors retain your
-entries so you can correct and retry. Your session must not overlap another of
-your uncancelled sessions, including one already in progress. Both the start time
-and duration determine overlap. Back-to-back sessions are allowed: one may start
-exactly when another ends. Other Trainers' sessions do not block your schedule.
-
-Editing preserves existing bookings, and saved details remain after restarting
-Gymmie. Going back without saving discards changes made since the last save.
-
-#### Cancel your session and its bookings
-
-On **Trainer dashboard → My upcoming sessions**, choose **Cancel session** on
-the session card.
-
-1. Review the session details and current bookings in the dialog. The list shows
-   booking numbers and Member display names; scroll to see longer lists.
-2. Enter a **Reason for cancellation**. A blank reason cannot be confirmed.
-   Affected Members will see this explanation with **Trainer cancelled session**.
-3. Choose **Confirm cancellation**. The session and all current bookings are
-   cancelled together. The session disappears from your upcoming list and a
-   success message reports how many bookings were cancelled.
-
-Choose **Cancel**, press **Escape**, or close the dialog to leave the session
-and bookings unchanged. Use the mouse or **Tab** / **Shift+Tab** to reach
-**Cancel session**, then **Space** to open it. In the reason field, **Tab**
-moves to **Cancel**; another **Tab** reaches **Confirm cancellation**. Press
-**Space** to activate the focused button.
-
-Only an active Trainer can cancel their own session, and only before its start
-time on your computer's local clock. Cancellation is rejected at the exact start
-time, including if that time passes while the confirmation is open. If the
-session or its bookings change while you review them, no cancellation is saved;
-open **Cancel session** again to review the latest details and confirm again.
-
-Already-cancelled bookings retain their original reasons. All booking records
-remain in Members' **My bookings** history. The cancellation and written reason
-remain after restarting Gymmie. If saving fails, neither the session nor any
-booking changes are saved; an error appears and you can retry. A session with
-no current bookings may also be cancelled; deletion is available only when it
-has never had a booking.
-
-#### Delete an unused session
-
-On **Trainer dashboard → My upcoming sessions**, choose **Delete session** on
-one of your session cards. Check the session number and start time in the
-confirmation, then choose **OK** to permanently delete it. Choose **Cancel**,
-press **Escape**, or close the dialog to leave everything unchanged.
-
-Use the mouse, or **Tab** / **Shift+Tab** to focus **Delete session** and press
-**Space**. The confirmation buttons also support Tab and Space.
-**Success: Session deleted.** confirms removal; it remains deleted after restarting
-Gymmie. Only an active Trainer can delete their own sessions.
-
-A session can be deleted only if it has never had a booking. Even one cancelled
-booking prevents deletion. An empty roster does not necessarily mean deletion is
-allowed. If booking history exists, an error appears and the session and all
-bookings remain unchanged, retaining them for the cancellation workflow.
-
-#### Create a training session
-
-Log in as a Trainer and choose **Create session** on the **Trainer dashboard**.
-
-1. Open **Start date** using its calendar button and select a date. Use the
-   calendar's month arrows to browse to another month.
-2. Enter **Start time** as `HH:mm`, for example `14:30`. Use 24-hour time in your
-   computer's local time zone. The selected date and time must still be strictly
-   in the future when you submit the form.
-3. Enter **Duration (minutes)** as a whole number from 15 to 240.
-4. Enter **Capacity (Members)** as a whole number from 1 to 50.
-5. Add a **Description**, or leave it empty. Multiple lines are supported.
-6. Choose **Create session**. **Success: Session created for …** confirms it was
-   saved under your Trainer account. The form clears so you can create another.
-7. Choose **Back to dashboard** to return.
-
-Use **Tab** and **Shift+Tab** to move through the controls and **Space** to
-activate focused buttons. On **Start date**, press **F4** to open the calendar,
-use the arrow keys to move between dates, and press **Enter** to select one.
-You can also press **Enter** in a single-line field to submit. All actions are
-also available with the mouse.
-
-Missing dates, invalid times, past or current start times, and values outside
-the numeric limits show an error. Correct the inputs and retry; failed submissions keep your inputs
-and do not create a session. Creation requires an active, signed-in Trainer.
-Creation also rejects a time range that overlaps another of your uncancelled
-sessions, including a session already in progress. Back-to-back sessions are
-allowed, and other Trainers' sessions do not block your schedule. An overlap
-error identifies the conflicting session; change the start time or duration and retry.
-Saved sessions remain after restarting Gymmie. Returning to the dashboard before
-submitting discards unsaved inputs.
-
-#### View and edit your profile
-
-Log in as a Trainer and choose **Home → Edit my profile**.
-The editor loads your current username, display name, synopsis, and training
-specializations. Your username is greyed out, fixed, and cannot be edited.
-
-1. Edit **Display name** (1–100 characters). This is your shared account display
-   name, shown to other users; it does not need to be unique.
-2. Edit **Synopsis**, or leave it empty.
-3. Type a specialization in **Specialization tag** and click **Add tag** or press
-   **Enter**. Each tag appears as a button; click it to remove it. Surrounding
-   whitespace is removed and duplicate tags are combined without regard to case.
-   Tags are optional, and may contain spaces (for example, `Strength training`).
-4. Choose **Save profile**. A tag still in the entry field is added when you save.
-   **Success: Profile saved.** confirms that all changes were saved together.
-5. Choose **Back to dashboard** to return. The welcome message uses your saved
-   display name. Your profile changes remain after restarting Gymmie.
-
-Use **Tab** and **Shift+Tab** to move between controls, and **Space** to activate
-focused buttons, including tag removal and **Save profile**. You can also press
-**Enter** in **Display name** to save. The synopsis accepts multiple lines.
-
-**Reload profile** discards unsaved edits and loads the saved values. Returning
-to the dashboard also discards unsaved edits. If saving fails, your saved profile
-is unchanged; your edits remain in the form so you can correct them and retry.
-Only an active, signed-in Trainer can view or edit their own Trainer profile.
-If your account has been deactivated, contact a Manager.
-
-#### Change your password
-
-Log in with your Trainer account. On **Home**, use the
-**Change password** form:
-
-1. Enter your **Current password**.
-2. Enter a **New password** of 8–128 characters.
-3. Repeat it in **Confirm new password**.
-4. Click **Save password**, or press **Enter** in **Confirm new password**.
-
-You can use **Tab** and **Shift+Tab** to move between the controls. To check a
-password, hold its **Show** button with the mouse, or focus the button and hold
-**Space**. Release to hide it again.
-
-The message **Success: Password changed.** confirms that your password was saved.
-Use the new password the next time you log in, including after restarting Gymmie.
-Your username stays fixed; this form changes only your own password.
-
-If fields are empty, the confirmation does not match, the current password is
-incorrect, or the new password is outside the allowed length, correct the error
-and try again. Fields are cleared when a request is submitted, so you may need to
-re-enter all three passwords. Failed changes leave your saved password unchanged.
-If your account has been deactivated, you cannot change its password; contact a
-Manager.
-
-### Member
-
-#### View current membership
-
-Log in with your Member account to open the **Gym User dashboard**, then select
-**My membership**. The screen shows whether a membership covers today, its plan
-name, and its expiry date.
-
-1. Read the status, plan, and expiry date in the **Current membership** card.
-2. Select **Refresh** to load the latest membership history, including after
-   leaving Gymmie open overnight. You can also use **Tab** or **Shift+Tab** to
-   focus the button and press **Space** or **Enter**.
-
-The **Active** status appears as a green badge. **Inactive**, **Expired**, and
-**Cancelled** use a red badge, matching the account-status styling. The status
-word is always shown as well as the colour. **Renew current plan** and **Cancel
-current membership** are grouped together; their progress, success, or error
-messages appear below the buttons without an empty message gap between them.
-
-**Active** means the membership covers today; the expiry date is included. An
-archived plan still appears by name while its membership covers today.
-
-If your latest membership has expired, the screen shows its plan and expiry date
-with **Expired** status. Select **Renew current plan** to extend that membership.
-Renewal keeps the same plan, including when the plan is archived, and adds its
-saved duration from the later of today or the current expiry date. You cannot
-switch plans as part of a renewal.
-
-If there is no started, non-cancelled membership, the card shows **Inactive — no
-current membership.** Plan and expiry date show a dash. A cancelled or future
-membership does not make you active or available to renew. An expired membership
-does not make you active, but remains available to renew.
-
-While loading, previous details are cleared. If loading fails, the card shows an
-error; select **Refresh** to try again. If your session has ended, sign in again.
-
-#### Cancel your current membership
-
-On **My membership**, select **Cancel current membership** while your membership
-is active. Review the confirmation and choose **OK** to cancel it immediately.
-There is no refund. Gymmie also cancels your bookings for sessions that have
-not started; those bookings remain in your history with a cancelled status and
-the membership cancellation reason. Past sessions and bookings already
-cancelled are unchanged.
-
-Open **My bookings** from the **Gym User dashboard** to see the updated lists.
-Active bookings appear under **Upcoming bookings** or **Past bookings** according
-to their session start time. Cancelled bookings appear under **Cancelled bookings**
-with **Cancelled** and the reason, including **Membership cancelled** for bookings
-affected by this action. The membership screen confirms cancellation and reports
-how many future bookings were cancelled. If saving fails, the membership and
-bookings remain unchanged; try again. After cancellation, you can purchase
-another available plan.
-
-#### View your bookings
-
-On the **Gym User dashboard**, choose **My bookings**. The screen has three
-sections:
-
-- **Upcoming bookings** lists active bookings for sessions that have not started,
-  soonest first. Choose **Cancel booking** on one to release its place for another
-  Member. Review the confirmation and choose **OK** to cancel. Choose **Cancel**
-  or close the confirmation to keep your booking.
-- **Past bookings** lists active bookings for sessions that have started, most
-  recent first. A session starting exactly now is considered past.
-- **Cancelled bookings** lists all cancelled bookings, most recent session first.
-  Each shows its cancellation reason: **Trainer cancelled session**, **Member
-  cancelled booking**, **Membership cancelled**, or **Account deactivated**.
-  Trainer cancellations also show the Trainer's written reason when provided.
-  If you book a cancelled session again, the booking moves from **Cancelled
-  bookings** back to **Upcoming bookings** and its earlier cancellation reason
-  is no longer shown.
-
-Each booking shows its session's local date and time, Trainer, description,
-duration, and status. Cancellation is available only for Upcoming bookings; a
-booking cannot be cancelled after its session starts. Choose **Refresh bookings**
-to reload the lists, or **Back to dashboard** to return. If loading fails, choose
-**Refresh bookings** to try again. If your session has ended, sign in again.
-
-#### Buy a membership
-
-On the **My membership** screen, use **Buy a membership**:
-
-1. Choose an available plan. Each option shows its duration and price in SGD.
-   Archived plans are not offered for new purchases.
-2. Select **Purchase membership**. The membership starts today and becomes
-   active immediately. Its purchase price and duration are saved with the
-   membership, so later plan edits do not change this purchase.
-
-A Member can have only one active membership at a time. The purchase button is
-disabled while a current membership is active. If another session purchases a
-membership first, or the selected plan is archived before the purchase finishes,
-the dashboard shows an error. Select **Refresh plans** to reload the current
-offerings, then choose an available plan and try again.
-
-#### Browse sessions by Trainer
-
-On the **Gym User dashboard**, choose **Browse sessions** to see upcoming
-sessions from active Trainers. Each session card shows the Trainer's display
-name, profile synopsis and specialisations, local start date and time, duration,
-description, capacity, and current number of booked Members. A Trainer without a
-synopsis or specialisations shows **No profile details.** Cancelled and past
-sessions are not shown.
-
-1. Choose **All trainers** or a Trainer from the **Trainer** list to filter the
-   session cards. Trainer names include an account number to distinguish
-   Trainers who share a display name.
-2. Choose **Refresh** to reload current sessions and booking counts.
-3. Choose **Book session** on an eligible session card. A successful booking is
-   saved and the card changes to **Already booked**. Choose **My bookings** on
-   the dashboard to see the saved booking.
-4. A full session stays in the list with a disabled **Full** button. When a
-   booking is cancelled and a place frees up, choose **Refresh**; the session
-   shows **Book session** again.
-5. Choose **Back to dashboard** to return.
-
-Booking counts include current bookings and exclude cancelled bookings. A
-session list with **No upcoming sessions are available.** means there are no
-sessions to browse. If loading fails, choose **Refresh** to try again. Use
-**Tab** and **Shift+Tab** to move through the controls and press **Space** or
-**Enter** to activate them. Booking requires an active membership. The session
-must have available capacity, must not have started, and must start on or before
-the membership expiry date. Gymmie explains when a booking is rejected because
-membership is inactive, the session has started, the session starts after
-membership expiry, or the Member already has an active booking for it. A
-**This session is full** rejection happens only if the session fills after the
-list was loaded; choose **Refresh** to see the current state. If you cancelled
-a booking, its session card shows **Book session** again. You can rebook it while
-space remains and the other booking requirements are met.
-
-### Saving the data
+   - **Username**: 3–30 ASCII letters, digits, underscores, or hyphens (`[A-Za-z0-9_-]`).
+     Must be unique across all roles (matched case-insensitively, preserved as typed).
+   - **Password**: 8–128 characters.
+   - **Display name**: 1–100 characters (for example, `John Doe`).
+   - **Role**: select **TRAINER** or **MEMBER**.
+2. Choose **Provision account**, or press **Enter** in any field.
+3. **Account provisioned.** confirms the account was created.
+
+Provide the new user with their initial username and password. Users can update
+their password at any time on their **Home** page.
+
+### 5.5 Edit an account's display name
+
+1. Choose **Edit** on an account card. The form updates to **Edit account: \<username\>**
+   with the username and role locked.
+2. Update the display name and choose **Save changes** (or **Cancel edit** to discard).
+
+Usernames and roles are immutable after account creation to protect data integrity.
+
+### 5.6 Deactivate or reactivate an account
+
+**Deactivate an account**
+
+Choose **Deactivate** on an account card.
+- The account can no longer sign in.
+- If the account is a **Member**, all their future training session bookings are
+  automatically cancelled in the same operation with the reason **Account deactivated**.
+- If the account is a **Trainer**, their sign-in is disabled; scheduled sessions
+  and past records remain in storage for historical tracking.
+- The seeded Manager account (`manager`) cannot be deactivated.
+
+**Reactivate an account**
+
+Choose **Reactivate** on a deactivated account card. The account status returns
+to **ACTIVE**, allowing the user to sign in again. Bookings cancelled during the
+earlier deactivation are **not** re-created.
+
+---
+
+## 6. Trainer guide
+
+### 6.1 Trainer features at a glance
+
+The table below lists all Trainer capabilities in recommended workflow order:
+
+| Action | Section | Description |
+|--------|---------|-------------|
+| **Create session** | [Create a training session](#62-create-a-training-session) | Schedule a new upcoming training session. |
+| **View sessions** | [View your upcoming sessions](#63-view-your-upcoming-sessions) | Review your scheduled upcoming sessions in chronological order. |
+| **View roster** | [View a session roster](#64-view-a-session-roster) | Inspect booked member names and headcounts for a session. |
+| **Edit session** | [Edit a session](#65-edit-a-session) | Reschedule or change capacity and description of an upcoming session. |
+| **Cancel session** | [Cancel a session](#66-cancel-a-session) | Cancel a session with a written reason, cancelling all member bookings. |
+| **Delete session** | [Delete an unused session](#67-delete-an-unused-session) | Permanently remove a session that has never had any bookings. |
+| **Edit profile** | [Edit your profile](#68-edit-your-profile) | Update public display name, biography synopsis, and specialization tags. |
+
+### 6.2 Create a training session
+
+Choose **Create session** in the sidebar.
+
+![Create session form](images/trainer-create-session.png)
+> 📷 **Screenshot placeholder:** Create session form with the calendar open.
+
+1. Open **Start date** with the calendar button and choose a future date.
+2. Enter **Start time** as `HH:mm` in 24-hour local time (for example, `14:30`).
+   The combined date and time must be strictly in the future.
+3. Enter **Duration (minutes)**, a whole number from 15 to 240.
+4. Enter **Capacity (Members)**, an integer from 1 to 50.
+5. Optionally add a **Description**.
+6. Choose **Create session**. **Success: Session created for …** confirms creation.
+
+Sessions cannot overlap another uncancelled session scheduled under your account.
+Back-to-back sessions (where one starts exactly when another ends) are permitted.
+
+### 6.3 View your upcoming sessions
+
+Choose **My upcoming sessions** in the sidebar. Sessions appear in chronological
+start-time order. Each card shows start date, time, duration, capacity, and description.
+
+![Upcoming sessions list](images/trainer-upcoming-sessions.png)
+> 📷 **Screenshot placeholder:** Upcoming sessions list with action buttons on each card.
+
+Only uncancelled sessions scheduled in the future appear here. Choose **Refresh**
+to reload current sessions and headcounts.
+
+### 6.4 View a session roster
+
+1. On **My upcoming sessions**, choose **View roster** on a session card.
+2. The roster expands inside the card, listing booked Members in alphabetical
+   order by display name, along with total headcount.
+
+Cancelled bookings are excluded. Usernames and contact details are omitted for privacy.
+
+### 6.5 Edit a session
+
+1. On **My upcoming sessions**, choose **Edit session** on a card.
+2. Adjust start date, start time (`HH:mm`), duration, capacity, or description.
+3. Choose **Save changes**. **Success: Session changes saved.** confirms the update.
+4. Choose **Back to upcoming sessions** to return.
+
+The new capacity cannot be less than the current number of active bookings. The
+new time cannot overlap your other uncancelled sessions. Cancelled sessions cannot
+be edited.
+
+### 6.6 Cancel a session
+
+1. On **My upcoming sessions**, choose **Cancel session** on the card.
+2. Review the session details and current bookings in the confirmation dialog.
+3. Enter a mandatory **Reason for cancellation** (cannot be blank).
+4. Choose **Confirm cancellation**.
+
+The session is marked cancelled, and all active member reservations are
+cancelled together with the reason **Trainer cancelled session**, accompanied by
+your written explanation. Cancelled sessions leave your upcoming list.
+
+![Cancel session dialog](images/trainer-cancel-session.png)
+> 📷 **Screenshot placeholder:** Cancel session dialog showing bookings and the reason field.
+
+### 6.7 Delete an unused session
+
+1. On **My upcoming sessions**, choose **Delete session** on an eligible card.
+2. Confirm the prompt by choosing **OK**.
+
+A session can be deleted **only if it has never had any bookings**. If even a
+single member has ever booked the session (even if subsequently cancelled), Gymmie
+rejects deletion to protect audit history. Use [Cancel a session](#66-cancel-a-session) instead.
+
+### 6.8 Edit your profile
+
+Choose **Home**, then choose **Edit my profile**.
+
+![Trainer profile editor](images/trainer-profile-editor.png)
+> 📷 **Screenshot placeholder:** Profile editor with display name, synopsis and specialization tags.
+
+1. Edit **Display name** (1–100 characters).
+2. Edit **Synopsis** (biographical description; multiple lines supported).
+3. Add or remove **Specialization tags** (e.g., `Strength training`, `HIIT`).
+4. Choose **Save profile**.
+
+Prospective Members see your synopsis and specializations when browsing sessions.
+
+---
+
+## 7. Member guide
+
+### 7.1 Member features at a glance
+
+The table below lists all Member capabilities in recommended workflow order:
+
+| Action | Section | Description |
+|--------|---------|-------------|
+| **Buy membership** | [Buy a membership](#72-buy-a-membership) | Purchase an available membership plan to gain access to classes. |
+| **View membership** | [View your membership](#73-view-your-membership) | Review current active plan, status, and expiry date. |
+| **Renew membership** | [Renew your membership](#74-renew-your-membership) | Extend current plan duration without changing plan type. |
+| **Cancel membership** | [Cancel your membership](#75-cancel-your-membership) | Terminate active membership early (cancels upcoming bookings). |
+| **Browse sessions** | [Browse and book sessions](#76-browse-and-book-sessions) | Filter and explore available classes taught by active Trainers. |
+| **Book session** | [Browse and book sessions](#76-browse-and-book-sessions) | Reserve a place in an eligible upcoming training session. |
+| **View bookings** | [View and cancel your bookings](#77-view-and-cancel-your-bookings) | Review upcoming, past, and cancelled class reservations. |
+| **Cancel booking** | [View and cancel your bookings](#77-view-and-cancel-your-bookings) | Release a reservation before class start time. |
+
+### 7.2 Buy a membership
+
+Choose **My membership** in the sidebar.
+
+1. Under **Buy a membership**, choose an available plan. Each option lists its
+   duration in days and price in SGD. Archived plans are not offered for purchase.
+2. Choose **Purchase membership**.
+
+![My membership page](images/member-membership.png)
+> 📷 **Screenshot placeholder:** My membership page with an active membership and the Buy a membership card.
+
+> **Payment handling note:** Choosing **Purchase membership** records the
+> membership in Gymmie and makes it active immediately. Gymmie does not process
+> electronic payments or credit cards; fee collection and payment handling are
+> conducted in person at the gym reception desk.
+
+A Member can hold only **one active membership** at a time; the purchase button
+is disabled while a membership is active.
+
+### 7.3 View your membership
+
+On **My membership**, the **Current membership** card displays your plan name,
+expiry date, and status:
+
+| Status | Meaning |
+|--------|---------|
+| **Active** (green) | A membership covers today. Expiry date is inclusive. |
+| **Expired** (red) | Your latest membership has expired. Eligible for renewal. |
+| **Inactive** (red) | No current or past active membership on record. |
+| **Cancelled** (red) | Your latest membership was terminated early. |
+
+Choose **Refresh** to reload current membership coverage.
+
+### 7.4 Renew your membership
+
+Choose **Renew current plan** on **My membership** when your membership is active
+or expired.
+
+- Renewal keeps the **same plan**, even if that plan has since been archived.
+- Renewal extends coverage by the plan's duration, starting from the later of today
+  or your current expiry date.
+- The membership's original purchase start date is retained on record.
+- You cannot switch plan types during a renewal. To switch to a different plan,
+  wait until your current membership expires (or cancel it), then purchase the new plan.
+
+### 7.5 Cancel your membership
+
+1. Choose **Cancel current membership** on **My membership**.
+2. Review the confirmation alert and choose **OK**.
+
+**Important cancellation effects:**
+- Membership coverage ends immediately. **There are no refunds.**
+- All upcoming bookings for sessions that have not started are automatically
+  cancelled with the reason **Membership cancelled**.
+- Past sessions and bookings that were already cancelled remain unchanged.
+
+### 7.6 Browse and book sessions
+
+Choose **Browse sessions** in the sidebar to view upcoming classes offered by active Trainers.
+
+![Browse sessions page](images/member-browse-sessions.png)
+> 📷 **Screenshot placeholder:** Session cards with Trainer profile details and Book session, Already booked and Full buttons.
+
+Each card displays the Trainer's display name, synopsis, specializations, session
+date and time, duration, description, capacity, and current booking count.
+
+1. Filter classes using the **Trainer** dropdown (or select **All trainers**).
+2. Choose **Refresh** to reload availability.
+3. Choose **Book session** on an eligible card. The button changes to **Already booked**.
+
+**To book a session, all of the following rules must be met:**
+- You hold an active membership covering today.
+- The session has open capacity.
+- The session start time is strictly in the future.
+- The session starts on or before your membership expiry date.
+- You do not already hold an active booking for this session.
+
+### 7.7 View and cancel your bookings
+
+Choose **My bookings** in the sidebar.
+
+![My bookings page](images/member-bookings.png)
+> 📷 **Screenshot placeholder:** My bookings with Upcoming, Past and Cancelled sections.
+
+Bookings are organized into three tabs:
+- **Upcoming bookings:** Active reservations for future sessions.
+- **Past bookings:** Sessions that have already started or concluded.
+- **Cancelled bookings:** Cancelled reservations along with their specific cancellation reason.
+
+**Cancel a booking:** Choose **Cancel booking** on an upcoming card and confirm.
+Your reserved place is immediately released for other members. Bookings cannot be
+cancelled once a session has started.
+
+If you subsequently rebook a previously cancelled session, the new active booking
+overwrites the earlier cancellation record and clears the previous cancellation reason.
+
+---
+
+## 8. Reference
+
+### 8.1 Input limits
+
+| Field | Validation rule |
+|-------|-----------------|
+| **Username** | 3–30 characters using ASCII letters, digits, underscores, or hyphens (`[A-Za-z0-9_-]`). Globally unique across all roles. Matched case-insensitively, stored with original casing preserved. Immutable once created. |
+| **Password** | 8–128 characters. Validated upon entry; stored only as salted cryptographic hashes. |
+| **Display name** | 1–100 characters. Does not require uniqueness. |
+| **Plan name** | 1–100 characters. Non-blank, globally unique across plans (case-insensitive). |
+| **Plan duration** | Integer between 1 and 365 days. |
+| **Plan price** | Non-negative numeric value in SGD with at most 2 decimal places (e.g., `49.90` or `50`). |
+| **Session start** | Must be strictly in the future at submission time (`HH:mm`, 24-hour local time). |
+| **Session duration** | Integer between 15 and 240 minutes. |
+| **Session capacity** | Integer between 1 and 50 Members (must be $\ge$ current active booking count when editing). |
+
+### 8.2 Booking cancellation reasons
+
+| Cancellation reason | Trigger condition |
+|---------------------|-------------------|
+| **Trainer cancelled session** | Trainer cancelled the scheduled class. The Trainer's written explanation is displayed alongside. |
+| **Member cancelled booking** | Member released their own reservation prior to session start. |
+| **Membership cancelled** | Member terminated their membership early, triggering automatic cancellation of future class reservations. |
+| **Account deactivated** | Manager deactivated the Member's account, automatically releasing all future reservations. |
+
+### 8.3 Deleting versus archiving
+
+Gymmie applies soft-deletion and archiving principles to preserve audit trails:
+
+| Record type | Lifecycle & removal rule |
+|-------------|--------------------------|
+| **Membership plan** | Hard-deleted only if never purchased by any Member. If purchase history exists, automatically archived instead. Archiving is reversible via **Restore**. |
+| **Training session** | Hard-deleted only if no Member has ever booked the session. If any booking history exists, it must be cancelled with a stated reason. |
+| **User account** | Never hard-deleted. Soft-deactivated instead; account profile and historical activity are preserved. Deactivation is reversible via **Reactivate**. |
+| **Booking & Membership** | Never hard-deleted. Cancelled with reason and timestamp retained for auditing. |
+
+### 8.4 Saving the data
+
+Gymmie stores all data locally on your computer in an embedded SQLite database:
+- **Default file path:** `data/gymmie.db` (relative to the application root directory).
+- All changes (account creation, plan updates, bookings, and cancellations) commit
+  immediately inside ACID-compliant transactions.
+- State persists across sign-outs and application restarts.
+- **Backing up data:** To back up your data, close Gymmie and copy `data/gymmie.db`
+  to a secure backup directory.
+
+### 8.5 Editing the data file safely
+
+`data/gymmie.db` is a standard SQLite 3 database file.
+- **Direct editing is strongly discouraged:** Manual modifications using SQLite
+  browsers or command-line clients bypass service-layer validations and can corrupt
+  critical invariants (such as password hash structures, foreign-key linkages, and
+  price snapshot consistency).
+- **Safe inspection:** If inspecting tables directly using tools like `sqlite3 data/gymmie.db`,
+  ensure Gymmie is closed first to avoid database locking errors (`SQLITE_BUSY`).
+  Do not modify table schemas or user version PRAGMAs.
+
+### 8.6 Resetting the workspace safely
+
+If you need to reset Gymmie to a clean first-run state for testing or evaluation:
+
+1. Close Gymmie completely.
+2. In your terminal, delete or rename the database file:
+   ```bash
+   # On macOS / Linux
+   rm data/gymmie.db
+
+   # Alternatively, create a backup before removing:
+   mv data/gymmie.db data/gymmie.db.backup
+   ```
+3. Relaunch Gymmie:
+   ```bash
+   ./gradlew run
+   ```
+4. Gymmie will automatically execute `SchemaInitializer` to recreate the schema and
+   run `Seeder` to re-create the default initial Manager account (`manager` / `manager123`).
+
+---
+
+## 9. Known limitations
+
+- **No payment processing or revenue tracking:** Gymmie records membership purchases
+  and durations, but does not process credit cards or track revenue. Payment collection
+  takes place offline at the gym counter.
+- **No direct plan switching:** A Member holding an active membership cannot directly
+  upgrade or switch plans mid-cycle. To switch plans, the member must either wait for
+  their current plan to expire or cancel it first, then purchase the desired plan.
+- **No attendance check-in:** Gymmie provides session rosters displaying booked
+  members, but does not support marking attendance or check-in verification.
+- **Renewing an expired membership keeps its original start date:** Renewing extends
+  coverage from the later of today or the previous expiry date, while retaining the
+  membership's original initial purchase date.
+- **Rebooking overwrites cancellation reason:** If a Member cancels a booking and
+  later rebooks the same session, the new active booking overwrites the previous
+  cancellation record and clears the earlier cancellation reason.
+- **Seeded Manager cannot be deactivated:** The built-in `manager` account is
+  protected to prevent accidental administrative lock-out.
+- **Usernames and roles are permanent:** Once created, account usernames and roles
+  cannot be modified.
+- **No self-service password recovery:** There is no automated password reset link.
+  Users must change their password on their Home page while logged in.
+- **No cancellation refunds:** Cancelling an active membership terminates coverage
+  immediately without refund.
+
+---
+
+## 10. Troubleshooting
+
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| **"Invalid username or password"** | Incorrect login credentials entered. | Verify spelling and casing; re-enter your password. |
+| **"This account is deactivated"** | Your account was deactivated by a Manager. | Contact a gym Manager to reactivate your account. |
+| **"Enter your username and password."** | One or both fields were submitted empty. | Enter both credentials before clicking Log in. |
+| **Purchase membership button is disabled** | You already hold an active membership. | You can hold only one active membership at a time. |
+| **Book session button is disabled or missing** | Session is full, has already started, falls after your membership expiry, or your membership is inactive. | Check your membership status, verify session timing, or choose **Refresh** to check for newly opened spots. |
+| **"Cannot delete session" error** | Session has prior booking history. | Sessions with past or cancelled bookings cannot be deleted. Choose **Cancel session** instead. |
+| **Deleted plan remains in list as ARCHIVED** | Plan was previously purchased by Members. | Gymmie automatically archives purchased plans to protect member records. |
+| **Application appears out of date** | Changes occurred in another session. | Choose **Refresh** on the current screen to reload the latest database state. |
