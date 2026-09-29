@@ -357,16 +357,19 @@ Choose **Deactivate** on an account card.
   automatically cancelled in the same operation with the reason **Account deactivated**.
 - If the account is a **Trainer**, their sign-in is disabled; scheduled sessions
   and past records remain in storage for historical tracking. Their sessions
-  disappear from Members' **Browse sessions** list, but existing Member bookings
-  remain **Booked** in **My bookings** and are not cancelled. Ask the Trainer to
-  cancel their sessions before deactivation.
+  disappear from Members' **Browse sessions** list. Existing future bookings appear
+  under **Cancelled bookings** with the reason **Trainer account deactivated**.
+  Past bookings and explicit cancellations stay unchanged.
 - The seeded Manager account (`manager`) cannot be deactivated.
 
 **Reactivate an account**
 
 Choose **Reactivate** on a deactivated account card. The account status returns
 to **ACTIVE**, allowing the user to sign in again. Bookings cancelled during the
-earlier deactivation are **not** re-created.
+earlier Member deactivation are **not** re-created. For a Trainer, existing future
+bookings that have not otherwise been cancelled return to **Upcoming bookings**
+when Members open **My bookings** or choose **Refresh bookings**. Sessions that have already
+started remain in the past.
 
 ---
 
@@ -583,9 +586,19 @@ Bookings are organized into three sections:
   with the cancellation reason and (when a Trainer cancelled) the Trainer's
   written reason.
 
+If your Trainer is deactivated, future reservations appear under **Cancelled bookings**
+with **Trainer account deactivated**. Reactivation restores them to **Upcoming bookings**
+provided the session has not started and the booking has not otherwise been cancelled.
+Open this page or choose **Refresh bookings** to see the latest account status. Past bookings
+and explicit cancellations are unchanged by Trainer status changes.
+
 **Cancel a booking:** Choose **Cancel booking** on an Upcoming card and confirm.
 Your reserved place is immediately released for other members. Bookings cannot be
 cancelled once a session has started.
+
+**Cancelled bookings** has no cancel button, including reservations marked
+**Trainer account deactivated**. If the Trainer is reactivated before the session
+starts, the reservation returns to **Upcoming bookings**, where you can cancel it.
 
 If you rebook a cancelled session while the booking rules are met, its booking
 moves from **Cancelled** back to **Upcoming** and the earlier cancellation reason
@@ -616,6 +629,7 @@ is cleared.
 | **Trainer cancelled session** | Trainer cancelled the scheduled class. The Trainer's written explanation is displayed alongside. |
 | **Member cancelled booking** | Member released their own reservation prior to session start. |
 | **Membership cancelled** | Member terminated their membership early, triggering automatic cancellation of future class reservations. |
+| **Trainer account deactivated** | Trainer is inactive; future reservations return automatically on reactivation before session start, unless otherwise cancelled. |
 | **Account deactivated** | Manager deactivated the Member's account, automatically releasing all future reservations. |
 
 ### 8.3 Deleting versus archiving
@@ -697,9 +711,9 @@ If you need to reset Gymmie to a clean first-run state for testing or evaluation
 - **No self-service password recovery:** There is no automated password reset link.
   Users must change their password on their Home page while logged in.
 - **No Manager password reset:** A Manager cannot reset a user's forgotten password.
-- **Trainer deactivation leaves sessions and bookings:** Deactivating a Trainer
-  hides their sessions from Browse sessions but does not cancel the sessions or
-  their Members' bookings. The bookings remain Booked.
+- **Trainer status updates:** Deactivating a Trainer hides their sessions from
+  Browse sessions and shows future Member reservations as Cancelled. Reactivation
+  restores eligible future reservations. Open My bookings or refresh to see changes.
 - **Release JAR platform coverage:** The release JAR supports Windows x64,
   Apple Silicon macOS, and x64 Linux. Intel Mac and ARM Linux users must run
   Gymmie from source.

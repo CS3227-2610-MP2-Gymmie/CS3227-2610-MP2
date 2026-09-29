@@ -217,6 +217,7 @@ public final class MemberBookingsController {
                 case MEMBERSHIP_CANCELLED -> "Membership cancelled";
                 case MEMBER_CANCELLED_BOOKING -> "Member cancelled booking";
                 case TRAINER_CANCELLED_SESSION -> "Trainer cancelled session";
+                case TRAINER_ACCOUNT_DEACTIVATED -> "Trainer account deactivated";
                 case ACCOUNT_DEACTIVATED -> "Account deactivated";
             };
         }

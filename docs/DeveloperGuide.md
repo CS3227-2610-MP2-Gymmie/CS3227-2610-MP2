@@ -1031,7 +1031,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 - **Active membership:** A Member's current membership that has not been cancelled and has not expired. A Member holds at most one active membership at a time.
 - **Archived plan:** A membership plan that is hidden from the new purchase list but remains available for existing holders to renew. A Manager may unarchive it to return it to the buy list.
 - **Booking:** A Member's reservation for one session.
-- **Cancelled booking:** A booking that remains visible in the Member's booking list with a cancelled status and a reason identifying whether the Trainer cancelled the session, the Member cancelled the booking, the Member cancelled their membership, or a Manager deactivated the account.
+- **Cancelled booking:** A booking that remains visible in the Member's booking list with a cancelled status and a reason identifying whether the Trainer cancelled the session, the Member cancelled the booking, the Member cancelled their membership, or a Manager deactivated the account. Future reservations also display as cancelled while their Trainer is inactive; this temporary display status is reversible and does not change the stored reservation.
 - **Deactivated account:** An account retained for history but refused at login until a Manager reactivates it.
 - **Display name:** The human-readable name shown in rosters, account lists, and session details. Not unique: two Members may both be "John Tan". A user may change their own display name, and a Manager may change any user's.
 - **Duration:** A number of days for a membership plan, or a number of minutes for a session, depending on context.
@@ -1054,7 +1054,7 @@ Priorities: High (must have) `* * *`, Medium (nice to have) `* *`, Low (unlikely
 ### Known limitations
 
 - Plan switching is not supported. A Member who wants a different plan must cancel the current one first, forfeiting its remaining days, then buy the new plan.
-- Deactivating a Trainer does not cancel their sessions or Members' bookings. Their sessions disappear from **Browse sessions**, while affected bookings remain **Booked** in **My bookings**.
+- Deactivating a Trainer hides their sessions from **Browse sessions**. The booking-history service projects otherwise booked future reservations as **Cancelled** with **Trainer account deactivated**, without changing stored bookings. Reactivation restores their upcoming visibility on load or refresh. Started sessions and explicit cancellations are unaffected. **Cancelled bookings** never shows a cancel action, including for temporary Trainer deactivation. Members can cancel restored reservations from **Upcoming bookings** before session start.
 - The release JAR supports Windows x64, Apple Silicon macOS, and x64 Linux. Intel Mac and ARM Linux users must run Gymmie from source.
 - Managers cannot reset a user's forgotten password.
 - The seeded Manager account ships with the fixed password `manager123`, and changing it is not enforced on first login.
