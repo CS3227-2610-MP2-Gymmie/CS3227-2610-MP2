@@ -21,7 +21,9 @@
             <Label text="_Capacity (Members)" mnemonicParsing="true" labelFor="${capacity}" wrapText="true" minWidth="0" />
             <TextField fx:id="capacity" promptText="1–50" onAction="#save" />
             <Label text="D_escription (optional)" mnemonicParsing="true" labelFor="${description}" wrapText="true" minWidth="0" />
-            <TextArea fx:id="description" wrapText="true" prefRowCount="3" />
+            <TextArea fx:id="description" wrapText="true" prefRowCount="3"
+                      promptText="Enter a session description (optional)"
+                      style="-fx-border-color: #727e76; -fx-border-width: 1px; -fx-border-radius: 4px;" />
             <Button fx:id="saveButton" text="C_reate session" onAction="#save" />
         </VBox>
     </VBox>
