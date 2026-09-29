@@ -2,11 +2,13 @@
 
 In MP1 I learned to write prompts as contracts, with scope, tests, verification
 commands and a handoff. In MP2 I tried to stop retyping those contracts by
-moving them into the agent itself. Two skills I built for Codex include:
-`create-javafx-app`, which scaffolds a new JavaFX project, and `implement-issue`,
-which takes one GitHub issue from requirements to a reviewed, verified change.
-I used the first once, to create Gymmie, and the second for every Member feature
-I shipped. This reflection is about how I designed those two skills, how I
+moving them into the agent itself. Three skills I built for Codex are:
+`create-javafx-app`, which scaffolds a new JavaFX project; `issue-extractor`,
+which turns a section of the Developer Guide into a script that creates GitHub
+issues; and `implement-issue`, which takes one GitHub issue from requirements to
+a reviewed, verified change. I used the first once, to create Gymmie, the second
+to turn the Member stories into issues, and the third for every Member feature
+I shipped. This reflection is about how I designed those three skills, how I
 checked that they worked, and what they got wrong.
 
 The evidence is in the repository: the scaffold evaluation in
@@ -27,6 +29,7 @@ tutorial I presented in Week 5:
 | Task | Why it became a skill | What the skill carries |
 | --- | --- | --- |
 | Scaffolding a JavaFX app | The output should be identical every time: same package layout, same Checkstyle rules, same CI file. Generic agents invent their own. | Exact steps, copied asset files, the expected project tree and a definition of done. |
+| Turning requirements into issues | I did it once by prompting and needed four corrections; it was needed three more times. | Discovery steps, content rules that forbid inventing criteria, and a script template that is safe to rerun. |
 | Implementing an issue | I did it more than a dozen times. Without a fixed process, the agent skipped tests, skipped docs or claimed success without evidence. | A workflow loop, a report template and an independent review step. |
 
 Deciding what *not* to put in a skill mattered as much. I kept `implement-issue`
@@ -117,7 +120,83 @@ because it had no display, rather than as failed. `check` and `shadowJar`
 passed, and the only fixes were an import order and a missing JUnit launcher
 dependency.
 
-## 3. `implement-issue`: defining it and making sure it works
+## 3. `issue-extractor`: turning the Developer Guide into issues
+
+### Why it became a skill
+
+Before any code, each role's user stories had to become GitHub issues under
+that role's epic. I first did this for the shared epic by prompting alone
+(log `004`), and most of that session went into corrections:
+- "Do not run `gh issue create`. Write a reviewable shell script";
+- "Acceptance criteria must come from the Developer Guide";
+- replacing `gh issue list --search` with an exact title comparison, because
+  colons in titles broke the search;
+- fixing a schema that rendered with literal escape characters.
+
+The same job was coming up three more times, once per role, and for three
+different people. Each of those corrections would have had to be repeated.
+So the next day I used `skill-creator` to turn them into a skill (log `005`).
+
+### Defining it
+
+[`issue-extractor`](../../.agents/skills/issue-extractor/SKILL.md) is 50 lines.
+Its description says when to use it (one section of a reference document, one
+epic) and when not to (a single ad-hoc issue or bug report). The body has four
+kinds of rules:
+
+- **It writes a script and never creates issues.** Creating issues is an
+  outward-facing action on a shared team repository, so the skill writes
+  `scripts/create-<section>-issues.sh`, validates it with `bash -n` only, and
+  leaves running it to me.
+- **It discovers repository state instead of guessing it.** Labels come from
+  `gh label list`, and the epic is resolved by exact title when the script
+  runs, never as a hardcoded number. The milestone is applied only if exactly
+  one is open. Existing hand-written issues set the body format.
+- **It never invents acceptance criteria.** Criteria must come from the same
+  document: use cases, constraints, known limitations. If a story has none,
+  the issue gets a `Notes:` line saying so. Real conflicts are recorded, not
+  resolved.
+- **Reruns are safe.** The script compares against every issue title, open or
+  closed, and skips existing ones.
+
+### Making sure it works
+
+I did not build an evaluation suite like the one for `create-javafx-app`.
+This skill runs a handful of times, and its output is a script I read before
+anything happens. Its safety comes from that review gate. For the first
+generated script, [`create-member-issues.sh`](../../scripts/create-member-issues.sh),
+the agent checked the syntax with `bash -n` and tested the empty-milestone case
+under macOS's default Bash 3.2. I read every issue body against the Developer
+Guide before running the script myself. It created the ten Member stories,
+#35–#44.
+
+That review found real problems:
+- **A Bash 3.2 bug.** With `set -u`, an empty array of open milestones crashed
+  the script. The agent's fix then broke the one-milestone case, which it
+  corrected in a second pass. Neither would have shown up on a newer Bash.
+- **A false conflict.** It flagged the post-MVP plan-switching story as a
+  contradiction with the known limitations. I had it restate the story as a
+  documented v1.0 limitation with criteria deferred. #44 still says this, and
+  the team later closed it as not planned.
+- **An ambiguous trigger example.** "E3" became "Epic 3" so the description
+  could not be misread.
+
+### What it taught me
+
+- **The skill is only as precise as its source.** #40's criteria say the
+  Member must have "no existing booking", copied faithfully from the guide.
+  Neither the guide nor the issue said what happens after a cancellation, and
+  that gap became the rebooking bug I found in #40 (§6). Refusing to invent
+  criteria keeps issues honest, but it also carries every gap in the document
+  straight into the backlog.
+- **Some actions should stay behind a human gate.** Returning a script rather
+  than acting is slower, but I read each issue before it existed, and a
+  mistake cost an edit rather than a cleanup on the shared repository.
+- **Prompt corrections are a skill's first draft.** Almost every rule in the
+  skill is a correction from log `004`. Moving them into a skill made the next
+  three runs start from the corrected version.
+
+## 4. `implement-issue`: defining it and making sure it works
 
 ### The version I threw away
 
@@ -188,7 +267,7 @@ Across these eleven issues:
   11 issues.
 - **I still made 13 corrections** in total. Only #38, #41 and #43 needed none.
 
-## 4. What the agent handled well
+## 5. What the agent handled well
 
 - **Tests that catch real bugs.** The reviewer loop repeatedly found problems a
   green local run would hide:
@@ -212,7 +291,7 @@ Across these eleven issues:
   and merged #110, #111 and #112, each a full feature with tests and
   documentation.
 
-## 5. Where it needed guidance, and where it created work
+## 6. Where it needed guidance, and where it created work
 
 1. **It does not discover conventions nobody wrote down.**
    - Member code went into shared packages in #35 and #36, even though the
@@ -267,7 +346,7 @@ Across these eleven issues:
      The script did not even parse on macOS's default bash. A check that does
      not run the artifact is not verification.
 
-## 6. What I would change next time
+## 7. What I would change next time
 
 - **Make the documentation step search both guides.** Three issues in a row
   would have been caught by one instruction: search the User Guide *and* the
@@ -289,7 +368,7 @@ Across these eleven issues:
   I also lost command counts and token use. A single script that summarizes the
   JSONL trace next to each report would restore them without the overhead.
 
-## 7. What I learned about designing a single agent
+## 8. What I learned about designing a single agent
 
 - **Put each rule where it has authority and the right lifetime.** Platform
   instructions win over repository instructions, which win over skills.
