@@ -99,7 +99,6 @@ it from the same folder so it continues using the same data.
 3. Gymmie opens the dashboard for your role.
 
 ![Login screen](images/login-screen.png)
-> 📷 **Screenshot placeholder:** Login screen with username and password fields.
 
 The initial Manager account is created automatically when Gymmie launches for
 the first time:
@@ -152,7 +151,6 @@ highlighted, and the sidebar remains visible on every page.
 discards any unsaved form inputs.
 
 ![Sidebar for each role](images/sidebar-by-role.png)
-> 📷 **Screenshot placeholder:** Sidebar for Manager, Trainer, and Member side by side.
 
 ### 2.2 Keyboard shortcuts
 
@@ -223,7 +221,6 @@ The **Home** page displays your display name, username, and role, plus personal
 account management forms.
 
 ![Home page](images/home-page.png)
-> 📷 **Screenshot placeholder:** Home page showing the profile card and Change password form.
 
 ### 4.1 Change your display name (Managers and Members)
 
@@ -279,7 +276,6 @@ plan name, duration in days, price formatted in SGD, and an **ACTIVE** or
 red status badge.
 
 ![Manage membership plans page](images/manager-plans-list.png)
-> 📷 **Screenshot placeholder:** Plan list with one active and one archived plan, and the Create new plan card.
 
 Choose **Refresh** to reload the list from storage.
 
@@ -327,7 +323,6 @@ name, username prefixed with `@`, role badge (**TRAINER**, **MEMBER**, or
 **MANAGER**), and an **ACTIVE** or **DEACTIVATED** badge.
 
 ![Manage accounts page](images/manager-accounts-list.png)
-> 📷 **Screenshot placeholder:** Account list with active and deactivated accounts and the Provision new account card.
 
 Choose **Refresh** to reload the list.
 
@@ -396,7 +391,6 @@ The table below lists all Trainer capabilities in recommended workflow order:
 Choose **Create session** in the sidebar.
 
 ![Create session form](images/trainer-create-session.png)
-> 📷 **Screenshot placeholder:** Create session form with the calendar open.
 
 1. Open **Start date** with the calendar button and choose a future date.
 2. Enter **Start time** as `HH:mm` in 24-hour local time (for example, `14:30`).
@@ -416,7 +410,6 @@ Choose **My upcoming sessions** in the sidebar. Sessions appear in chronological
 start-time order. Each card shows start date, time, duration, capacity, and description.
 
 ![Upcoming sessions list](images/trainer-upcoming-sessions.png)
-> 📷 **Screenshot placeholder:** Upcoming sessions list with action buttons on each card.
 
 Only uncancelled sessions scheduled in the future appear here. Choose **Refresh**
 to reload current sessions and headcounts.
@@ -452,7 +445,6 @@ cancelled together with the reason **Trainer cancelled session**, accompanied by
 your written explanation. Cancelled sessions leave your upcoming list.
 
 ![Cancel session dialog](images/trainer-cancel-session.png)
-> 📷 **Screenshot placeholder:** Cancel session dialog showing bookings and the reason field.
 
 ### 6.7 Delete an unused session
 
@@ -468,7 +460,6 @@ rejects deletion to protect audit history. Use [Cancel a session](#66-cancel-a-s
 Choose **Home**, then choose **Edit my profile**.
 
 ![Trainer profile editor](images/trainer-profile-editor.png)
-> 📷 **Screenshot placeholder:** Profile editor with display name, synopsis and specialization tags.
 
 1. Edit **Display name** (1–100 characters).
 2. Edit **Synopsis** (biographical description; multiple lines supported).
@@ -505,7 +496,6 @@ Choose **My membership** in the sidebar.
 2. Choose **Purchase membership**.
 
 ![My membership page](images/member-membership.png)
-> 📷 **Screenshot placeholder:** My membership page with an active membership and the Buy a membership card.
 
 > **Payment handling note:** Choosing **Purchase membership** records the
 > membership in Gymmie and makes it active immediately. Gymmie does not process
@@ -557,7 +547,6 @@ or expired.
 Choose **Browse sessions** in the sidebar to view upcoming classes offered by active Trainers.
 
 ![Browse sessions page](images/member-browse-sessions.png)
-> 📷 **Screenshot placeholder:** Session cards with Trainer profile details and Book session, Already booked and Full buttons.
 
 Each card displays the Trainer's display name, synopsis, specializations, session
 date and time, duration, description, capacity, and current booking count.
@@ -585,7 +574,6 @@ cancelled booking when all booking rules below are still met.
 Choose **My bookings** in the sidebar.
 
 ![My bookings page](images/member-bookings.png)
-> 📷 **Screenshot placeholder:** My bookings with Upcoming, Past and Cancelled sections.
 
 Bookings are organized into three sections:
 - **Upcoming bookings:** Active reservations for future sessions, soonest first.
