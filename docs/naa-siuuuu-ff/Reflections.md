@@ -4,9 +4,9 @@
 
 In MP1, working with AI assistants primarily involved iterative prompting and reacting to what the model generated. In MP2, the goal shifted towards designing structured agents with predefined skills, operational boundaries, and verification loops. 
 
-Modern AI coding agents are extraordinarily powerful: they can continuously churn out plausible, well-formatted, and correct-looking code at immense speeds. However, this velocity introduces a subtle and dangerous risk: **the silent accumulation of technical debt**. Because AI-generated code looks superficially sound, minor logical oversights, architectural inconsistencies, and leaky abstractions can easily slip through. When subsequent tasks are built on top of faulty foundations, finding and debugging issues becomes exponentially more difficult, expensive, and time-consuming.
+Today's AI coding agents are very capable. They can keep producing code that looks correct, quickly and continuously. The risk is that small mistakes build up quietly. The longer a bug stays in the codebase, and the more code gets written on top of it, the harder and more expensive it is to find and fix. That is **technical debt**, and AI makes it easy to pile up without noticing.
 
-My core philosophy throughout MP2 was therefore: **slow down at the start to go faster and safer later**. By investing upfront in planning, defining explicit domain rules, and enforcing human-in-the-loop checkpoints, we struck a balance—reaping the tremendous speed advantages of AI without paying the compounding penalties of technical debt.
+My approach throughout MP2 was therefore: **slow down at the start to go faster and safer later**. I spent time upfront on planning, wrote the domain rules down explicitly, and kept human checkpoints in the loop. That let us benefit from the agent's speed without being hurt by the debt it can create.
 
 ---
 
@@ -18,23 +18,25 @@ My tooling changed partway through the project, and the setup I ended up with tu
 - **Antigravity, first with Gemini, then with Claude.** I began running the implementation agent inside Antigravity with Gemini, then switched to a Claude model within Antigravity for the rest of the work.
 - **A separate chat assistant for planning and review.** Alongside the implementation agent, I used Claude's web chat interface to plan prompts, break issues into steps, and review the agent's output before accepting it. Antigravity did the actual implementation.
 
-This split was deliberate and turned out to be an efficient use of tokens. Planning and review are conversational, and the Claude web interface generally consumes less of my quota for that kind of back-and-forth. Gemini inside Antigravity had effectively unlimited usage, so it could absorb the high-volume implementation work. Instead of spending an expensive agent's budget on thinking out loud, I did the thinking in the cheap place and sent the agent a precise, already-reviewed prompt.
+To be clear about scope: the agent I customised is the single coding agent in Antigravity. It loaded the project's `AGENTS.md` and the skills in `.agents/skills/`, and it did all of the implementation, testing, and git work. The chat assistant never touched the repository. It only helped me think.
 
-The split also added a second pair of eyes. The model reviewing the output was not the model that wrote it, so it was less inclined to rationalise its own mistakes. It still did not replace my own review, but it caught things faster than I would have alone.
+I set it up this way to use tokens efficiently. Planning and review involve a lot of back-and-forth, and the Claude web interface usually uses less of my quota for that. While I was on Gemini, its effectively unlimited usage in Antigravity meant I didn't have to ration implementation runs. So I did the thinking in the cheaper place and gave the agent a precise prompt I had already reviewed, rather than spending the agent's budget working out what to do.
+
+The split also added a second pair of eyes. The model reviewing the output was not the model that wrote it, so it had less reason to defend its own mistakes. It never replaced my own review, but it helped me spot problems faster.
 
 ---
 
 ## 3. What I Customized the Agent to Do
 
-I developed and maintained several skills tailored to the Manager epic and cross-cutting repository needs:
+I developed and maintained several skills for the Manager epic and for needs that cut across the repository. To decide what deserved a skill, I asked two questions. Is the task something the agent will do repeatedly? Can it be written as a fixed procedure with a clear definition of done? Tasks that passed both, like the git workflow, style checks, archiving rules and User Guide updates, became skills. One-off design decisions stayed with me.
 
 | Skill | Problem it Solved | Core Guardrails & Invariants |
 | --- | --- | --- |
 | `manager-issue-sequential-workflow` | Autonomous agents racing ahead, branching off unmerged commits, and leaking untracked files into PRs. | Mandatory human **stop-and-wait gates**, dynamic issue resolution via `gh`, surgical staging of intended files only. |
 | `manage-membership-plans` | Generic agents inventing arbitrary CRUD operations without respecting gym domain invariants. | Validation rules (duration > 0, price >= 0, unique name), Manager role authorization, and delegation to domain repositories. |
-| `soft-delete-archive-pattern` | Naive SQL/ORM implementations calling hard `DELETE`, destroying audit trails and historical purchase records. | Enforces `isArchived` flag, `archive()`/`restore()` contracts, and isolates administrative queries from active queries. |
+| `soft-delete-archive-pattern` | Naive SQL/ORM implementations calling hard `DELETE`, destroying audit trails and historical purchase records. | Plans are only hard-deleted if nobody has purchased them; otherwise they are marked archived, and member-facing queries hide archived plans while the Manager can still see them. |
 | `update-user-guide` | Documentation drifting out of sync with rapid UI and service changes. | User-perspective documentation updates shipped in the exact same PR as the feature. |
-| `checkstyle-compliance-check` | Checkstyle and Javadoc formatting violations failing CI builds. | Pre-commit automated style validation matching SE-EDU conventions. |
+| `checkstyle-compliance-check` | Checkstyle and Javadoc formatting violations failing CI builds. | Instructs the agent to run `./gradlew check` and fix Checkstyle/Javadoc violations before opening a PR (a skill the agent follows, not an automated hook). |
 
 ### Designing `manager-issue-sequential-workflow`
 The Manager epic required sequential development across multiple architectural layers: persistence `nextId` helpers, domain models, services, and JavaFX controllers. Left unconstrained, an autonomous agent tasked with multiple stories might attempt to branch downstream features before upstream pull requests are merged, or use `git add .` and bundle scripts, temporary logs, or scratch files into unrelated pull requests.
@@ -52,7 +54,7 @@ Generic agents typically treat every entity as a simple CRUD resource, defaultin
 Creating `soft-delete-archive-pattern` and `manage-membership-plans` guaranteed that regardless of which agent conversation implemented a feature, the business logic remained consistent: plans with purchase histories are safely archived rather than destroyed, active queries filter out archived entries by default, and only Managers possess authorization to perform lifecycle transitions. These skills acted as permanent guardrails across the codebase.
 
 ### How I Validated the Skills
-A skill is only useful if the agent actually follows it, so I did not trust any new skill on important work straight away. For each one, I first let the agent use it on a **small, low-stakes task** that I fully understood and could easily fix by hand if something went wrong. I watched whether the agent followed the steps as written: whether it stopped at the gates, staged only the named files, and ran the checks. Only after that trial did I let the skill drive larger tasks and real PRs.
+Each `SKILL.md` follows the same shape: when to use it, the ordered steps, and a definition of done the agent can check itself against. A skill is only useful if the agent actually follows it, so I did not trust any new skill on important work straight away. For each one, I first let the agent use it on a **small, low-stakes task** that I fully understood and could easily fix by hand if something went wrong. I watched whether the agent followed the steps as written: whether it stopped at the gates, staged only the named files, and ran the checks. Only after that trial did I let the skill drive larger tasks and real PRs.
 
 In practice I did not need to revise any of my skills after these trials. The models were capable enough to follow well-written instructions faithfully, and the skills worked as intended on the first real use. I think this says less about the models being clever and more about how much a clear, concrete, step-by-step skill reduces the room for misinterpretation. The vague skills are the ones that need rewriting, and the effort spent making each one precise upfront paid off here.
 
@@ -75,6 +77,11 @@ One of the most effective decisions in our development process was decomposing l
 - **Auditability and Bisecting**: If a regression emerged, pinpointing the exact commit that introduced it was immediate.
 - **Workflow Planning Before Code**: Because the entire sequence was mapped out before writing code, tasks progressed smoothly without architectural rework or conflicting abstractions.
 
+### What the Agent Handled Well
+- **Service-layer unit tests.** Given the validation rules from `manage-membership-plans`, the agent wrote JUnit tests for both the happy paths and the rejection cases, such as invalid duration, negative price, duplicate name and non-Manager callers. Writing these by hand would have taken far longer.
+- **Following the sequence.** With the workflow skill in place, the agent worked issue by issue, stopped at each gate, and staged only the files it was told to. Each PR arrived small and focused, which made my reviews fast.
+- **Mechanical follow-up work.** Changes such as switching plan prices to dollars (#109) and adding the password visibility toggle (#113) were quick, well-scoped tasks the agent finished with little correction.
+
 ### Redo Rather Than Repair
 Small PRs also changed how I would handle a bad agent output. When an agent produces a large, tangled change, the tempting move is to patch it until it works. My view is that if an agent makes a real mess, especially one spanning a lot of code, it is usually cheaper and safer to **discard the attempt and redo the task** with a better prompt than to untangle it. Patching AI output you do not fully understand is exactly how silent technical debt gets in. Small PRs make this cheap, because throwing away a small single-concern change costs very little. This never became necessary in my work, but having the option kept the stakes of each agent run low.
 
@@ -87,7 +94,7 @@ Our verification strategy relied on two complementary tiers.
 ### Automated Verification, and the Lesson of PR #99
 My very first Manager PR, PR #99, failed CI on a Checkstyle indentation error. The cause was simple: up to that point, `./gradlew check` was not being run **explicitly** before pushing. The agent's own tests had passed, but the full style and Javadoc checks that CI enforces had never run locally.
 
-After that, I made it a hard rule that `./gradlew check` must run and pass before anything is committed or pushed, and the `checkstyle-compliance-check` skill made that part of the agent's routine. **No PR failed CI after PR #99.** One failure and one explicit rule were enough to eliminate the whole category of problem. The rule gave a reliable floor of confidence:
+After that, I made it a hard rule that `./gradlew check` must run and pass before anything is committed or pushed. Every prompt I wrote stated it explicitly as a gate, alongside the `checkstyle-compliance-check` skill. **No PR failed CI after PR #99.** One failure and one explicit rule were enough to eliminate the whole category of problem. The rule gave a reliable floor of confidence:
 - Domain invariants, validation logic, and authorization rules were verified across happy paths and error states by focused JUnit 5 tests.
 - Style checks and Javadoc rules were verified before pushing, preventing CI failures on the shared upstream repository.
 
@@ -124,11 +131,14 @@ If I were to start MP2 over, I would prioritize sitting down in person with my t
 ### 2. Make the Definition of Done Explicit from Day One
 PR #99 would not have failed if `./gradlew check` had been an explicit, mandatory step from the start. Next time, the exact verification command goes into the agent's instructions before the first task, not after the first failure.
 
-### 3. Plan Cheaply, Implement Deliberately
+### 3. Enforce Rules with Tools, Not Just Instructions
+A skill tells the agent what to do, but nothing forces it to comply. If I did this again, I would add a git pre-push hook that runs `./gradlew check`, so a push cannot happen without the check passing, whatever the agent remembers. I would also write the order of checks directly into the workflow skill instead of relying on a separate one. Both changes turn a rule the agent has to remember into one it cannot skip.
+
+### 4. Plan Cheaply, Implement Deliberately
 Separating planning and review (in a chat assistant) from implementation (in the agent) made better use of limited token budgets and added an independent review step. I would set this up deliberately from the beginning instead of arriving at it because a tool was unavailable.
 
-### 4. Clarity Before Autonomy
-Before granting autonomy to an agent, **absolute clarity is paramount**. The human engineer remains ultimately responsible for every line of code committed to the repository. Handing the reins to an AI without a clear mental picture of the architecture, edge cases, and design intricacies leads to fragile software. Slowing down to understand the codebase and establish explicit boundaries is what enables high velocity later.
+### 5. Clarity Before Autonomy
+Before giving an agent autonomy, clarity matters most. Humans have to stay in the loop, because ultimately they are responsible for the code. Slow down at the start. Build an accurate mental picture of the codebase and of the small issues and intricacies you will have to deal with, before you give the agent the reins.
 
-### 5. Deliberate Guardrails Over Unchecked Freedom
-Modern foundation models possess impressive reasoning capabilities, but their primary goal is satisfying the immediate prompt. Without guardrails, they optimize for short-term completion over long-term maintainability. Explicit guardrails—stop-and-wait gates, non-destructive archiving contracts, single-concern PRs, and strict verification commands—keep the agent focused, predictable, and aligned with sound software engineering principles.
+### 6. Guardrails Where the Model Doesn't Know Your Domain
+Today's models already come with good general guardrails. They rarely write obviously unsafe code, and they follow clear instructions well. What they don't know is your project: that a purchased plan must never be deleted, that PRs must be small and sequential, or which exact command counts as done. My skills were not there to fix bad models. They supplied the domain knowledge and project rules the model had no way of guessing, and that is where time spent on guardrails pays off most.
