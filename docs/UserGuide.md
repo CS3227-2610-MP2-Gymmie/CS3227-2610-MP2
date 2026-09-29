@@ -451,7 +451,7 @@ your written explanation. Cancelled sessions leave your upcoming list.
 
 ### 6.7 Delete an unused session
 
-1. On **My upcoming sessions**, choose **Delete session** on an eligible card.
+1. On **My upcoming sessions**, choose **Delete session** on a session card.
 2. Confirm the prompt by choosing **OK**.
 
 A session can be deleted **only if it has never had any bookings**. If even a
@@ -620,7 +620,7 @@ is cleared.
 | **Plan price** | SGD 0.00–10,000.00 with at most 2 decimal places (e.g., `49.90` or `50`). |
 | **Session start** | Must be strictly in the future at submission time (`HH:mm`, 24-hour local time). |
 | **Session duration** | Integer between 15 and 240 minutes. |
-| **Session capacity** | Integer between 1 and 50 Members (must be $\ge$ current active booking count when editing). |
+| **Session capacity** | Integer between 1 and 50 Members (must be ≥ current active booking count when editing). |
 
 ### 8.2 Booking cancellation reasons
 
@@ -732,7 +732,10 @@ If you need to reset Gymmie to a clean first-run state for testing or evaluation
 | **"This account is deactivated"** | Your account was deactivated by a Manager. | Contact a gym Manager to reactivate your account. |
 | **"Enter your username and password."** | One or both fields were submitted empty. | Enter both credentials before clicking Log in. |
 | **Purchase membership button is disabled** | You already hold an active membership. | You can hold only one active membership at a time. |
-| **Book session button is disabled or missing** | Session is full, has already started, falls after your membership expiry, or your membership is inactive. | Check your membership status, verify session timing, or choose **Refresh** to check for newly opened spots. |
-| **"Cannot delete session" error** | Session has prior booking history. | Sessions with past or cancelled bookings cannot be deleted. Choose **Cancel session** instead. |
+| **Book session shows Full or Already booked** | No places remain, or you already hold a booking for this session. | Choose **Refresh** to check for newly opened places, or choose another session. |
+| **"An active membership is required to book sessions"** | You have no membership covering today. | Buy or renew a membership on **My membership**, then book again. |
+| **"Your membership expires before this session starts"** | The session starts after your membership expiry date. | Renew your membership, or choose a session on or before your expiry date. |
+| **"This session has already started"** | The session started after the list loaded. | Choose **Refresh** and choose an upcoming session. |
+| **"Sessions with booking history cannot be deleted…"** | Session has prior booking history. | Sessions with past or cancelled bookings cannot be deleted. Choose **Cancel session** instead. |
 | **Deleted plan remains in list as ARCHIVED** | Plan was previously purchased by Members. | Gymmie automatically archives purchased plans to protect member records. |
 | **Application appears out of date** | Changes occurred in another session. | Choose **Refresh** on the current screen to reload the latest database state. |
