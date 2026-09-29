@@ -710,7 +710,7 @@ If you need to reset Gymmie to a clean first-run state for testing or evaluation
   cannot be modified.
 - **No self-service password recovery:** There is no automated password reset link.
   Users must change their password on their Home page while logged in.
-- **No Manager password reset:** A Manager cannot reset a user's forgotten password.
+- **No Manager password reset:** A Manager cannot reset a user's forgotten password. Manager will have to create a new account for that user.
 - **Trainer status updates:** Deactivating a Trainer hides their sessions from
   Browse sessions and shows future Member reservations as Cancelled. Reactivation
   restores eligible future reservations. Open My bookings or refresh to see changes.
