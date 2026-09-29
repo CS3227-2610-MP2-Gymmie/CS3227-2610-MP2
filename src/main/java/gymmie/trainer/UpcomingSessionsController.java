@@ -16,6 +16,7 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 /** Displays the authenticated Trainer's upcoming sessions with refreshable local-time filtering. */
@@ -104,7 +105,9 @@ public final class UpcomingSessionsController {
         cancelButton.setId("cancelButton-" + session.id());
         cancelButton.setAccessibleText("Cancel session " + session.id());
         cancelButton.setOnAction(_ -> reviewCancellation(session.id(), card));
-        card.getChildren().addAll(rosterButton, roster, editButton, deleteButton, cancelButton);
+        FlowPane actions = new FlowPane(10, 10, rosterButton, editButton, deleteButton, cancelButton);
+        actions.setMinWidth(0);
+        card.getChildren().addAll(actions, roster);
         card.getStyleClass().add("card");
         return card;
     }
