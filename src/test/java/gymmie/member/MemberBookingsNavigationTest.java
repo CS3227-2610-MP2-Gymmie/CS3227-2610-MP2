@@ -159,6 +159,58 @@ class MemberBookingsNavigationTest {
         }
     }
 
+    @Test
+    void refreshReflectsTrainerStatusAndCancelledBookingsHaveNoCancelAction() throws Exception {
+        AppContext context = contextWithBookings(temporaryDirectory.resolve("trainer-toggle.db"));
+        context.getAuthService().login("member", "password123");
+        Stage stage = onFxThread(Stage::new);
+        try {
+            ObservableValue<String> status = onFxThread(() -> {
+                new Router(stage, context, new ViewLoader()).showMemberBookings();
+                stage.show();
+                return ((Label) stage.getScene().lookup("#bookingsStatus")).textProperty();
+            });
+            awaitUi(status, "6 bookings"::equals);
+            for (boolean active : new boolean[]{false, true}) {
+                context.getPersistence().unitOfWork().inTransaction(connection -> {
+                    Account trainer = context.getPersistence().accounts().findById(connection, 3).orElseThrow();
+                    context.getPersistence().accounts().update(connection,
+                            new Account(trainer.id(), trainer.username(), trainer.password(),
+                                    trainer.displayName(), trainer.role(), active));
+                    return null;
+                });
+                onFxThread(() -> {
+                    Button refresh = (Button) stage.getScene().lookup("#refreshButton");
+                    refresh.fire();
+                    return null;
+                });
+                awaitUi(status, "6 bookings"::equals);
+                onFxThread(() -> {
+                    ListView<?> upcoming = (ListView<?>) stage.getScene().lookup("#upcomingBookings");
+                    ListView<?> past = (ListView<?>) stage.getScene().lookup("#pastBookings");
+                    ListView<?> cancelled = (ListView<?>) stage.getScene().lookup("#cancelledBookings");
+                    assertEquals(active ? 1 : 0, upcoming.getItems().size());
+                    assertEquals(1, past.getItems().size());
+                    assertEquals(active ? 4 : 5, cancelled.getItems().size());
+                    ScrollPane screen = (ScrollPane) stage.getScene().lookup("#pageScroll");
+                    screen.setVvalue(1);
+                    Parent content = (Parent) screen.getContent();
+                    content.applyCss();
+                    content.layout();
+                    assertTrue(cancelled.lookupAll(".list-cell .button").isEmpty());
+                    assertEquals(!active, rowLabels(cancelled).stream()
+                            .anyMatch(text -> text.contains("Cancelled · Reason: Trainer account deactivated")));
+                    return null;
+                });
+            }
+        } finally {
+            onFxThread(() -> {
+                stage.close();
+                return null;
+            });
+        }
+    }
+
     private AppContext contextWithBookings(Path database) throws Exception {
         AppContext context = new AppContext(database);
         var hash = new PasswordHasher().hash("password123");

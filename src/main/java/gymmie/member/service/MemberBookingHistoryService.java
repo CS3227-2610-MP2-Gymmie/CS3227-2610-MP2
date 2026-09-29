@@ -1,5 +1,6 @@
 package gymmie.member.service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +24,19 @@ public final class MemberBookingHistoryService {
     private final TrainingSessionRepository sessions;
     private final UnitOfWork unitOfWork;
     private final Permissions permissions;
+    private final Clock clock;
 
     /** Creates the Member booking-history reader. */
     public MemberBookingHistoryService(BookingRepository bookings, TrainingSessionRepository sessions,
             AccountRepository accounts,
             UnitOfWork unitOfWork, Permissions permissions) {
+        this(bookings, sessions, accounts, unitOfWork, permissions, Clock.systemDefaultZone());
+    }
+
+    /** Creates the booking-history reader with a clock for the future-session cutoff. */
+    public MemberBookingHistoryService(BookingRepository bookings, TrainingSessionRepository sessions,
+            AccountRepository accounts, UnitOfWork unitOfWork, Permissions permissions, Clock clock) {
+        this.clock = Objects.requireNonNull(clock);
         this.bookings = Objects.requireNonNull(bookings);
         this.sessions = Objects.requireNonNull(sessions);
         this.accounts = Objects.requireNonNull(accounts);
@@ -38,22 +47,30 @@ public final class MemberBookingHistoryService {
     /**
      * Lists all of the signed-in Member's bookings and session details.
      *
+     * <p>An inactive Trainer makes an otherwise booked future session appear cancelled.
+     * This display status does not mutate the reservation, so reactivation restores its
+     * visibility while explicit cancellations and sessions that have started remain unchanged.
+     *
      * @return booking history in booking identifier order.
      * @throws Exception if authorization or persistence fails.
      */
     public List<MemberBooking> bookingHistory() throws Exception {
         return unitOfWork.inTransaction(connection -> {
             Account account = permissions.requireRole(connection, Role.MEMBER);
+            LocalDateTime now = LocalDateTime.now(clock);
             ArrayList<MemberBooking> history = new ArrayList<>();
             for (var booking : bookings.findByMemberId(connection, account.id())) {
                 var session = sessions.findById(connection, booking.sessionId())
                         .orElseThrow(() -> new ConflictException("A booked session is no longer available"));
-                String trainerName = accounts.findById(connection, session.trainerId())
-                        .orElseThrow(() -> new ConflictException("A session Trainer is no longer available"))
-                        .displayName();
-                history.add(new MemberBooking(booking.id(), session.startsAt(), trainerName,
-                        session.description(), session.durationMinutes(), booking.status(),
-                        booking.cancellationReason(),
+                Account trainer = accounts.findById(connection, session.trainerId())
+                        .orElseThrow(() -> new ConflictException("A session Trainer is no longer available"));
+                boolean trainerUnavailable = !trainer.active() && !session.hasStartedAt(now)
+                        && !session.cancelled() && booking.status() == BookingStatus.BOOKED;
+                history.add(new MemberBooking(booking.id(), session.startsAt(), trainer.displayName(),
+                        session.description(), session.durationMinutes(),
+                        trainerUnavailable ? BookingStatus.CANCELLED : booking.status(),
+                        trainerUnavailable ? CancellationReason.TRAINER_ACCOUNT_DEACTIVATED
+                                : booking.cancellationReason(),
                         booking.cancellationReason() == CancellationReason.TRAINER_CANCELLED_SESSION
                                 ? session.cancellationReason() : null));
             }
